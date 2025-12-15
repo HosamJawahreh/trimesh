@@ -1,0 +1,1102 @@
+/* Blog section: force images to equal width and height, responsive */
+.blog-card-image {
+    width: 100%;
+    aspect-ratio: 16/9;
+    overflow: hidden;
+    border-radius: 1rem;
+    background: #f6f6f6;
+    min-height: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.blog-card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+/* Blog section: make images equal width and responsive */
+.blog-card-image,
+.blog-card-image img {
+    width: 100%;
+    aspect-ratio: 16/9;
+    height: auto;
+    object-fit: cover;
+    display: block;
+    border-radius: 1rem;
+}
+/* Modern About Section Enhancements */
+.modern-about-bg {
+    background: linear-gradient(120deg, #f8fafc 0%, #f1f5ff 100%) !important;
+}
+
+.modern-glass-card {
+    background: rgba(255,255,255,0.85);
+    border-radius: 32px;
+    box-shadow: 0 8px 40px rgba(80, 120, 200, 0.10), 0 1.5px 8px rgba(0,0,0,0.04);
+    padding: 32px 32px 32px 32px;
+    backdrop-filter: blur(6px);
+    border: 1.5px solid rgba(120,140,180,0.08);
+    transition: box-shadow 0.3s;
+}
+.modern-glass-card:hover {
+    box-shadow: 0 16px 48px rgba(80, 120, 200, 0.16), 0 4px 16px rgba(0,0,0,0.08);
+}
+
+.modern-img-shadow {
+    box-shadow: 0 8px 32px rgba(80, 120, 200, 0.10), 0 1.5px 8px rgba(0,0,0,0.04);
+    border-radius: 24px;
+    overflow: hidden;
+}
+
+.modern-about-content {
+    padding-left: 32px;
+    padding-right: 12px;
+}
+
+.modern-about-title {
+    font-size: 3rem !important;
+    font-weight: 800 !important;
+    letter-spacing: -0.02em;
+    color: #1a1a1a !important;
+    margin-bottom: 18px !important;
+}
+
+.modern-about-desc {
+    font-size: 1.18rem;
+    color: #444;
+    line-height: 1.7;
+    margin-bottom: 32px;
+    font-weight: 500;
+}
+
+.modern-about-btn {
+    background: linear-gradient(90deg, #0047AD 0%, #0ea5e9 100%) !important;
+    color: #fff !important;
+    border-radius: 32px !important;
+    font-size: 1.1rem !important;
+    font-weight: 600 !important;
+    padding: 18px 38px !important;
+    box-shadow: 0 4px 16px rgba(0, 71, 173, 0.10);
+    border: none !important;
+    transition: background 0.2s, box-shadow 0.2s;
+}
+.modern-about-btn:hover {
+    background: linear-gradient(90deg, #0ea5e9 0%, #0047AD 100%) !important;
+    box-shadow: 0 8px 32px rgba(0, 71, 173, 0.16);
+    color: #fff !important;
+}
+
+.modern-review-card {
+    background: rgba(255,255,255,0.92);
+    border-radius: 20px;
+    box-shadow: 0 2px 12px rgba(80, 120, 200, 0.08);
+    padding: 18px 28px;
+    margin-top: 32px;
+    border: 1px solid rgba(120,140,180,0.06);
+}
+/* ========================================
+   Onest Font - Apply to entire site
+   ======================================== */
+
+/* Override all font family CSS variables to use Onest */
+:root {
+    --tp-ff-body: 'Onest', sans-serif !important;
+    --tp-ff-heading: 'Onest', sans-serif !important;
+    --tp-ff-inter: 'Onest', sans-serif !important;
+    --tp-ff-p: 'Onest', sans-serif !important;
+    --tp-ff-teko: 'Onest', sans-serif !important;
+    --tp-ff-besley: 'Onest', sans-serif !important;
+    --tp-ff-mango-thin: 'Onest', sans-serif !important;
+    --tp-ff-mango-light: 'Onest', sans-serif !important;
+    --tp-ff-mango: 'Onest', sans-serif !important;
+    --tp-ff-mango-medium: 'Onest', sans-serif !important;
+    --tp-ff-mango-semibold: 'Onest', sans-serif !important;
+    --tp-ff-mango-bold: 'Onest', sans-serif !important;
+    --tp-ff-clash-light: 'Onest', sans-serif !important;
+    --tp-ff-clash-regular: 'Onest', sans-serif !important;
+    --tp-ff-clash-medium: 'Onest', sans-serif !important;
+    --tp-ff-clash-semibold: 'Onest', sans-serif !important;
+    --tp-ff-clash-bold: 'Onest', sans-serif !important;
+    --tp-ff-grotesk: 'Onest', sans-serif !important;
+    --tp-ff-platform: 'Onest', sans-serif !important;
+    --tp-ff-playfair: 'Onest', sans-serif !important;
+    --tp-ff-phudu: 'Onest', sans-serif !important;
+    --tp-ff-poppins: 'Onest', sans-serif !important;
+    --tp-ff-dirtyline: 'Onest', sans-serif !important;
+    --tp-ff-satisfy: 'Onest', sans-serif !important;
+}
+
+/* Apply Onest to all elements */
+* {
+    font-family: 'Onest', sans-serif !important;
+}
+
+/* Apply Onest to body and html */
+html,
+body {
+    font-family: 'Onest', sans-serif !important;
+}
+
+/* Apply Onest to all common text elements */
+h1, h2, h3, h4, h5, h6,
+p, span, div, a, button,
+input, textarea, select, label,
+li, td, th, blockquote, pre {
+    font-family: 'Onest', sans-serif !important;
+}
+
+/* Justify all paragraph text */
+p {
+    text-align: justify !important;
+    text-justify: inter-word !important;
+}
+
+/* Justify content in common containers */
+.content,
+.description,
+.text-content,
+article,
+.dgm-about-content p,
+.tp-service-content p,
+.tp-blog-content p,
+.tp-page-content p {
+    text-align: justify !important;
+    text-justify: inter-word !important;
+}
+
+/* Keep icon fonts for i tags and icon classes */
+i,
+[class*="fa-"],
+[class*="icon-"],
+.fa,
+.fas,
+.far,
+.fal,
+.fab {
+    font-family: 'Font Awesome 6 Pro', 'Font Awesome 6 Brands', 'Font Awesome 6 Free' !important;
+}
+
+/* ========================================
+   Menu Icons Styling
+   ======================================== */
+.menu-icon-item {
+    margin-right: 8px;
+    font-size: 14px;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+/* Adjust icon spacing in submenu */
+.tp-submenu .menu-icon-item {
+    margin-right: 6px;
+    font-size: 13px;
+}
+
+/* ========================================
+   Custom CSS for centered header menu
+   ======================================== */
+
+/* Center the menu items in header-1 and header-inner */
+.tp-header-3-style .tp-header-box,
+.tp-header-inner-style .tp-header-box {
+    justify-content: center !important;
+}
+
+.tp-header-3-style .tp-header-menu,
+.tp-header-inner-style .tp-header-menu {
+    margin: 0 auto;
+}
+
+.tp-header-3-style .tp-header-menu > nav > ul,
+.tp-header-inner-style .tp-header-menu > nav > ul {
+    margin-left: 0 !important;
+    justify-content: center;
+}
+
+/* Ensure the right side buttons stay on the right */
+.tp-header-3-style .ss-header-right,
+.tp-header-inner-style .tp-header-right {
+    margin-left: auto !important;
+}
+
+/* Increase header menu link font size */
+.tp-header-menu > nav > ul > li > a,
+.tp-main-menu > nav > ul > li > a,
+.tp-header-3-style .tp-header-menu > nav > ul > li > a,
+.tp-header-inner-style .tp-header-menu > nav > ul > li > a {
+    font-size: 17px !important;
+    font-weight: 500 !important;
+}
+
+/* Menu icon spacing - applies to all headers */
+.tp-header-menu > nav > ul > li > a,
+.tp-main-menu > nav > ul > li > a {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+}
+
+/* Header buttons vertical alignment */
+.ss-header-right,
+.tp-header-right {
+    align-items: center !important;
+}
+
+.tp-header-btn,
+.tp-header-bar {
+    display: flex !important;
+    align-items: center !important;
+}
+
+.tp-btn-yellow-green {
+    display: inline-flex !important;
+    align-items: center !important;
+}
+
+/* Submenu items slightly smaller */
+.tp-submenu li a {
+    font-size: 15px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+}
+
+/* Responsive adjustments */
+@media only screen and (min-width: 1600px) and (max-width: 1700px),
+       only screen and (min-width: 1400px) and (max-width: 1599px) {
+    .tp-header-3-style .tp-header-menu > nav > ul {
+        margin-left: 0 !important;
+    }
+}
+
+@media only screen and (min-width: 1200px) and (max-width: 1399px) {
+    .tp-header-3-style .tp-header-menu > nav > ul {
+        margin-left: 0 !important;
+    }
+}
+
+/* ========================================
+   Enhanced About Section Design
+   ======================================== */
+
+/* About section background enhancement - REDUCED SPACING */
+.dgm-about-area {
+    position: relative;
+    background: linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%);
+    padding-top: 60px !important;
+    padding-bottom: 60px !important;
+}
+
+.dgm-about-area.pt-120 {
+    padding-top: 60px !important;
+}
+
+.dgm-about-area.pb-120 {
+    padding-bottom: 60px !important;
+}
+
+.dgm-about-area::before {
+    content: '';
+    position: absolute;
+    top: -50px;
+    right: -50px;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(106, 81, 255, 0.08) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 0;
+    animation: pulse 8s ease-in-out infinite;
+}
+
+.dgm-about-area::after {
+    content: '';
+    position: absolute;
+    bottom: -50px;
+    left: -50px;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(16, 185, 129, 0.06) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 0;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1) translate(0, 0);
+        opacity: 0.8;
+    }
+    50% {
+        transform: scale(1.1) translate(20px, 20px);
+        opacity: 1;
+    }
+}
+
+/* Main image container */
+.dgm-about-thumb-wrap {
+    position: relative !important;
+    overflow: visible !important;
+    z-index: 1;
+}
+
+/* Remove the gradient wrapper - it's causing the issue */
+.about-image-main-wrapper {
+    position: relative;
+    display: block;
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow:
+        0 10px 40px rgba(0, 0, 0, 0.1),
+        0 2px 8px rgba(0, 0, 0, 0.06);
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.about-image-main-wrapper::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(106, 81, 255, 0.1) 0%, rgba(16, 185, 129, 0.1) 100%);
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    z-index: 2;
+    pointer-events: none;
+}
+
+.about-image-main-wrapper:hover::before {
+    opacity: 1;
+}
+
+.about-image-main-wrapper:hover {
+    transform: translateY(-15px);
+    box-shadow:
+        0 30px 60px rgba(0, 0, 0, 0.15),
+        0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Main image - Clean and professional - BIGGER SIZE */
+.about-image-main-wrapper img {
+    display: block;
+    width: 120%;
+    height: auto;
+    border-radius: 24px;
+    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    max-width: none;
+}
+
+.about-image-main-wrapper:hover img {
+    transform: scale(1.05);
+}
+
+/* Decorative corner accent */
+.about-image-main-wrapper::after {
+    content: '';
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, var(--tp-theme-primary, #6A51FF) 0%, var(--tp-theme-green, #10B981) 100%);
+    border-radius: 20px;
+    opacity: 0;
+    transform: rotate(45deg) scale(0);
+    transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    z-index: 3;
+}
+
+.about-image-main-wrapper:hover::after {
+    opacity: 0.15;
+    transform: rotate(45deg) scale(1);
+}
+
+/* Floating/overlapping secondary image - Modern card style - BIGGER SIZE */
+.dgm-about-thumb-1 {
+    position: absolute !important;
+    bottom: -50px;
+    right: -50px;
+    border-radius: 24px;
+    border: 6px solid #ffffff;
+    box-shadow:
+        0 20px 50px rgba(0, 0, 0, 0.2),
+        0 8px 16px rgba(0, 0, 0, 0.1);
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 3;
+    max-width: 380px;
+    width: 380px;
+    animation: floatSmooth 6s ease-in-out infinite;
+    background: #fff;
+}
+
+.dgm-about-thumb-1:hover {
+    transform: translateY(-20px) scale(1.08);
+    box-shadow:
+        0 30px 70px rgba(0, 0, 0, 0.25),
+        0 12px 24px rgba(0, 0, 0, 0.15);
+    border-color: var(--tp-theme-primary, #6A51FF);
+    border-width: 6px;
+}
+
+/* Smooth floating animation */
+@keyframes floatSmooth {
+    0%, 100% {
+        transform: translateY(0) translateX(0);
+    }
+    33% {
+        transform: translateY(-12px) translateX(8px);
+    }
+    66% {
+        transform: translateY(-6px) translateX(-6px);
+    }
+}
+
+/* Enhanced text content styling - REDUCED SPACING */
+.dgm-about-right {
+    padding-left: 20px;
+    position: relative;
+    z-index: 2;
+}
+
+.dgm-about-title-box .tp-section-title-grotesk {
+    font-size: 48px;
+    line-height: 1.1;
+    font-weight: 700;
+    margin-bottom: 15px;
+    color: #1a1a1a;
+}
+
+.tp-section-subtitle {
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--tp-theme-primary, #6A51FF);
+    margin-bottom: 10px !important;
+}
+
+.dgm-about-content p {
+    font-size: 17px;
+    line-height: 1.7;
+    color: #666;
+    margin-bottom: 20px;
+}
+
+.dgm-about-title-box {
+    margin-bottom: 20px !important;
+}
+
+/* Enhanced button styling - REDUCED SPACING */
+.tp-btn-yellow-green {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 28px;
+    border-radius: 50px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.tp-btn-yellow-green:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Enhanced review section - REDUCED SPACING */
+.dgm-about-review-wrap {
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    padding: 25px;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    transition: all 0.4s ease;
+    border: 1px solid rgba(106, 81, 255, 0.1);
+}
+
+.dgm-about-review-wrap:hover {
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
+    transform: translateY(-5px);
+    border-color: rgba(106, 81, 255, 0.2);
+}
+
+.dgm-about-review h4 {
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--tp-theme-primary, #6A51FF);
+    margin-bottom: 8px;
+}
+
+.dgm-about-review span {
+    font-size: 14px;
+    color: #666;
+}
+
+.dgm-about-ratting h4 {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #333;
+}
+
+.dgm-about-ratting-icon {
+    display: flex;
+    gap: 5px;
+}
+
+.dgm-about-ratting-icon span svg {
+    width: 18px;
+    height: 18px;
+    transition: all 0.2s ease;
+    color: #FFA500;
+}
+
+.dgm-about-ratting-icon span:hover svg {
+    transform: scale(1.2) rotate(15deg);
+    color: #FF8C00;
+}
+
+/* Responsive adjustments */
+@media (max-width: 991px) {
+    .dgm-about-right {
+        padding-left: 0;
+        margin-top: 40px;
+    }
+
+    .dgm-about-title-box .tp-section-title-grotesk {
+        font-size: 32px;
+    }
+}
+
+/* Enhanced review section */
+.dgm-about-review-wrap {
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    padding: 25px 30px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+}
+
+.dgm-about-review-wrap:hover {
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
+    transform: translateY(-5px);
+}
+
+.dgm-about-review h4 {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--tp-theme-primary);
+    margin-bottom: 5px;
+}
+
+.dgm-about-ratting-icon span svg {
+    transition: all 0.2s ease;
+}
+
+.dgm-about-ratting-icon span:hover svg {
+    transform: scale(1.2) rotate(15deg);
+}
+
+/* Responsive adjustments */
+@media (max-width: 991px) {
+    .dgm-about-right {
+        padding-left: 0;
+        margin-top: 50px;
+    }
+
+    .dgm-about-thumb-1 {
+        max-width: 200px;
+        bottom: -20px;
+        right: -20px;
+    }
+}
+
+@media (max-width: 767px) {
+    .dgm-about-title-box .tp-section-title-grotesk {
+        font-size: 32px;
+    }
+
+    .dgm-about-thumb-1 {
+        max-width: 150px;
+        bottom: -15px;
+        right: -15px;
+        border-width: 5px;
+    }
+}
+
+/* ========================================
+   Color Overrides - Off-white for specific elements
+   ======================================== */
+
+/* tp-btn-yellow-green button - off-white text and icon */
+.tp-btn-yellow-green,
+.tp-btn-yellow-green span,
+.tp-btn-yellow-green .text-1,
+.tp-btn-yellow-green .text-2 {
+    color: #f5f5f5 !important;
+}
+
+.tp-btn-yellow-green i,
+.tp-btn-yellow-green svg,
+.tp-btn-yellow-green i svg {
+    color: #f5f5f5 !important;
+    fill: none !important;
+}
+
+.tp-btn-yellow-green svg path {
+    stroke: #f5f5f5 !important;
+    fill: none !important;
+}
+
+/* tp-brand-title - off-white text */
+.tp-brand-title {
+    color: #f5f5f5 !important;
+    -webkit-text-fill-color: #f5f5f5 !important;
+    -webkit-text-stroke-color: #f5f5f5 !important;
+}
+
+.tp-brand-title::after {
+    background: #f5f5f5 !important;
+}
+
+/* Burger menu / offcanvas toggle - white background with dark icon */
+.tp-header-area .tp-offcanvas-open-btn,
+.tp-header-area button.tp-offcanvas-open-btn,
+.tp-header-area .tp-header-8-bar.tp-offcanvas-open-btn,
+.tp-header-area .tp-header-8-bar,
+button.tp-header-8-bar.tp-offcanvas-open-btn,
+.tp-header-bar .tp-header-8-bar {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    border-radius: 50px !important;
+    padding: 12px 20px !important;
+    border: none !important;
+    border-color: transparent !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+}
+
+.tp-header-area .tp-offcanvas-open-btn:hover,
+.tp-header-area button.tp-offcanvas-open-btn:hover,
+.tp-header-area .tp-header-8-bar.tp-offcanvas-open-btn:hover,
+.tp-header-area .tp-header-8-bar:hover,
+button.tp-header-8-bar.tp-offcanvas-open-btn:hover,
+.tp-header-bar .tp-header-8-bar:hover {
+    background: #f5f5f5 !important;
+    background-color: #f5f5f5 !important;
+    border-color: transparent !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Hamburger lines for homepage - dark color on light background */
+.tp-offcanvas-open-btn i {
+    background-color: #333 !important;
+    display: block !important;
+    width: 24px !important;
+    height: 2px !important;
+    margin: 5px 0 !important;
+    transition: all 0.3s ease !important;
+}
+
+/* SVG icons - dark color */
+.tp-offcanvas-open-btn svg,
+.tp-header-8-bar.tp-offcanvas-open-btn svg {
+    color: #333 !important;
+}
+
+.tp-offcanvas-open-btn svg path,
+.tp-header-8-bar.tp-offcanvas-open-btn svg path {
+    fill: #333 !important;
+}
+
+/* Text and SVG wrapper for inner pages */
+.tp-header-area .tp-header-8-bar,
+.tp-header-inner-style .tp-header-8-bar,
+.tp-header-3-style .tp-header-8-bar {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #333 !important;
+    border-radius: 50px !important;
+    padding: 12px 20px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    border: none !important;
+    border-color: transparent !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+}
+
+.tp-header-area .tp-header-8-bar:hover,
+.tp-header-inner-style .tp-header-8-bar:hover,
+.tp-header-3-style .tp-header-8-bar:hover {
+    background: #f5f5f5 !important;
+    background-color: #f5f5f5 !important;
+    border-color: transparent !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+.tp-header-8-bar span {
+    color: #333 !important;
+}
+
+.tp-header-8-bar svg path {
+    fill: #333 !important;
+}
+
+.tp-header-2-bar {
+    background-color: #ffffff !important;
+    color: #333 !important;
+    border-radius: 50px !important;
+    padding: 12px 20px !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+    transition: all 0.3s ease !important;
+}
+
+.tp-header-2-bar:hover {
+    background-color: #f5f5f5 !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Additional specific overrides for button variants */
+a.tp-btn-yellow-green,
+button.tp-btn-yellow-green {
+    color: #f5f5f5 !important;
+}
+
+/* Ensure all children inherit off-white */
+.tp-btn-yellow-green * {
+    color: #f5f5f5 !important;
+}
+
+/* ========================================
+   Contact Page Performance Optimization
+   ======================================== */
+
+/* Lazy loading iframe placeholder */
+.lazy-iframe {
+    background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
+    position: relative;
+    min-height: 450px;
+}
+
+.lazy-iframe::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 40px;
+    height: 40px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid var(--tp-theme-primary, #6A51FF);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: translate(-50%, -50%) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* ========================================
+   Footer Spacing - Consistent across all pages
+   ======================================== */
+
+/* Add horizontal padding to footer to create space on left/right */
+
+
+
+
+/* For smaller screens, reduce padding */
+@media (max-width: 767px) {
+    footer {
+        padding-left: 15px !important;
+        padding-right: 15px !important;
+    }
+}
+
+/* ========================================
+   Product Card Improvements
+   ======================================== */
+
+/* Product card hover effect */
+.tp-product-item:hover .tp-product-item-thumb img {
+    transform: scale(1.08);
+}
+
+/* Product card shadow on hover */
+.tp-product-item {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.tp-product-item:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+/* Equal height cards */
+.tp-product-item {
+    height: 100%;
+}
+
+/* Product title line clamp for consistent height */
+.tp-product-item-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    line-height: 1.4;
+}
+
+/* ========================================
+   Products Page - Black Menu
+   ======================================== */
+
+/* Make menu links black on products pages */
+.tp-header-shop-menu nav ul li a {
+    color: #000 !important;
+}
+
+/* Menu hover effect */
+.tp-header-shop-menu nav ul li a:hover {
+    color: #0071cc !important;
+}
+
+/* Dropdown menu text black */
+.tp-header-shop-menu .tp-header-dropdown ul li a,
+.tp-header-shop-menu .dropdown-white-bg a {
+    color: #000 !important;
+}
+
+/* Mobile menu black text */
+.tp-mobile-menu-active ul li a {
+    color: #000 !important;
+}
+
+/* ========================================
+   Product Card Professional Design
+   ======================================== */
+
+/* Equal height product images */
+.tp-product-item-thumb {
+    height: 280px !important;
+    overflow: hidden;
+    border-radius: 12px;
+    background: #f8f9fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tp-product-item-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+}
+
+/* Product card title - black color */
+.tp-product-item-title,
+.tp-product-item-title a {
+    color: #000 !important;
+    font-weight: 600;
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+/* Product card content spacing */
+.tp-product-item-content {
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    flex: 1;
+}
+
+/* Product card price styling */
+.tp-product-item-price {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #0071cc;
+    margin-top: auto;
+}
+
+/* Product card - clean white background */
+.tp-product-item {
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Product card hover effect */
+.tp-product-item:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1);
+    border-color: #0071cc;
+}
+
+/* Product rating stars */
+.tp-product-item-rating {
+    color: #ffc107;
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+}
+
+/* Product badge styling */
+.tp-product-item-badge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: #0071cc;
+    color: #fff;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    z-index: 2;
+}
+
+/* Product action buttons */
+.tp-product-item-action {
+    display: flex;
+    gap: 8px;
+    margin-top: 0.75rem;
+}
+
+.tp-product-item-action button,
+.tp-product-item-action a {
+    flex: 1;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+/* Ensure equal card heights in grid */
+.row.gy-4 > div {
+    display: flex;
+}
+
+.row.gy-4 > div > .tp-product-item {
+    width: 100%;
+}
+
+/* Remove border on card hover */
+.tp-product-item.card:hover {
+    border: 1px solid rgba(0,0,0,.125) !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08) !important;
+}
+
+/* Remove all focus/active borders and outlines from product cards and links */
+.tp-product-item.card,
+.tp-product-item.card:hover,
+.tp-product-item.card:focus,
+.tp-product-item.card:active,
+.tp-product-item.card:focus-visible {
+    outline: none !important;
+    border: 1px solid rgba(0,0,0,.125) !important;
+}
+
+.tp-product-item a,
+.tp-product-item a:hover,
+.tp-product-item a:focus,
+.tp-product-item a:active,
+.tp-product-item a:focus-visible {
+    outline: none !important;
+    border: none !important;
+    text-decoration: none;
+}
+
+.tp-product-item .card-img-top:focus,
+.tp-product-item .card-img-top:active {
+    outline: none !important;
+    border: none !important;
+}
+
+/* Product Page Specific Styles */
+.products-page-menu {
+    background: #000 !important;
+}
+
+.products-page-menu .navbar-nav .nav-link {
+    color: #fff !important;
+}
+
+.products-page-menu .navbar-nav .nav-link:hover {
+    color: #0071cc !important;
+}
+
+.product-card {
+    transition: all 0.3s ease;
+    border: 1px solid rgba(0,0,0,.125) !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.product-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+}
+
+.product-card .card-title {
+    color: #000 !important;
+    font-weight: 600;
+}
+
+.product-card .product-image {
+    height: 250px;
+    object-fit: cover;
+    width: 100%;
+}
+
+/* Custom Preloader with GIF */
+#preloader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 9999;
+    background-color: #ffffff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.preloader {
+    width: auto !important;
+    height: auto !important;
+    display: flex !important;
+    justify-content: center;
+    align-items: center;
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.preloader img {
+    max-width: 200px;
+    height: auto;
+    display: block;
+}
+
+/* Remove the old span animations */
+.preloader span {
+    display: none !important;
+}

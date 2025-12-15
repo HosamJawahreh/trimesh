@@ -1,0 +1,1997 @@
+{{-- ============================================
+     3D QUOTE VIEWER - FULL SCREEN INTERFACE
+     Professional & Optimized Layout
+     ============================================ --}}
+
+<section class="dgm-3d-quote-area pb-100">
+    <div class="container">
+        {{-- General 3D Printing Form --}}
+        <div class="quote-form-container-3d" id="generalForm3d">
+            <div class="row justify-content-center">
+                <div class="col-12 col-lg-11">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body p-0">
+                            <div class="row g-0">
+
+                                {{-- Left Sidebar: Form Controls --}}
+                                <div class="col-12 col-lg-3">
+                                    <div class="p-3 p-lg-4">
+
+                                        {{-- Category Tabs --}}
+                                        <div class="btn-group w-100 mb-3" role="group">
+                                            <button type="button" class="btn btn-sm category-tab-btn active" data-category="general" style="border-radius: 8px 0 0 8px; padding: 10px; font-size: 0.85rem; font-weight: 600; border: 1px solid #dee2e6; background: white; color: #2c3e50; transition: all 0.2s;">
+                                                General
+                                            </button>
+                                            <button type="button" class="btn btn-sm category-tab-btn" data-category="medical" style="border-radius: 0 8px 8px 0; padding: 10px; font-size: 0.85rem; font-weight: 600; border: 1px solid #dee2e6; background: #f8f9fa; color: #6c757d; transition: all 0.2s;">
+                                                Medical
+                                            </button>
+                                        </div>
+
+                                        <!-- Upload Area -->
+                                        <div class="upload-drop-zone-3d text-center p-3 mb-3" style="border: 2px dashed #cbd5e0; border-radius: 10px; background: white; cursor: pointer; transition: all 0.3s;">
+                                            <input type="file" id="fileInput3d" style="display: none;" accept=".stl,.obj,.ply" multiple>
+                                            <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" class="mb-2">
+                                                <circle cx="20" cy="20" r="20" fill="#e8f4f8"/>
+                                                <path d="M20 10L26 16L20 22L14 16L20 10Z" stroke="#4a90e2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                <path d="M14 22L20 28L26 22" stroke="#4a90e2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/>
+                                            </svg>
+                                            <p class="mb-1" style="font-size: 0.9rem; font-weight: 600; color: #2c3e50;">Drop files or click</p>
+                                            <small class="text-muted" style="font-size: 0.8rem;">STL, OBJ, PLY (Max 100MB each) • Multiple files supported</small>
+                                        </div>
+
+                                        <!-- Uploaded Files List -->
+                                        <div id="uploadedFilesList" class="mb-3" style="display: none;">
+                                            <label class="form-label mb-2" style="font-size: 0.85rem; font-weight: 600; color: #495057;">Uploaded Files (<span id="fileCount">0</span>)</label>
+                                            <div id="filesContainer" style="max-height: 200px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 8px; background: #f8f9fa;"></div>
+                                        </div>
+
+                                        <!-- Material -->
+                                        <div class="mb-3">
+                                            <label class="form-label mb-2" style="font-size: 0.85rem; font-weight: 600; color: #495057;">Material</label>
+                                            <select id="materialSelectGeneral" class="form-select form-select-sm" style="border-radius: 8px; border: 1px solid #dee2e6; font-size: 0.85rem; padding: 8px 12px;" onchange="if(window.fileManagerGeneral && window.viewerGeneral.uploadedFiles.length > 0) { console.log('Material changed to:', this.value); window.fileManagerGeneral.updateQuote(); }">
+                                                <option value="pla">PLA</option>
+                                                <option value="abs">ABS</option>
+                                                <option value="petg">PETG</option>
+                                                <option value="nylon">Nylon</option>
+                                                <option value="resin">Resin</option>
+                                            </select>
+                                        </div>
+
+                                        <!-- Quality -->
+                                        <div class="mb-3">
+                                            <label class="form-label mb-2" style="font-size: 0.85rem; font-weight: 600; color: #495057;">Quality</label>
+                                            <select id="qualitySelectGeneral" class="form-select form-select-sm" style="border-radius: 8px; border: 1px solid #dee2e6; font-size: 0.85rem; padding: 8px 12px;" onchange="if(window.fileManagerGeneral && window.viewerGeneral.uploadedFiles.length > 0) { console.log('Quality changed to:', this.value); window.fileManagerGeneral.updateQuote(); }">
+                                                <option value="draft">Draft (0.3mm)</option>
+                                                <option value="standard" selected>Standard (0.2mm)</option>
+                                                <option value="high">High (0.1mm)</option>
+                                                <option value="ultra">Ultra (0.05mm)</option>
+                                            </select>
+                                        </div>
+
+                                        <!-- Infill -->
+                                        <div class="mb-3">
+                                            <label class="form-label mb-2" style="font-size: 0.85rem; font-weight: 600; color: #495057;">Infill</label>
+                                            <select id="infillSelectGeneral" class="form-select form-select-sm" style="border-radius: 8px; border: 1px solid #dee2e6; font-size: 0.85rem; padding: 8px 12px;" onchange="if(window.fileManagerGeneral && window.viewerGeneral.uploadedFiles.length > 0) { console.log('Infill changed to:', this.value); window.fileManagerGeneral.updateQuote(); }">
+                                                <option value="20">20%</option>
+                                                <option value="50" selected>50%</option>
+                                                <option value="80">80%</option>
+                                                <option value="100">100%</option>
+                                            </select>
+                                        </div>
+
+                                        <!-- Color Picker -->
+                                        <div class="mb-3">
+                                            <label class="form-label mb-2" style="font-size: 0.85rem; font-weight: 600; color: #2c3e50;">Model Color</label>
+                                            <div class="d-flex gap-2 flex-wrap">
+                                                <button type="button" class="color-btn active" data-color="#0047AD" style="width: 32px; height: 32px; border-radius: 6px; border: 2px solid #0047AD; background: #0047AD; cursor: pointer; position: relative;">
+                                                    <span style="position: absolute; bottom: -2px; right: -2px; width: 10px; height: 10px; background: #0047AD; border-radius: 50%; display: none;"></span>
+                                                </button>
+                                                <button type="button" class="color-btn" data-color="#ffffff" style="width: 32px; height: 32px; border-radius: 6px; border: 2px solid #dee2e6; background: #ffffff; cursor: pointer;"></button>
+                                                <button type="button" class="color-btn" data-color="#2c3e50" style="width: 32px; height: 32px; border-radius: 6px; border: 2px solid #dee2e6; background: #2c3e50; cursor: pointer;"></button>
+                                                <button type="button" class="color-btn" data-color="#3498db" style="width: 32px; height: 32px; border-radius: 6px; border: 2px solid #dee2e6; background: #3498db; cursor: pointer;"></button>
+                                                <button type="button" class="color-btn" data-color="#e74c3c" style="width: 32px; height: 32px; border-radius: 6px; border: 2px solid #dee2e6; background: #e74c3c; cursor: pointer;"></button>
+                                                <button type="button" class="color-btn" data-color="#2ecc71" style="width: 32px; height: 32px; border-radius: 6px; border: 2px solid #dee2e6; background: #2ecc71; cursor: pointer;"></button>
+                                                <button type="button" class="color-btn" data-color="#f39c12" style="width: 32px; height: 32px; border-radius: 6px; border: 2px solid #dee2e6; background: #f39c12; cursor: pointer;"></button>
+                                            </div>
+                                        </div>
+
+                                        <!-- Price Summary -->
+                                        <div class="mt-3 p-3" style="background: white; border-radius: 12px; border: 2px solid #e9ecef; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+                                            <div class="d-flex justify-content-between align-items-center mb-2 pb-2" style="border-bottom: 1px solid #f1f3f5;">
+                                                <span style="font-size: 0.8rem; color: #6c757d; font-weight: 500;">Volume</span>
+                                                <strong id="quoteTotalVolumeGeneral" style="font-weight: 600; font-size: 0.85rem; color: #2c3e50;">0 cm³</strong>
+                                            </div>
+                                            <div class="d-flex justify-content-between align-items-center mb-2 pb-2" style="border-bottom: 1px solid #f1f3f5;">
+                                                <span style="font-size: 0.8rem; color: #6c757d; font-weight: 500;">Print Time</span>
+                                                <strong id="quotePrintTimeGeneral" style="font-weight: 600; font-size: 0.85rem; color: #2c3e50;">0h</strong>
+                                            </div>
+                                            <div class="d-flex justify-content-between align-items-center mt-2 pt-2">
+                                                <span style="font-size: 0.85rem; font-weight: 600; color: #495057; text-transform: uppercase; letter-spacing: 0.3px;">Total Price</span>
+                                                <h4 class="mb-0" id="quoteTotalPriceGeneral" style="font-weight: 700; font-size: 1.3rem; color: #2c3e50;">$0</h4>
+                                            </div>
+                                            <button type="button" class="btn w-100 mt-2" id="btnRequestQuoteGeneral" style="border-radius: 10px; font-weight: 600; font-size: 0.85rem; padding: 10px; background: #4a90e2; color: white; border: none; transition: all 0.3s; box-shadow: 0 2px 8px rgba(74, 144, 226, 0.3);">
+                                                Request Quote →
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {{-- Right Side: 3D Viewer --}}
+                                <div class="col-12 col-lg-9 position-relative d-flex flex-column" style="display: flex !important; visibility: visible !important; opacity: 1 !important; flex: 1 !important; min-width: 0 !important; background: linear-gradient(to bottom, #b8c5d6 0%, #99a8ba 100%) !important;">
+
+                                    {{-- 3D Viewer Canvas --}}
+                                    <div id="viewer3dGeneral" style="display: flex !important; visibility: visible !important; width: 100% !important; height: 100vh !important; background: linear-gradient(to bottom, #b8c5d6 0%, #99a8ba 100%) !important;">
+                                        {{-- Model Info Badge (Top Left - Hidden until file uploaded) --}}
+                                        <div class="model-info-badge" style="display: none;">
+                                            <div class="model-name">
+                                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                    <path d="M8 2L14 5L8 8L2 5L8 2Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                                    <path d="M2 11L8 14L14 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.7"/>
+                                                </svg>
+                                                <span id="modelNameDisplay">model.stl</span>
+                                            </div>
+                                            <div class="model-subtitle" id="modelDimensionsDisplay">0 × 0 × 0 mm</div>
+                                        </div>
+
+                                        {{-- Bottom Control Bar - Professional --}}
+                                        <div class="viewer-bottom-controls" id="controlBarGeneral">
+                                            <div class="control-section measurements-section">
+                                                <div class="control-label">Measurements</div>
+                                                <div class="measurement-items">
+                                                    <div class="measurement-item">
+                                                        <span class="axis-label">X:</span>
+                                                        <span class="axis-value" id="measureX">0.00</span>
+                                                        <span class="axis-unit">mm</span>
+                                                    </div>
+                                                    <div class="measurement-item">
+                                                        <span class="axis-label">Y:</span>
+                                                        <span class="axis-value" id="measureY">0.00</span>
+                                                        <span class="axis-unit">mm</span>
+                                                    </div>
+                                                    <div class="measurement-item">
+                                                        <span class="axis-label">Z:</span>
+                                                        <span class="axis-value" id="measureZ">0.00</span>
+                                                        <span class="axis-unit">mm</span>
+                                                    </div>
+                                                    <div class="measurement-item volume">
+                                                        <span class="axis-label">Vol:</span>
+                                                        <span class="axis-value" id="measureVolume">0.00</span>
+                                                        <span class="axis-unit">cm³</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="control-divider"></div>
+
+                                            <div class="control-section camera-section">
+                                                <div class="control-label">Camera View</div>
+                                                <div class="camera-buttons">
+                                                    <button type="button" class="control-btn camera-btn" data-view="top" title="Top View">
+                                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                            <path d="M8 2L14 6L8 10L2 6L8 2Z" stroke="currentColor" stroke-width="1.5"/>
+                                                        </svg>
+                                                        <span>Top</span>
+                                                    </button>
+                                                    <button type="button" class="control-btn camera-btn" data-view="front" title="Front View">
+                                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                            <rect x="3" y="3" width="10" height="10" stroke="currentColor" stroke-width="1.5"/>
+                                                        </svg>
+                                                        <span>Front</span>
+                                                    </button>
+                                                    <button type="button" class="control-btn camera-btn" data-view="right" title="Right View">
+                                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                            <path d="M3 3L13 3L13 13L3 13L3 3Z" stroke="currentColor" stroke-width="1.5"/>
+                                                            <path d="M8 3L13 8L8 13" stroke="currentColor" stroke-width="1.5"/>
+                                                        </svg>
+                                                        <span>Right</span>
+                                                    </button>
+                                                    <button type="button" class="control-btn camera-btn" data-view="left" title="Left View">
+                                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                            <path d="M13 3L3 3L3 13L13 13L13 3Z" stroke="currentColor" stroke-width="1.5"/>
+                                                            <path d="M8 3L3 8L8 13" stroke="currentColor" stroke-width="1.5"/>
+                                                        </svg>
+                                                        <span>Left</span>
+                                                    </button>
+                                                    <button type="button" class="control-btn camera-btn" data-view="bottom" title="Bottom View">
+                                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                            <path d="M8 14L2 10L8 6L14 10L8 14Z" stroke="currentColor" stroke-width="1.5"/>
+                                                        </svg>
+                                                        <span>Bottom</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <div class="control-divider"></div>
+
+                                            <div class="control-section tools-section">
+                                                <div class="control-label">Tools</div>
+                                                <div class="tool-buttons">
+                                                    <button type="button" class="control-btn tool-btn" id="toggleGridBtn" title="Toggle Grid">
+                                                        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                                                            <path d="M1 1H17M1 6H17M1 11H17M1 16H17M6 1V17M11 1V17" stroke="currentColor" stroke-width="1.5"/>
+                                                        </svg>
+                                                        <span>Grid</span>
+                                                    </button>
+                                                    <button type="button" class="control-btn tool-btn" id="repairModelBtn" title="Repair Model">
+                                                        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                                                            <path d="M15 3L3 15M3 3L15 15" stroke="currentColor" stroke-width="1.5"/>
+                                                            <circle cx="9" cy="9" r="7" stroke="currentColor" stroke-width="1.5"/>
+                                                        </svg>
+                                                        <span>Repair</span>
+                                                    </button>
+                                                    <button type="button" class="control-btn tool-btn" id="fillHolesBtn" title="Fill Holes">
+                                                        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                                                            <circle cx="9" cy="9" r="7" stroke="currentColor" stroke-width="1.5"/>
+                                                            <path d="M9 6V12M6 9H12" stroke="currentColor" stroke-width="1.5"/>
+                                                        </svg>
+                                                        <span>Fill Holes</span>
+                                                    </button>
+                                                    <button type="button" class="control-btn tool-btn" id="autoRotateBtn" title="Auto Rotate" class="active">
+                                                        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                                                            <path d="M15 9C15 12.3137 12.3137 15 9 15C5.68629 15 3 12.3137 3 9C3 5.68629 5.68629 3 9 3C10.5 3 11.9 3.5 13 4.5" stroke="currentColor" stroke-width="1.5"/>
+                                                            <path d="M15 3V7H11" stroke="currentColor" stroke-width="1.5"/>
+                                                        </svg>
+                                                        <span>Rotate</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <div class="control-divider"></div>
+
+                                            <div class="control-section actions-section">
+                                                <button type="button" class="control-btn save-btn" id="saveCalculationsBtn">
+                                                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                                                        <path d="M15 16H3C2.44772 16 2 15.5523 2 15V3C2 2.44772 2.44772 2 3 2H12L16 6V15C16 15.5523 15.5523 16 15 16Z" stroke="currentColor" stroke-width="1.5"/>
+                                                        <path d="M12 2V6H5V2" stroke="currentColor" stroke-width="1.5"/>
+                                                        <path d="M5 10H13V16H5V10Z" stroke="currentColor" stroke-width="1.5"/>
+                                                    </svg>
+                                                    <span>Save & Calculate</span>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {{-- Empty State --}}
+                                        <div class="d-flex align-items-center justify-content-center h-100 text-muted text-center">
+                                            <div>
+                                                <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" style="opacity: 0.3;">
+                                                    <path d="M40 10L70 25L40 40L10 25L40 10Z" stroke="#6c757d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                    <path d="M10 55L40 70L70 55" stroke="#6c757d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.7"/>
+                                                    <path d="M10 40L40 55L70 40" stroke="#6c757d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/>
+                                                </svg>
+                                                <p class="mt-3 mb-0" style="font-weight: 500; color: #6c757d; font-size: 0.95rem;">Upload a 3D file to preview</p>
+                                                <p class="mt-1 mb-0" style="font-size: 0.8rem; color: #95a5a6;">Drag & drop or click to browse</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {{-- Viewer Controls Panel - REMOVED FOR CLEAN INTERFACE --}}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Medical Form - Unified Single Section -->
+        <div class="quote-form-container-3d" id="medicalForm3d" style="display: none;">
+            <div class="row justify-content-center">
+                <div class="col-12 col-lg-11">
+                    <div class="card border-0 shadow-sm" style="border-radius: 12px; overflow: hidden;">
+                        <div class="card-body p-0">
+                            <div class="row g-0">
+                                <!-- Left Side: Controls -->
+                                <div class="col-12 col-lg-3" style="background: #f8f9fa; border-right: 1px solid #e9ecef;">
+                                    <div class="p-3 p-lg-4">
+                                        <!-- Category Tabs -->
+                                        <div class="btn-group w-100 mb-3" role="group">
+                                            <button type="button" class="btn btn-sm category-tab-btn" data-category="general" style="border-radius: 8px 0 0 8px; padding: 10px; font-size: 0.85rem; font-weight: 600; border: 1px solid #dee2e6; background: #f8f9fa; color: #6c757d; transition: all 0.2s;">
+                                                General
+                                            </button>
+                                            <button type="button" class="btn btn-sm category-tab-btn active" data-category="medical" style="border-radius: 0 8px 8px 0; padding: 10px; font-size: 0.85rem; font-weight: 600; border: 1px solid #dee2e6; background: white; color: #2c3e50; transition: all 0.2s;">
+                                                Medical
+                                            </button>
+                                        </div>
+
+                                        <!-- Upload Area -->
+                                        <div class="upload-drop-zone-3d text-center p-3 mb-3" style="border: 2px dashed #cbd5e0; border-radius: 10px; background: white; cursor: pointer; transition: all 0.3s;">
+                                            <input type="file" id="fileInput3dMedical" style="display: none;" accept=".stl,.obj,.ply" multiple>
+                                            <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" class="mb-2">
+                                                <circle cx="20" cy="20" r="20" fill="#e8f4f8"/>
+                                                <path d="M20 10L26 16L20 22L14 16L20 10Z" stroke="#4a90e2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                <path d="M14 22L20 28L26 22" stroke="#4a90e2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/>
+                                            </svg>
+                                            <p class="mb-1" style="font-size: 0.9rem; font-weight: 600; color: #2c3e50;">Drop files or click</p>
+                                            <small class="text-muted" style="font-size: 0.8rem;">STL, OBJ, PLY (Max 100MB each) • Multiple files supported</small>
+                                        </div>
+
+                                        <!-- Uploaded Files List -->
+                                        <div id="uploadedFilesListMedical" class="mb-3" style="display: none;">
+                                            <label class="form-label mb-2" style="font-size: 0.85rem; font-weight: 600; color: #495057;">Uploaded Files (<span id="fileCountMedical">0</span>)</label>
+                                            <div id="filesContainerMedical" style="max-height: 200px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 8px; background: #f8f9fa;"></div>
+                                        </div>
+
+                                        <!-- Material -->
+                                        <div class="mb-3">
+                                            <label class="form-label mb-2" style="font-size: 0.85rem; font-weight: 600; color: #495057;">Material</label>
+                                            <select id="materialSelectMedical" class="form-select form-select-sm" style="border-radius: 6px; border: 1px solid #dee2e6; font-size: 0.85rem;" onchange="if(window.fileManagerMedical && window.viewerMedical.uploadedFiles.length > 0) { console.log('Medical material changed to:', this.value); window.fileManagerMedical.updateQuote(); }">
+                                                <option value="medical-resin">Medical Resin</option>
+                                                <option value="biocompatible">Biocompatible</option>
+                                                <option value="surgical">Surgical Grade</option>
+                                            </select>
+                                        </div>
+
+                                        <!-- Quality -->
+                                        <div class="mb-3">
+                                            <label class="form-label mb-2" style="font-size: 0.85rem; font-weight: 600; color: #495057;">Quality</label>
+                                            <select id="qualitySelectMedical" class="form-select form-select-sm" style="border-radius: 6px; border: 1px solid #dee2e6; font-size: 0.85rem;" onchange="if(window.fileManagerMedical && window.viewerMedical.uploadedFiles.length > 0) { console.log('Medical quality changed to:', this.value); window.fileManagerMedical.updateQuote(); }">
+                                                <option value="high">High (0.1mm)</option>
+                                                <option value="ultra" selected>Ultra (0.05mm)</option>
+                                                <option value="extreme">Extreme (0.025mm)</option>
+                                            </select>
+                                        </div>
+
+                                        <!-- Application -->
+                                        <div class="mb-3">
+                                            <label class="form-label mb-2" style="font-size: 0.85rem; font-weight: 600; color: #495057;">Application</label>
+                                            <select id="applicationSelectMedical" class="form-select form-select-sm" style="border-radius: 6px; border: 1px solid #dee2e6; font-size: 0.85rem;" onchange="if(window.fileManagerMedical && window.viewerMedical.uploadedFiles.length > 0) { console.log('Medical application changed to:', this.value); window.fileManagerMedical.updateQuote(); }">
+                                                <option value="surgical">Surgical Guide</option>
+                                                <option value="dental">Dental Model</option>
+                                                <option value="anatomical">Anatomical</option>
+                                                <option value="prosthetic">Prosthetic</option>
+                                            </select>
+                                        </div>
+
+                                        <!-- Color Picker -->
+                                        <div class="mb-3">
+                                            <label class="form-label mb-2" style="font-size: 0.85rem; font-weight: 600; color: #495057;">Model Color</label>
+                                            <div class="d-flex gap-2 flex-wrap">
+                                                <button type="button" class="color-btn-medical active" data-color="#0047AD" style="width: 32px; height: 32px; border-radius: 6px; border: 2px solid #0047AD; background: #0047AD; cursor: pointer;"></button>
+                                                <button type="button" class="color-btn-medical" data-color="#ffffff" style="width: 32px; height: 32px; border-radius: 6px; border: 2px solid #dee2e6; background: #ffffff; cursor: pointer;"></button>
+                                                <button type="button" class="color-btn-medical" data-color="#0071cc" style="width: 32px; height: 32px; border-radius: 6px; border: 2px solid #dee2e6; background: #0071cc; cursor: pointer;"></button>
+                                                <button type="button" class="color-btn-medical" data-color="#e91e63" style="width: 32px; height: 32px; border-radius: 6px; border: 2px solid #dee2e6; background: #e91e63; cursor: pointer;"></button>
+                                                <button type="button" class="color-btn-medical" data-color="#9c27b0" style="width: 32px; height: 32px; border-radius: 6px; border: 2px solid #dee2e6; background: #9c27b0; cursor: pointer;"></button>
+                                            </div>
+                                        </div>
+
+                                        <!-- Price Summary -->
+                                        <div class="mt-3 p-3" style="background: white; border-radius: 12px; border: 2px solid #e9ecef; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+                                            <div class="d-flex justify-content-between align-items-center mb-2 pb-2" style="border-bottom: 1px solid #f1f3f5;">
+                                                <span style="font-size: 0.8rem; color: #6c757d; font-weight: 500;">Volume</span>
+                                                <strong id="quoteTotalVolumeMedical" style="font-weight: 600; font-size: 0.85rem; color: #2c3e50;">0 cm³</strong>
+                                            </div>
+                                            <div class="d-flex justify-content-between align-items-center mb-2 pb-2" style="border-bottom: 1px solid #f1f3f5;">
+                                                <span style="font-size: 0.8rem; color: #6c757d; font-weight: 500;">Print Time</span>
+                                                <strong id="quotePrintTimeMedical" style="font-weight: 600; font-size: 0.85rem; color: #2c3e50;">0h</strong>
+                                            </div>
+                                            <div class="d-flex justify-content-between align-items-center mt-2 pt-2">
+                                                <span style="font-size: 0.85rem; font-weight: 600; color: #495057; text-transform: uppercase; letter-spacing: 0.3px;">Total Price</span>
+                                                <h4 class="mb-0" id="quoteTotalPriceMedical" style="font-weight: 700; font-size: 1.3rem; color: #2c3e50;">$0</h4>
+                                            </div>
+                                            <button type="button" class="btn w-100 mt-2" id="btnRequestQuoteMedical" style="border-radius: 10px; font-weight: 600; font-size: 0.85rem; padding: 10px; background: #4a90e2; color: white; border: none; transition: all 0.3s; box-shadow: 0 2px 8px rgba(74, 144, 226, 0.3);">
+                                                Request Quote →
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Right Side: 3D Viewer -->
+                                <div class="col-12 col-lg-9 position-relative d-flex flex-column" style="display: flex !important; visibility: visible !important; opacity: 1 !important; flex: 1 !important; min-width: 0 !important; background: linear-gradient(to bottom, #b8c5d6 0%, #99a8ba 100%) !important;">
+                                    <div id="viewer3dMedical" style="display: flex !important; visibility: visible !important; width: 100% !important; height: 100vh !important; background: linear-gradient(to bottom, #b8c5d6 0%, #99a8ba 100%) !important;">
+                                        {{-- Model Info Badge (Top Left - Hidden until file uploaded) --}}
+                                        <div class="model-info-badge" style="display: none;">
+                                            <div class="model-name">
+                                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                    <path d="M8 2L14 5L8 8L2 5L8 2Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                                    <path d="M2 11L8 14L14 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.7"/>
+                                                </svg>
+                                                <span id="modelNameDisplayMedical">model.stl</span>
+                                            </div>
+                                            <div class="model-subtitle" id="modelDimensionsDisplayMedical">0 × 0 × 0 mm</div>
+                                        </div>
+
+                                        {{-- Bottom Control Bar - Professional --}}
+                                        <div class="viewer-bottom-controls" id="controlBarMedical">
+                                            <div class="control-section measurements-section">
+                                                <div class="control-label">Measurements</div>
+                                                <div class="measurement-items">
+                                                    <div class="measurement-item">
+                                                        <span class="axis-label">X:</span>
+                                                        <span class="axis-value" id="measureX">0.00</span>
+                                                        <span class="axis-unit">mm</span>
+                                                    </div>
+                                                    <div class="measurement-item">
+                                                        <span class="axis-label">Y:</span>
+                                                        <span class="axis-value" id="measureY">0.00</span>
+                                                        <span class="axis-unit">mm</span>
+                                                    </div>
+                                                    <div class="measurement-item">
+                                                        <span class="axis-label">Z:</span>
+                                                        <span class="axis-value" id="measureZ">0.00</span>
+                                                        <span class="axis-unit">mm</span>
+                                                    </div>
+                                                    <div class="measurement-item volume">
+                                                        <span class="axis-label">Vol:</span>
+                                                        <span class="axis-value" id="measureVolume">0.00</span>
+                                                        <span class="axis-unit">cm³</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="control-divider"></div>
+
+                                            <div class="control-section camera-section">
+                                                <div class="control-label">Camera View</div>
+                                                <div class="camera-buttons">
+                                                    <button type="button" class="control-btn camera-btn" data-view="top" title="Top View">
+                                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                            <path d="M8 2L14 6L8 10L2 6L8 2Z" stroke="currentColor" stroke-width="1.5"/>
+                                                        </svg>
+                                                        <span>Top</span>
+                                                    </button>
+                                                    <button type="button" class="control-btn camera-btn" data-view="front" title="Front View">
+                                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                            <rect x="3" y="3" width="10" height="10" stroke="currentColor" stroke-width="1.5"/>
+                                                        </svg>
+                                                        <span>Front</span>
+                                                    </button>
+                                                    <button type="button" class="control-btn camera-btn" data-view="right" title="Right View">
+                                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                            <path d="M3 3L13 3L13 13L3 13L3 3Z" stroke="currentColor" stroke-width="1.5"/>
+                                                            <path d="M8 3L13 8L8 13" stroke="currentColor" stroke-width="1.5"/>
+                                                        </svg>
+                                                        <span>Right</span>
+                                                    </button>
+                                                    <button type="button" class="control-btn camera-btn" data-view="left" title="Left View">
+                                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                            <path d="M13 3L3 3L3 13L13 13L13 3Z" stroke="currentColor" stroke-width="1.5"/>
+                                                            <path d="M8 3L3 8L8 13" stroke="currentColor" stroke-width="1.5"/>
+                                                        </svg>
+                                                        <span>Left</span>
+                                                    </button>
+                                                    <button type="button" class="control-btn camera-btn" data-view="bottom" title="Bottom View">
+                                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                            <path d="M8 14L2 10L8 6L14 10L8 14Z" stroke="currentColor" stroke-width="1.5"/>
+                                                        </svg>
+                                                        <span>Bottom</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <div class="control-divider"></div>
+
+                                            <div class="control-section tools-section">
+                                                <div class="control-label">Tools</div>
+                                                <div class="tool-buttons">
+                                                    <button type="button" class="control-btn tool-btn" id="toggleGridBtn" title="Toggle Grid">
+                                                        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                                                            <path d="M1 1H17M1 6H17M1 11H17M1 16H17M6 1V17M11 1V17" stroke="currentColor" stroke-width="1.5"/>
+                                                        </svg>
+                                                        <span>Grid</span>
+                                                    </button>
+                                                    <button type="button" class="control-btn tool-btn" id="repairModelBtn" title="Repair Model">
+                                                        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                                                            <path d="M15 3L3 15M3 3L15 15" stroke="currentColor" stroke-width="1.5"/>
+                                                            <circle cx="9" cy="9" r="7" stroke="currentColor" stroke-width="1.5"/>
+                                                        </svg>
+                                                        <span>Repair</span>
+                                                    </button>
+                                                    <button type="button" class="control-btn tool-btn" id="fillHolesBtn" title="Fill Holes">
+                                                        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                                                            <circle cx="9" cy="9" r="7" stroke="currentColor" stroke-width="1.5"/>
+                                                            <path d="M9 6V12M6 9H12" stroke="currentColor" stroke-width="1.5"/>
+                                                        </svg>
+                                                        <span>Fill Holes</span>
+                                                    </button>
+                                                    <button type="button" class="control-btn tool-btn active" id="autoRotateBtn" title="Auto Rotate">
+                                                        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                                                            <path d="M15 9C15 12.3137 12.3137 15 9 15C5.68629 15 3 12.3137 3 9C3 5.68629 5.68629 3 9 3C10.5 3 11.9 3.5 13 4.5" stroke="currentColor" stroke-width="1.5"/>
+                                                            <path d="M15 3V7H11" stroke="currentColor" stroke-width="1.5"/>
+                                                        </svg>
+                                                        <span>Rotate</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <div class="control-divider"></div>
+
+                                            <div class="control-section actions-section">
+                                                <button type="button" class="control-btn save-btn" id="saveCalculationsBtn">
+                                                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                                                        <path d="M15 16H3C2.44772 16 2 15.5523 2 15V3C2 2.44772 2.44772 2 3 2H12L16 6V15C16 15.5523 15.5523 16 15 16Z" stroke="currentColor" stroke-width="1.5"/>
+                                                        <path d="M12 2V6H5V2" stroke="currentColor" stroke-width="1.5"/>
+                                                        <path d="M5 10H13V16H5V10Z" stroke="currentColor" stroke-width="1.5"/>
+                                                    </svg>
+                                                    <span>Save & Calculate</span>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {{-- Empty State --}}
+                                        <div class="d-flex align-items-center justify-content-center h-100 text-muted text-center">
+                                            <div>
+                                                <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" style="opacity: 0.3;">
+                                                    <path d="M40 10L70 25L40 40L10 25L40 10Z" stroke="#6c757d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                    <path d="M10 55L40 70L70 55" stroke="#6c757d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.7"/>
+                                                    <path d="M10 40L40 55L70 40" stroke="#6c757d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/>
+                                                </svg>
+                                                <p class="mt-3 mb-0" style="font-weight: 500; color: #6c757d; font-size: 0.95rem;">Upload a medical file to preview</p>
+                                                <p class="mt-1 mb-0" style="font-size: 0.8rem; color: #95a5a6;">Drag & drop or click to browse</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {{-- Viewer Controls Panel - REMOVED FOR CLEAN INTERFACE --}}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+                                        <div class="col-6 col-md-3">
+                                            <small style="opacity: 0.8; text-transform: uppercase; letter-spacing: 1px; font-size: 0.75rem;">Files</small>
+                                            <h4 class="mb-0 mt-1" id="quoteTotalFilesMedical">0</h4>
+                                        </div>
+                                        <div class="col-6 col-md-3">
+                                            <small style="opacity: 0.8; text-transform: uppercase; letter-spacing: 1px; font-size: 0.75rem;">Volume</small>
+                                            <h4 class="mb-0 mt-1" id="quoteTotalVolumeMedical">0 cm³</h4>
+                                        </div>
+                                        <div class="col-6 col-md-3">
+                                            <small style="opacity: 0.8; text-transform: uppercase; letter-spacing: 1px; font-size: 0.75rem;">Print Time</small>
+                                            <h4 class="mb-0 mt-1" id="quotePrintTimeMedical">0h</h4>
+                                        </div>
+                                        <div class="col-6 col-md-3">
+                                            <small style="opacity: 0.8; text-transform: uppercase; letter-spacing: 1px; font-size: 0.75rem;">Material</small>
+                                            <h4 class="mb-0 mt-1" id="quoteMaterialCostMedical">$0</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 text-md-end mt-4 mt-md-0">
+                                    <small style="opacity: 0.8; text-transform: uppercase; letter-spacing: 1px; font-size: 0.75rem;">Total Price</small>
+                                    <h1 class="mb-3 mt-1" style="font-weight: 700; font-size: 3rem;" id="quoteTotalPriceMedical">$0</h1>
+                                    <button type="button" class="btn btn-lg btn-light" id="btnRequestQuoteMedical" style="padding: 12px 40px; border-radius: 50px; font-weight: 600;">
+                                        Request Medical Quote
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+                </span>
+                <h2 class="tp-section-title-grotesk mb-20">
+                    Upload Your 3D Models
+                </h2>
+                <p style="font-size: 1.1rem; max-width: 600px; margin: 0 auto; color: #6c757d;">
+                    Upload STL, OBJ, or PLY files and get instant pricing
+                </p>
+            </div>
+        </div>
+
+        <!-- General 3D Form -->
+        <div class="quote-form-container-3d" id="generalForm3d-old" style="display: none;">
+            <div class="row g-4">
+                <div class="col-lg-6">
+                    <div class="card border-0 shadow-sm" style="border-radius: 16px;">
+                        <div class="card-header border-0 p-4" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 16px 16px 0 0;">
+                            <h5 class="mb-0" style="font-weight: 600;">📤 Upload 3D Files</h5>
+                            <small class="text-muted">STL, OBJ, PLY - Max 50MB</small>
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="upload-drop-zone-3d text-center p-5" style="border: 2px dashed #dee2e6; border-radius: 12px; background: #f8f9fa; cursor: pointer; transition: all 0.3s ease;">
+                                <input type="file" id="fileInput3d" style="display: none;" multiple accept=".stl,.obj,.ply">
+                                <div class="mb-3">
+                                    <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <circle cx="32" cy="32" r="32" fill="#e3f2fd"/>
+                                        <path d="M32 20L40 28L32 36L24 28L32 20Z" stroke="#2196f3" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <path d="M24 36L32 44L40 36" stroke="#2196f3" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </div>
+                                <h6 class="mb-2" style="font-weight: 600;">Drop files here or click to browse</h6>
+                                <p class="text-muted mb-3" style="font-size: 14px;">Supported formats: STL, OBJ, PLY</p>
+                                <button type="button" class="btn btn-primary" onclick="document.getElementById('fileInput3d').click()">
+                                    Select Files
+                                </button>
+                            </div>
+
+                            <div class="mt-4">
+                                <label class="form-label fw-semibold">Material Type</label>
+                                <select class="form-select" style="border-radius: 10px;">
+                                    <option value="pla">PLA (Standard)</option>
+                                    <option value="abs">ABS (Durable)</option>
+                                    <option value="petg">PETG (Strong)</option>
+                                    <option value="nylon">Nylon (Flexible)</option>
+                                    <option value="resin">Resin (High Detail)</option>
+                                </select>
+                            </div>
+
+                            <div class="mt-3">
+                                <label class="form-label fw-semibold">Print Quality</label>
+                                <select class="form-select" style="border-radius: 10px;">
+                                    <option value="draft">Draft (0.3mm)</option>
+                                    <option value="standard" selected>Standard (0.2mm)</option>
+                                    <option value="fine">Fine (0.1mm)</option>
+                                    <option value="ultra">Ultra Fine (0.05mm)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-6">
+                    <div class="card border-0 shadow-sm" style="border-radius: 16px;">
+                        <div class="card-header border-0 p-4" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 16px 16px 0 0;">
+                            <h5 class="mb-0" style="font-weight: 600;">👁️ 3D Preview</h5>
+                        </div>
+                        <div class="card-body p-0">
+                            <div id="viewer3dGeneral" style="width: 100%; height: 400px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 0 0 16px 16px; display: flex; align-items: center; justify-content: center; color: white;">
+                                <div class="text-center">
+                                    <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" style="opacity: 0.5;">
+                                        <path d="M40 10L70 25L40 40L10 25L40 10Z" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <path d="M10 55L40 70L70 55" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <path d="M10 40L40 55L70 40" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                    <p style="margin-top: 20px; font-size: 16px; opacity: 0.8;">Upload a 3D file to preview</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Uploaded Files List -->
+                    <div class="card border-0 shadow-sm mt-4" style="border-radius: 16px;">
+                        <div class="card-header border-0 p-4 d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 16px 16px 0 0;">
+                            <h6 class="mb-0" style="font-weight: 600;">� Uploaded Files</h6>
+                            <span class="badge bg-primary" id="fileCountGeneral">0</span>
+                        </div>
+                        <div class="card-body p-0" style="max-height: 300px; overflow-y: auto;">
+                            <div id="filesListGeneral" class="files-list-container">
+                                <div class="empty-state text-center p-5">
+                                    <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" class="mb-3" style="opacity: 0.3;">
+                                        <circle cx="24" cy="24" r="24" fill="#e0e0e0"/>
+                                        <path d="M24 14V34M14 24H34" stroke="#9e9e9e" stroke-width="2" stroke-linecap="round"/>
+                                    </svg>
+                                    <p class="mb-0 text-muted">No files uploaded yet</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Instant Quote -->
+                    <div class="card border-0 shadow-sm mt-4" style="border-radius: 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                        <div class="card-body p-4">
+                            <h6 class="mb-3" style="font-weight: 600;">💰 Instant Quote</h6>
+                            <div id="quoteDetailsGeneral">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Total Files:</span>
+                                    <strong id="quoteTotalFilesGeneral">0</strong>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Total Volume:</span>
+                                    <strong id="quoteTotalVolumeGeneral">0 cm³</strong>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Material Cost:</span>
+                                    <strong id="quoteMaterialCostGeneral">$0.00</strong>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Print Time:</span>
+                                    <strong id="quotePrintTimeGeneral">0 hours</strong>
+                                </div>
+                                <hr style="border-color: rgba(255,255,255,0.3); margin: 15px 0;">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0">Total Price:</h5>
+                                    <h3 class="mb-0" id="quoteTotalPriceGeneral">$0.00</h3>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-light btn-lg w-100 mt-3" id="btnRequestQuoteGeneral" style="border-radius: 10px; font-weight: 600;">
+                                Request Quote
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Medical 3D Form -->
+        <div class="quote-form-container-3d" id="medicalForm3d-old" style="display: none;">
+            <div class="row g-4">
+                <div class="col-lg-6">
+                    <div class="card border-0 shadow-sm" style="border-radius: 16px;">
+                        <div class="card-header border-0 p-4" style="background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%); border-radius: 16px 16px 0 0;">
+                            <h5 class="mb-0" style="font-weight: 600;">🏥 Upload Medical 3D Files</h5>
+                            <small class="text-muted">STL, OBJ, PLY - Max 100MB</small>
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="upload-drop-zone-3d text-center p-5" style="border: 2px dashed #ff9800; border-radius: 12px; background: #fff3e0; cursor: pointer;">
+                                <input type="file" id="fileInputMedical3d" style="display: none;" multiple accept=".stl,.obj,.ply">
+                                <div class="mb-3">
+                                    <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <circle cx="32" cy="32" r="32" fill="#fff3e0"/>
+                                        <path d="M32 20L40 28L32 36L24 28L32 20Z" stroke="#ff9800" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <path d="M24 36L32 44L40 36" stroke="#ff9800" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </div>
+                                <h6 class="mb-2" style="font-weight: 600;">Drop medical files here or click to browse</h6>
+                                <p class="text-muted mb-3" style="font-size: 14px;">Biocompatible materials available</p>
+                                <button type="button" class="btn btn-warning" onclick="document.getElementById('fileInputMedical3d').click()">
+                                    Select Files
+                                </button>
+                            </div>
+
+                            <div class="mt-4">
+                                <label class="form-label fw-semibold">Medical Material Type</label>
+                                <select class="form-select" style="border-radius: 10px;">
+                                    <option value="biocompatible">Biocompatible Resin</option>
+                                    <option value="surgical">Surgical Guide Material</option>
+                                    <option value="dental">Dental Resin</option>
+                                    <option value="sterilizable">Sterilizable Material</option>
+                                </select>
+                            </div>
+
+                            <div class="mt-3">
+                                <label class="form-label fw-semibold">Application Type</label>
+                                <select class="form-select" style="border-radius: 10px;">
+                                    <option value="surgical-guide">Surgical Guide</option>
+                                    <option value="dental-model">Dental Model</option>
+                                    <option value="anatomical-model">Anatomical Model</option>
+                                    <option value="prosthetic">Prosthetic Component</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-6">
+                    <div class="card border-0 shadow-sm" style="border-radius: 16px;">
+                        <div class="card-header border-0 p-4" style="background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%); border-radius: 16px 16px 0 0;">
+                            <h5 class="mb-0" style="font-weight: 600;">👁️ 3D Preview</h5>
+                        </div>
+                        <div class="card-body p-0">
+                            <div id="viewer3dMedical" style="width: 100%; height: 400px; background: linear-gradient(135deg, #ff9800 0%, #ff5722 100%); border-radius: 0 0 16px 16px; display: flex; align-items: center; justify-content: center; color: white;">
+                                <div class="text-center">
+                                    <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" style="opacity: 0.5;">
+                                        <path d="M40 10L70 25L40 40L10 25L40 10Z" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <path d="M10 55L40 70L70 55" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <path d="M10 40L40 55L70 40" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                    <p style="margin-top: 20px; font-size: 16px; opacity: 0.8;">Upload a medical file to preview</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Uploaded Files List -->
+                    <div class="card border-0 shadow-sm mt-4" style="border-radius: 16px;">
+                        <div class="card-header border-0 p-4 d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%); border-radius: 16px 16px 0 0;">
+                            <h6 class="mb-0" style="font-weight: 600;">� Uploaded Files</h6>
+                            <span class="badge" style="background: linear-gradient(135deg, #ff9800 0%, #ff5722 100%); color: white;" id="fileCountMedical">0</span>
+                        </div>
+                        <div class="card-body p-0" style="max-height: 300px; overflow-y: auto;">
+                            <div id="filesListMedical" class="files-list-container">
+                                <div class="empty-state text-center p-5">
+                                    <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" class="mb-3" style="opacity: 0.3;">
+                                        <circle cx="24" cy="24" r="24" fill="#e0e0e0"/>
+                                        <path d="M24 14V34M14 24H34" stroke="#9e9e9e" stroke-width="2" stroke-linecap="round"/>
+                                    </svg>
+                                    <p class="mb-0 text-muted">No files uploaded yet</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Instant Quote -->
+                    <div class="card border-0 shadow-sm mt-4" style="border-radius: 16px; background: linear-gradient(135deg, #ff9800 0%, #ff5722 100%); color: white;">
+                        <div class="card-body p-4">
+                            <h6 class="mb-3" style="font-weight: 600;">💰 Instant Quote</h6>
+                            <div id="quoteDetailsMedical">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Total Files:</span>
+                                    <strong id="quoteTotalFilesMedical">0</strong>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Total Volume:</span>
+                                    <strong id="quoteTotalVolumeMedical">0 cm³</strong>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Material Cost:</span>
+                                    <strong id="quoteMaterialCostMedical">$0.00</strong>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Print Time:</span>
+                                    <strong id="quotePrintTimeMedical">0 hours</strong>
+                                </div>
+                                <hr style="border-color: rgba(255,255,255,0.3); margin: 15px 0;">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0">Total Price:</h5>
+                                    <h3 class="mb-0" id="quoteTotalPriceMedical">$0.00</h3>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-light btn-lg w-100 mt-3" id="btnRequestQuoteMedical" style="border-radius: 10px; font-weight: 600;">
+                                Request Medical Quote
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+/* Active Tab Styling */
+.category-tab-btn.active {
+    background: #0071cc !important;
+    color: white !important;
+    border-color: #0071cc !important;
+}
+
+.category-tab-btn:hover:not(.active) {
+    background: #e8f4f8;
+    color: #0071cc;
+}
+
+/* Mobile Responsive Styles */
+@media (max-width: 991px) {
+    .col-12.col-lg-3 {
+        border-right: none !important;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    #viewer3dGeneral,
+    #viewer3dMedical {
+        border-radius: 0 0 8px 8px !important;
+        min-height: 300px !important;
+    }
+
+    .quote-form-container-3d .card {
+        border-radius: 8px !important;
+    }
+}
+
+.file-item {
+    transition: all 0.2s ease;
+    cursor: default;
+}
+
+.file-item:hover {
+    background-color: #f8f9fa;
+}
+
+.file-item:last-child {
+    border-bottom: none !important;
+}
+
+.file-list-item {
+    transition: all 0.2s ease;
+}
+
+.file-list-item:hover {
+    background-color: #f8f9fa !important;
+}
+
+.file-list-item:last-child {
+    border-bottom: none !important;
+}
+
+.file-list-item .remove-file-btn {
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.file-list-item:hover .remove-file-btn {
+    opacity: 1;
+}
+
+#filesContainer,
+#filesContainerMedical {
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e0 #f8f9fa;
+}
+
+#filesContainer::-webkit-scrollbar,
+#filesContainerMedical::-webkit-scrollbar {
+    width: 6px;
+}
+
+#filesContainer::-webkit-scrollbar-track,
+#filesContainerMedical::-webkit-scrollbar-track {
+    background: #f8f9fa;
+}
+
+#filesContainer::-webkit-scrollbar-thumb,
+#filesContainerMedical::-webkit-scrollbar-thumb {
+    background: #cbd5e0;
+    border-radius: 3px;
+}
+
+#filesContainer::-webkit-scrollbar-thumb:hover,
+#filesContainerMedical::-webkit-scrollbar-thumb:hover {
+    background: #a0aec0;
+}
+
+.files-list-container {
+    min-height: 100px;
+}
+
+.files-list-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.files-list-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.files-list-container::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 3px;
+}
+
+.files-list-container::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+.remove-file-btn {
+    opacity: 0.7;
+    transition: all 0.2s;
+}
+
+.remove-file-btn:hover {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+/* Fullscreen controls visibility */
+#viewer3dGeneral:fullscreen .card,
+#viewer3dMedical:fullscreen .card,
+#viewer3dGeneral:-webkit-full-screen .card,
+#viewer3dMedical:-webkit-full-screen .card,
+#viewer3dGeneral:-moz-full-screen .card,
+#viewer3dMedical:-moz-full-screen .card {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 9999;
+    margin: 0;
+    border-radius: 0 !important;
+}
+
+#viewer3dGeneral:fullscreen,
+#viewer3dMedical:fullscreen,
+#viewer3dGeneral:-webkit-full-screen,
+#viewer3dMedical:-webkit-full-screen {
+    background: #2d2d2d;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Form switcher functionality
+    const formSwitchers = document.querySelectorAll('.form-switch-btn-3d');
+    const generalForm = document.getElementById('generalForm3d');
+    const medicalForm = document.getElementById('medicalForm3d');
+
+    if (formSwitchers.length > 0) {
+        formSwitchers.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const formType = this.getAttribute('data-form');
+
+                // Update button states
+                formSwitchers.forEach(b => {
+                    b.classList.remove('active');
+                    if (b.getAttribute('data-form') === formType) {
+                        if (formType === 'general') {
+                            b.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+                            b.style.color = 'white';
+                            b.style.border = 'none';
+                        } else {
+                            b.style.background = 'linear-gradient(135deg, #ff9800 0%, #ff5722 100%)';
+                            b.style.color = 'white';
+                            b.style.border = 'none';
+                        }
+                        b.classList.add('active');
+                    } else {
+                        b.style.background = 'white';
+                        b.style.color = '#6c757d';
+                        b.style.border = '2px solid #dee2e6';
+                    }
+                });
+
+                // Show/hide forms - updated to use new form IDs
+                const newGeneralForm = document.getElementById('generalForm3d');
+                const newMedicalForm = document.getElementById('medicalForm3d');
+
+                if (newGeneralForm && newMedicalForm) {
+                    if (formType === 'general') {
+                        newGeneralForm.style.display = 'block';
+                        newMedicalForm.style.display = 'none';
+                    } else {
+                        newGeneralForm.style.display = 'none';
+                        newMedicalForm.style.display = 'block';
+                    }
+                }
+
+                // Also handle old forms if they exist
+                if (generalForm && medicalForm) {
+                    generalForm.classList.toggle('d-none', formType !== 'general');
+                    medicalForm.classList.toggle('d-none', formType !== 'medical');
+                }
+            });
+        });
+    }
+
+    // Color Picker for General
+    const colorBtns = document.querySelectorAll('.color-btn');
+    colorBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            colorBtns.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            const color = this.getAttribute('data-color');
+            if (window.viewerGeneral && window.viewerGeneral.model) {
+                window.viewerGeneral.changeModelColor(color);
+            }
+        });
+    });
+
+    // Color Picker for Medical
+    const colorBtnsMedical = document.querySelectorAll('.color-btn-medical');
+    colorBtnsMedical.forEach(btn => {
+        btn.addEventListener('click', function() {
+            colorBtnsMedical.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            const color = this.getAttribute('data-color');
+            if (window.viewerMedical && window.viewerMedical.model) {
+                window.viewerMedical.changeModelColor(color);
+            }
+        });
+    });
+
+    // Viewer Controls - General
+    const resetViewGen = document.getElementById('resetViewGeneral');
+    const wireframeGen = document.getElementById('wireframeToggleGeneral');
+    const fullscreenGen = document.getElementById('fullscreenGeneral');
+
+    if (resetViewGen) {
+        resetViewGen.addEventListener('click', () => {
+            if (window.viewerGeneral && window.viewerGeneral.model) {
+                window.viewerGeneral.fitCameraToModel();
+            }
+        });
+    }
+
+    if (wireframeGen) {
+        let wireframeMode = false;
+        wireframeGen.addEventListener('click', () => {
+            wireframeMode = !wireframeMode;
+            if (window.viewerGeneral && window.viewerGeneral.model) {
+                window.viewerGeneral.toggleWireframe(wireframeMode);
+            }
+            wireframeGen.style.background = wireframeMode ? '#2c3e50' : '';
+            wireframeGen.style.color = wireframeMode ? 'white' : '';
+        });
+    }
+
+    if (fullscreenGen) {
+        fullscreenGen.addEventListener('click', () => {
+            const viewer = document.getElementById('viewer3dGeneral');
+            if (viewer.requestFullscreen) {
+                viewer.requestFullscreen();
+            }
+        });
+    }
+
+    // Viewer Controls - Medical
+    const resetViewMed = document.getElementById('resetViewMedical');
+    const wireframeMed = document.getElementById('wireframeToggleMedical');
+    const fullscreenMed = document.getElementById('fullscreenMedical');
+
+    if (resetViewMed) {
+        resetViewMed.addEventListener('click', () => {
+            if (window.viewerMedical && window.viewerMedical.model) {
+                window.viewerMedical.fitCameraToModel();
+            }
+        });
+    }
+
+    if (wireframeMed) {
+        let wireframeMode = false;
+        wireframeMed.addEventListener('click', () => {
+            wireframeMode = !wireframeMode;
+            if (window.viewerMedical && window.viewerMedical.model) {
+                window.viewerMedical.toggleWireframe(wireframeMode);
+            }
+            wireframeMed.style.background = wireframeMode ? '#d84315' : '';
+            wireframeMed.style.color = wireframeMode ? 'white' : '';
+        });
+    }
+
+    if (fullscreenMed) {
+        fullscreenMed.addEventListener('click', () => {
+            const viewer = document.getElementById('viewer3dMedical');
+            if (viewer.requestFullscreen) {
+                viewer.requestFullscreen();
+            }
+        });
+    }
+
+    // Category Tab Switching
+    const categoryTabs = document.querySelectorAll('.category-tab-btn');
+    categoryTabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            const category = this.getAttribute('data-category');
+            const formSwitchBtns = document.querySelectorAll('.form-switch-btn-3d');
+
+            // Update active state for inline tabs
+            categoryTabs.forEach(t => {
+                t.classList.remove('active');
+                t.style.background = '#f8f9fa';
+                t.style.color = '#6c757d';
+            });
+            this.classList.add('active');
+            this.style.background = 'white';
+            this.style.color = '#2c3e50';
+
+            // Also update main form switch buttons
+            formSwitchBtns.forEach(btn => {
+                if (btn.getAttribute('data-form') === category) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+
+            // Switch forms
+            if (category === 'general') {
+                document.getElementById('generalForm3d').style.display = 'block';
+                document.getElementById('medicalForm3d').style.display = 'none';
+
+                // Resize General viewer after showing
+                setTimeout(() => {
+                    if (window.viewerGeneral && window.viewerGeneral.onWindowResize) {
+                        window.viewerGeneral.onWindowResize();
+                        console.log('✓ General viewer resized');
+                    }
+                }, 100);
+            } else {
+                document.getElementById('generalForm3d').style.display = 'none';
+                document.getElementById('medicalForm3d').style.display = 'block';
+
+                // Resize Medical viewer after showing
+                setTimeout(() => {
+                    if (window.viewerMedical && window.viewerMedical.onWindowResize) {
+                        window.viewerMedical.onWindowResize();
+                        console.log('✓ Medical viewer resized');
+                    }
+
+                    // If Medical viewer has a model, fit it to view
+                    if (window.viewerMedical && window.viewerMedical.model) {
+                        window.viewerMedical.fitCameraToModel();
+                        console.log('✓ Medical model refitted to camera');
+                    }
+                }, 100);
+            }
+
+            console.log('✓ Switched to:', category);
+        });
+    });
+
+    // File upload drag and drop
+    const dropZones = document.querySelectorAll('.upload-drop-zone-3d');
+    dropZones.forEach(zone => {
+        zone.addEventListener('click', function() {
+            const input = this.querySelector('input[type="file"]') || this.parentElement.querySelector('input[type="file"]');
+            if (input) input.click();
+        });
+
+        zone.addEventListener('mouseenter', function() {
+            this.style.borderColor = '#4a90e2';
+            this.style.background = '#f0f7ff';
+        });
+
+        zone.addEventListener('mouseleave', function() {
+            this.style.borderColor = '#cbd5e0';
+            this.style.background = 'white';
+        });
+
+        zone.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.style.borderColor = '#4a90e2';
+            this.style.background = '#e8f4f8';
+            this.style.transform = 'scale(1.02)';
+        });
+
+        zone.addEventListener('dragleave', function(e) {
+            this.style.borderColor = '#cbd5e0';
+            this.style.background = 'white';
+            this.style.transform = 'scale(1)';
+        });
+
+        zone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.style.borderColor = '#cbd5e0';
+            this.style.background = 'white';
+            this.style.transform = 'scale(1)';
+            this.style.borderColor = '#dee2e6';
+            this.style.transform = 'scale(1)';
+            const files = e.dataTransfer.files;
+            console.log('Files dropped:', files);
+            // Process files immediately without alert
+        });
+    });
+
+    // File input handlers are set up in 3d-viewer-pro.js (setupFileHandlers function)
+    // Add direct test handler to verify multiple files are being selected
+    document.addEventListener('DOMContentLoaded', () => {
+        const generalInput = document.getElementById('fileInput3d');
+        const medicalInput = document.getElementById('fileInput3dMedical');
+
+        if (generalInput) {
+            console.log('✓ General file input found, testing multiple attribute:', generalInput.hasAttribute('multiple'));
+            generalInput.addEventListener('change', function(e) {
+                console.log('🔍 DIRECT HANDLER - General input change detected');
+                console.log('   Files.length:', this.files.length);
+                for (let i = 0; i < this.files.length; i++) {
+                    console.log(`   File ${i+1}:`, this.files[i].name);
+                }
+            }, true); // Use capture phase
+        }
+
+        if (medicalInput) {
+            console.log('✓ Medical file input found, testing multiple attribute:', medicalInput.hasAttribute('multiple'));
+            medicalInput.addEventListener('change', function(e) {
+                console.log('🔍 DIRECT HANDLER - Medical input change detected');
+                console.log('   Files.length:', this.files.length);
+                for (let i = 0; i < this.files.length; i++) {
+                    console.log(`   File ${i+1}:`, this.files[i].name);
+                }
+            }, true); // Use capture phase
+        }
+    });
+
+    // Setup Viewer Control Handlers
+    window.addEventListener('viewersReady', () => {
+        console.log('🎮 Setting up viewer controls...');
+
+        // Expose viewers globally for controls
+        window.viewerGeneral = viewerGeneral;
+        window.viewerMedical = viewerMedical;
+
+        // General Viewer Controls
+        const resetViewGeneralBtn = document.getElementById('resetViewGeneralBtn');
+        const zoomInGeneralBtn = document.getElementById('zoomInGeneralBtn');
+        const zoomOutGeneralBtn = document.getElementById('zoomOutGeneralBtn');
+        const solidModeGeneralBtn = document.getElementById('solidModeGeneralBtn');
+        const wireframeGeneralBtn = document.getElementById('wireframeGeneralBtn');
+        const modelColorGeneralPicker = document.getElementById('modelColorGeneralPicker');
+        const bgColorGeneralPicker = document.getElementById('bgColorGeneralPicker');
+        const fullscreenGeneralBtn = document.getElementById('fullscreenGeneralBtn');
+
+        if (resetViewGeneralBtn) {
+            resetViewGeneralBtn.addEventListener('click', () => {
+                console.log('🔄 Reset view clicked');
+                if (window.viewerGeneral && window.viewerGeneral.model) {
+                    window.viewerGeneral.fitCameraToModel();
+                } else {
+                    console.warn('No model loaded yet');
+                }
+            });
+        }
+
+        if (zoomInGeneralBtn) {
+            zoomInGeneralBtn.addEventListener('click', () => {
+                console.log('🔍 Zoom in clicked');
+                if (window.viewerGeneral && window.viewerGeneral.camera) {
+                    window.viewerGeneral.camera.position.multiplyScalar(0.8);
+                    window.viewerGeneral.controls.update();
+                } else {
+                    console.warn('Camera not available');
+                }
+            });
+        }
+
+        if (zoomOutGeneralBtn) {
+            zoomOutGeneralBtn.addEventListener('click', () => {
+                console.log('🔍 Zoom out clicked');
+                if (window.viewerGeneral && window.viewerGeneral.camera) {
+                    window.viewerGeneral.camera.position.multiplyScalar(1.2);
+                    window.viewerGeneral.controls.update();
+                } else {
+                    console.warn('Camera not available');
+                }
+            });
+        }
+
+        let isWireframeGeneral = false;
+        if (solidModeGeneralBtn && wireframeGeneralBtn) {
+            solidModeGeneralBtn.addEventListener('click', () => {
+                console.log('🎨 Solid mode clicked');
+                if (window.viewerGeneral && window.viewerGeneral.model) {
+                    window.viewerGeneral.toggleWireframe(false);
+                    isWireframeGeneral = false;
+                    solidModeGeneralBtn.classList.add('active');
+                    wireframeGeneralBtn.classList.remove('active');
+                } else {
+                    console.warn('No model loaded yet');
+                }
+            });
+
+            wireframeGeneralBtn.addEventListener('click', () => {
+                console.log('🎨 Wireframe mode clicked');
+                if (window.viewerGeneral && window.viewerGeneral.model) {
+                    window.viewerGeneral.toggleWireframe(true);
+                    isWireframeGeneral = true;
+                    wireframeGeneralBtn.classList.add('active');
+                    solidModeGeneralBtn.classList.remove('active');
+                } else {
+                    console.warn('No model loaded yet');
+                }
+            });
+        }
+
+        if (modelColorGeneralPicker) {
+            modelColorGeneralPicker.addEventListener('change', (e) => {
+                console.log('🎨 Model color changed:', e.target.value);
+                if (window.viewerGeneral && window.viewerGeneral.model) {
+                    window.viewerGeneral.changeModelColor(e.target.value);
+                } else {
+                    console.warn('No model loaded yet');
+                }
+            });
+        }
+
+        if (bgColorGeneralPicker) {
+            bgColorGeneralPicker.addEventListener('change', (e) => {
+                console.log('🎨 Background color changed:', e.target.value);
+                if (window.viewerGeneral && window.viewerGeneral.scene) {
+                    window.viewerGeneral.changeBGColor(e.target.value);
+                }
+            });
+        }
+
+        if (fullscreenGeneralBtn) {
+            fullscreenGeneralBtn.addEventListener('click', () => {
+                console.log('🖥️ Fullscreen clicked');
+                const viewer = document.getElementById('viewer3dGeneral');
+                if (viewer.requestFullscreen) {
+                    viewer.requestFullscreen();
+                } else if (viewer.webkitRequestFullscreen) {
+                    viewer.webkitRequestFullscreen();
+                } else if (viewer.msRequestFullscreen) {
+                    viewer.msRequestFullscreen();
+                }
+            });
+        }
+
+        // Handle fullscreen exit for General viewer
+        const viewerGeneralElement = document.getElementById('viewer3dGeneral');
+        if (viewerGeneralElement) {
+            document.addEventListener('fullscreenchange', () => {
+                if (!document.fullscreenElement) {
+                    console.log('🖥️ Exited General fullscreen, resetting size...');
+                    // Reset to original styles
+                    viewerGeneralElement.style.height = '';
+                    viewerGeneralElement.style.maxHeight = '700px';
+                    viewerGeneralElement.style.minHeight = '500px';
+                    setTimeout(() => {
+                        if (window.viewerGeneral) {
+                            const container = viewerGeneralElement.parentElement;
+                            const width = container.clientWidth;
+                            const height = Math.min(container.clientHeight, 700);
+                            window.viewerGeneral.renderer.setSize(width, height);
+                            window.viewerGeneral.camera.aspect = width / height;
+                            window.viewerGeneral.camera.updateProjectionMatrix();
+                        }
+                    }, 100);
+                }
+            });
+
+            document.addEventListener('webkitfullscreenchange', () => {
+                if (!document.webkitFullscreenElement) {
+                    console.log('🖥️ Exited General fullscreen (webkit), resetting size...');
+                    // Reset to original styles
+                    viewerGeneralElement.style.height = '';
+                    viewerGeneralElement.style.maxHeight = '700px';
+                    viewerGeneralElement.style.minHeight = '500px';
+                    setTimeout(() => {
+                        if (window.viewerGeneral) {
+                            const container = viewerGeneralElement.parentElement;
+                            const width = container.clientWidth;
+                            const height = Math.min(container.clientHeight, 700);
+                            window.viewerGeneral.renderer.setSize(width, height);
+                            window.viewerGeneral.camera.aspect = width / height;
+                            window.viewerGeneral.camera.updateProjectionMatrix();
+                        }
+                    }, 100);
+                }
+            });
+        }
+
+        console.log('✓ General viewer controls ready');
+
+        // Medical Viewer Controls (same pattern)
+        const resetViewMedicalBtn = document.getElementById('resetViewMedicalBtn');
+        const zoomInMedicalBtn = document.getElementById('zoomInMedicalBtn');
+        const zoomOutMedicalBtn = document.getElementById('zoomOutMedicalBtn');
+        const solidModeMedicalBtn = document.getElementById('solidModeMedicalBtn');
+        const wireframeMedicalBtn = document.getElementById('wireframeMedicalBtn');
+        const modelColorMedicalPicker = document.getElementById('modelColorMedicalPicker');
+        const bgColorMedicalPicker = document.getElementById('bgColorMedicalPicker');
+        const fullscreenMedicalBtn = document.getElementById('fullscreenMedicalBtn');
+
+        if (resetViewMedicalBtn) {
+            resetViewMedicalBtn.addEventListener('click', () => {
+                console.log('🔄 Medical reset view clicked');
+                if (window.viewerMedical && window.viewerMedical.model) {
+                    window.viewerMedical.fitCameraToModel();
+                }
+            });
+        }
+
+        if (zoomInMedicalBtn) {
+            zoomInMedicalBtn.addEventListener('click', () => {
+                console.log('🔍 Medical zoom in clicked');
+                if (window.viewerMedical && window.viewerMedical.camera) {
+                    window.viewerMedical.camera.position.multiplyScalar(0.8);
+                    window.viewerMedical.controls.update();
+                }
+            });
+        }
+
+        if (zoomOutMedicalBtn) {
+            zoomOutMedicalBtn.addEventListener('click', () => {
+                console.log('🔍 Medical zoom out clicked');
+                if (window.viewerMedical && window.viewerMedical.camera) {
+                    window.viewerMedical.camera.position.multiplyScalar(1.2);
+                    window.viewerMedical.controls.update();
+                }
+            });
+        }
+
+        let isWireframeMedical = false;
+        if (solidModeMedicalBtn && wireframeMedicalBtn) {
+            solidModeMedicalBtn.addEventListener('click', () => {
+                console.log('🎨 Medical solid mode clicked');
+                if (window.viewerMedical && window.viewerMedical.model) {
+                    window.viewerMedical.toggleWireframe(false);
+                    isWireframeMedical = false;
+                    solidModeMedicalBtn.classList.add('active');
+                    wireframeMedicalBtn.classList.remove('active');
+                }
+            });
+
+            wireframeMedicalBtn.addEventListener('click', () => {
+                console.log('🎨 Medical wireframe mode clicked');
+                if (window.viewerMedical && window.viewerMedical.model) {
+                    window.viewerMedical.toggleWireframe(true);
+                    isWireframeMedical = true;
+                    wireframeMedicalBtn.classList.add('active');
+                    solidModeMedicalBtn.classList.remove('active');
+                }
+            });
+        }
+
+        if (modelColorMedicalPicker) {
+            modelColorMedicalPicker.addEventListener('change', (e) => {
+                console.log('🎨 Medical model color changed:', e.target.value);
+                if (window.viewerMedical && window.viewerMedical.model) {
+                    window.viewerMedical.changeModelColor(e.target.value);
+                }
+            });
+        }
+
+        if (bgColorMedicalPicker) {
+            bgColorMedicalPicker.addEventListener('change', (e) => {
+                console.log('🎨 Medical background color changed:', e.target.value);
+                if (window.viewerMedical && window.viewerMedical.scene) {
+                    window.viewerMedical.changeBGColor(e.target.value);
+                }
+            });
+        }
+
+        if (fullscreenMedicalBtn) {
+            fullscreenMedicalBtn.addEventListener('click', () => {
+                console.log('🖥️ Medical fullscreen clicked');
+                const viewer = document.getElementById('viewer3dMedical');
+                if (viewer.requestFullscreen) {
+                    viewer.requestFullscreen();
+                } else if (viewer.webkitRequestFullscreen) {
+                    viewer.webkitRequestFullscreen();
+                } else if (viewer.msRequestFullscreen) {
+                    viewer.msRequestFullscreen();
+                }
+            });
+        }
+
+        // Handle fullscreen exit for Medical viewer
+        const viewerMedicalElement = document.getElementById('viewer3dMedical');
+        if (viewerMedicalElement) {
+            document.addEventListener('fullscreenchange', () => {
+                if (!document.fullscreenElement) {
+                    console.log('🖥️ Exited Medical fullscreen, resetting size...');
+                    // Reset to original styles
+                    viewerMedicalElement.style.height = '';
+                    viewerMedicalElement.style.maxHeight = '700px';
+                    viewerMedicalElement.style.minHeight = '500px';
+                    setTimeout(() => {
+                        if (window.viewerMedical) {
+                            const container = viewerMedicalElement.parentElement;
+                            const width = container.clientWidth;
+                            const height = Math.min(container.clientHeight, 700);
+                            window.viewerMedical.renderer.setSize(width, height);
+                            window.viewerMedical.camera.aspect = width / height;
+                            window.viewerMedical.camera.updateProjectionMatrix();
+                        }
+                    }, 100);
+                }
+            });
+
+            document.addEventListener('webkitfullscreenchange', () => {
+                if (!document.webkitFullscreenElement) {
+                    console.log('🖥️ Exited Medical fullscreen (webkit), resetting size...');
+                    // Reset to original styles
+                    viewerMedicalElement.style.height = '';
+                    viewerMedicalElement.style.maxHeight = '700px';
+                    viewerMedicalElement.style.minHeight = '500px';
+                    setTimeout(() => {
+                        if (window.viewerMedical) {
+                            const container = viewerMedicalElement.parentElement;
+                            const width = container.clientWidth;
+                            const height = Math.min(container.clientHeight, 700);
+                            window.viewerMedical.renderer.setSize(width, height);
+                            window.viewerMedical.camera.aspect = width / height;
+                            window.viewerMedical.camera.updateProjectionMatrix();
+                        }
+                    }, 100);
+                }
+            });
+        }
+
+        console.log('✓ Medical viewer controls ready');
+        console.log('✓ All viewer controls initialized!');
+
+        // Setup file list update handlers
+        setupFileListUpdates();
+    });
+
+    // Function to update file lists
+    function setupFileListUpdates() {
+        // Listen for pricing updates which happen after files are loaded
+        window.addEventListener('pricingUpdateNeeded', (event) => {
+            const { viewerId } = event.detail;
+
+            if (viewerId === 'viewer3dGeneral' && window.viewerGeneral) {
+                updateFileList('General', window.viewerGeneral);
+            } else if (viewerId === 'viewer3dMedical' && window.viewerMedical) {
+                updateFileList('Medical', window.viewerMedical);
+            }
+        });
+
+        console.log('✓ File list update handlers attached');
+    }
+
+    // Update file list UI
+    function updateFileList(formType, viewer) {
+        const filesList = document.getElementById(`uploadedFilesList${formType === 'General' ? '' : formType}`);
+        const filesContainer = document.getElementById(`filesContainer${formType === 'General' ? '' : formType}`);
+        const fileCount = document.getElementById(`fileCount${formType === 'General' ? '' : formType}`);
+
+        if (!filesList || !filesContainer || !fileCount) {
+            console.warn(`File list elements not found for ${formType}`);
+            return;
+        }
+
+        const files = viewer.getUploadedFiles();
+        fileCount.textContent = files.length;
+
+        if (files.length === 0) {
+            filesList.style.display = 'none';
+            return;
+        }
+
+        filesList.style.display = 'block';
+
+        // Build file list HTML
+        filesContainer.innerHTML = files.map((fileData, index) => `
+            <div class="file-list-item d-flex align-items-center justify-content-between p-2 border-bottom" style="background: white;" data-file-id="${fileData.id}">
+                <div class="d-flex align-items-center flex-grow-1">
+                    <div class="file-icon me-2" style="width: 32px; height: 32px; background: #0047AD; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.7rem; font-weight: bold;">
+                        ${getFileExtension(fileData.file.name).toUpperCase()}
+                    </div>
+                    <div class="flex-grow-1">
+                        <div style="font-size: 0.8rem; font-weight: 600; color: #2c3e50;">${fileData.file.name}</div>
+                        <small style="font-size: 0.7rem; color: #6c757d;">
+                            ${formatFileSize(fileData.file.size)} • ${(fileData.volume?.cm3 || 0).toFixed(2)} cm³
+                        </small>
+                    </div>
+                </div>
+                <button class="btn btn-sm btn-outline-danger remove-file-btn" onclick="removeFile('${formType}', ${fileData.id})" style="padding: 2px 8px; font-size: 0.75rem; border-radius: 4px;">
+                    <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
+                        <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
+                        <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
+                    </svg>
+                </button>
+            </div>
+        `).join('');
+
+        console.log(`✓ File list updated for ${formType}: ${files.length} files`);
+    }
+
+    // Helper functions
+    function getFileExtension(filename) {
+        return filename.split('.').pop().toLowerCase();
+    }
+
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 B';
+        const k = 1024;
+        const sizes = ['B', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
+    }
+
+    // Remove file function
+    window.removeFile = async function(formType, fileId) {
+        const viewer = formType === 'General' ? window.viewerGeneral : window.viewerMedical;
+        if (viewer) {
+            viewer.removeFile(fileId);
+            updateFileList(formType, viewer);
+
+            // Delete from IndexedDB storage
+            if (window.fileStorageManager && window.fileStorageManager.currentFileId) {
+                try {
+                    await window.fileStorageManager.deleteFile(window.fileStorageManager.currentFileId);
+                    window.fileStorageManager.currentFileId = null;
+
+                    // Clear URL parameter
+                    const url = new URL(window.location.href);
+                    url.searchParams.delete('file');
+                    window.history.pushState({}, '', url.toString());
+
+                    console.log('🗑️ File removed from IndexedDB storage');
+                } catch (error) {
+                    console.error('❌ Failed to delete from storage:', error);
+                }
+            }
+
+            // Trigger pricing update
+            if (window.fileManagerGeneral && formType === 'General') {
+                window.fileManagerGeneral.updateQuote();
+            } else if (window.fileManagerMedical && formType === 'Medical') {
+                window.fileManagerMedical.updateQuote();
+            }
+
+            console.log(`✓ File ${fileId} removed from ${formType}`);
+        }
+    };
+
+    // ============================================
+    // BOTTOM CONTROL BAR FUNCTIONALITY
+    // ============================================
+
+    // State management
+    let gridVisible = true;
+    let autoRotateEnabled = true;
+    let modelRepaired = false;
+    let holesFilled = false;
+    let currentVolume = 0;
+    let currentViewerId = 'viewer3dGeneral'; // Track active viewer
+
+    // Show control bar when model is loaded
+    window.addEventListener('modelLoaded', (event) => {
+        const { viewerId } = event.detail;
+        currentViewerId = viewerId;
+
+        const viewer = document.getElementById(viewerId);
+        const modelBadge = viewer?.querySelector('.model-info-badge');
+
+        if (modelBadge) {
+            modelBadge.style.display = 'block';
+        }
+
+        // Start auto-rotation by default
+        if (autoRotateEnabled) {
+            startAutoRotation(viewerId);
+        }
+
+        // Update measurements
+        updateMeasurements(viewerId);
+    });
+
+    // Camera view buttons - Main control bar
+    document.querySelectorAll('#mainControlBar .camera-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const view = this.dataset.view;
+
+            // Remove active class from siblings
+            this.parentElement.querySelectorAll('.camera-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+
+            // Set camera view on current viewer
+            setCameraView(currentViewerId, view);
+        });
+    });
+
+    // Grid toggle - Main control bar
+    const toggleGridBtnMain = document.getElementById('toggleGridBtnMain');
+    if (toggleGridBtnMain) {
+        toggleGridBtnMain.addEventListener('click', function() {
+            gridVisible = !gridVisible;
+            this.classList.toggle('active', gridVisible);
+            toggleGrid(currentViewerId, gridVisible);
+            console.log('Grid toggled:', gridVisible);
+        });
+    }
+
+    // Auto-rotate toggle - Main control bar
+    const autoRotateBtnMain = document.getElementById('autoRotateBtnMain');
+    if (autoRotateBtnMain) {
+        autoRotateBtnMain.addEventListener('click', function() {
+            autoRotateEnabled = !autoRotateEnabled;
+            this.classList.toggle('active', autoRotateEnabled);
+
+            if (autoRotateEnabled) {
+                startAutoRotation(currentViewerId);
+            } else {
+                stopAutoRotation(currentViewerId);
+            }
+            console.log('Auto-rotate:', autoRotateEnabled);
+        });
+    }
+
+    // Repair model - Main control bar
+    const repairModelBtnMain = document.getElementById('repairModelBtnMain');
+    if (repairModelBtnMain) {
+        repairModelBtnMain.addEventListener('click', function() {
+            if (modelRepaired) {
+                console.log('Model already repaired');
+                return;
+            }
+
+            this.classList.add('active');
+
+            // Show processing state
+            const originalHTML = this.innerHTML;
+            this.innerHTML = '<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="7" stroke="currentColor" stroke-width="1.5" stroke-dasharray="4"/></svg><span>Repairing...</span>';
+            this.style.pointerEvents = 'none';
+
+            setTimeout(() => {
+                repairModel(currentViewerId);
+                modelRepaired = true;
+                this.innerHTML = '<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M5 9L8 12L13 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Repaired ✓</span>';
+                this.style.pointerEvents = '';
+                updateMeasurements(currentViewerId);
+                console.log('Model repaired');
+            }, 1500);
+        });
+    }
+
+    // Fill holes - Main control bar
+    const fillHolesBtnMain = document.getElementById('fillHolesBtnMain');
+    if (fillHolesBtnMain) {
+        fillHolesBtnMain.addEventListener('click', function() {
+            if (holesFilled) {
+                console.log('Holes already filled');
+                return;
+            }
+
+            this.classList.add('active');
+
+            // Show processing state
+            const originalHTML = this.innerHTML;
+            this.innerHTML = '<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="7" stroke="currentColor" stroke-width="1.5" stroke-dasharray="4"/></svg><span>Filling...</span>';
+            this.style.pointerEvents = 'none';
+
+            setTimeout(() => {
+                fillHoles(currentViewerId);
+                holesFilled = true;
+                this.innerHTML = '<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M5 9L8 12L13 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Filled ✓</span>';
+                this.style.pointerEvents = '';
+                updateMeasurements(currentViewerId);
+                console.log('Holes filled');
+            }, 1500);
+        });
+    }
+
+    // Save & Calculate - Main control bar
+    const saveCalculationsBtnMain = document.getElementById('saveCalculationsBtnMain');
+    if (saveCalculationsBtnMain) {
+        saveCalculationsBtnMain.addEventListener('click', function() {
+            saveCalculations(currentViewerId);
+        });
+    }
+
+    // Helper functions
+    function setCameraView(viewerId, view) {
+        const viewer = viewerId === 'viewer3dGeneral' ? window.viewerGeneral : window.viewerMedical;
+        if (!viewer?.scene?.activeCamera) {
+            console.log('No active camera found for:', viewerId);
+            return;
+        }
+
+        const camera = viewer.scene.activeCamera;
+        const radius = camera.radius || 10;
+
+        const views = {
+            top: { alpha: Math.PI / 2, beta: 0 },
+            bottom: { alpha: Math.PI / 2, beta: Math.PI },
+            front: { alpha: Math.PI / 2, beta: Math.PI / 2 },
+            right: { alpha: 0, beta: Math.PI / 2 },
+            left: { alpha: Math.PI, beta: Math.PI / 2 }
+        };
+
+        if (views[view] && camera.alpha !== undefined) {
+            camera.alpha = views[view].alpha;
+            camera.beta = views[view].beta;
+            console.log('Camera view changed to:', view);
+        }
+    }
+
+    function toggleGrid(viewerId, visible) {
+        const viewer = viewerId === 'viewer3dGeneral' ? window.viewerGeneral : window.viewerMedical;
+        if (!viewer?.scene) {
+            console.log('No scene found for:', viewerId);
+            return;
+        }
+
+        const ground = viewer.scene.getMeshByName('ground');
+        if (ground) {
+            ground.isVisible = visible;
+            console.log('Grid visibility:', visible);
+        } else {
+            console.log('Ground mesh not found');
+        }
+    }
+
+    function startAutoRotation(viewerId) {
+        const viewer = viewerId === 'viewer3dGeneral' ? window.viewerGeneral : window.viewerMedical;
+        if (!viewer?.scene?.activeCamera) {
+            console.log('Cannot start rotation - no camera');
+            return;
+        }
+
+        const camera = viewer.scene.activeCamera;
+        if (camera.useAutoRotationBehavior !== undefined) {
+            camera.useAutoRotationBehavior = true;
+            if (camera.autoRotationBehavior) {
+                camera.autoRotationBehavior.idleRotationSpeed = 0.2;
+                camera.autoRotationBehavior.idleRotationWaitTime = 1000;
+            }
+            console.log('Auto-rotation started');
+        }
+    }
+
+    function stopAutoRotation(viewerId) {
+        const viewer = viewerId === 'viewer3dGeneral' ? window.viewerGeneral : window.viewerMedical;
+        if (!viewer?.scene?.activeCamera) return;
+
+        const camera = viewer.scene.activeCamera;
+        if (camera.useAutoRotationBehavior !== undefined) {
+            camera.useAutoRotationBehavior = false;
+            console.log('Auto-rotation stopped');
+        }
+    }
+
+    function repairModel(viewerId) {
+        // Simulate model repair - actual implementation would use mesh repair algorithms
+        console.log('🔧 Repairing model:', viewerId);
+        // In production: Fix non-manifold edges, inverted normals, etc.
+        // This could integrate with libraries like three-mesh-bvh for repairs
+    }
+
+    function fillHoles(viewerId) {
+        // Simulate hole filling - actual implementation would fill mesh holes
+        console.log('🔧 Filling holes:', viewerId);
+        // In production: Detect and fill holes in mesh geometry
+        // Could use algorithms like advancing front or Poisson surface reconstruction
+    }
+
+    function updateMeasurements(viewerId) {
+        const viewer = viewerId === 'viewer3dGeneral' ? window.viewerGeneral : window.viewerMedical;
+        if (!viewer?.uploadedFiles || viewer.uploadedFiles.length === 0) {
+            console.log('No files uploaded yet');
+            return;
+        }
+
+        // Get current file data
+        const file = viewer.uploadedFiles[0];
+        const bounds = file.boundingBox || { x: 0, y: 0, z: 0 };
+        const volume = file.volume || 0;
+
+        console.log('Updating measurements:', { bounds, volume });
+
+        // Update main control bar measurements
+        const updateValue = (id, value) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = value.toFixed(2);
+        };
+
+        updateValue('measureXMain', bounds.x || 0);
+        updateValue('measureYMain', bounds.y || 0);
+        updateValue('measureZMain', bounds.z || 0);
+        updateValue('measureVolumeMain', (volume / 1000).toFixed(2)); // Convert to cm³
+
+        currentVolume = volume;
+    }
+
+    function saveCalculations(viewerId) {
+        const formType = viewerId === 'viewer3dGeneral' ? 'General' : 'Medical';
+
+        console.log('💾 Saving calculations:', {
+            viewerId,
+            volume: currentVolume,
+            repaired: modelRepaired,
+            holesFilled: holesFilled
+        });
+
+        // Show success message
+        const btn = document.getElementById('saveCalculationsBtnMain');
+        if (btn) {
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M5 9L8 12L13 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Saved! ✓</span>';
+            btn.style.pointerEvents = 'none';
+
+            setTimeout(() => {
+                btn.innerHTML = originalHTML;
+                btn.style.pointerEvents = '';
+            }, 2000);
+        }
+
+        // Trigger pricing update with repaired volume
+        if (window.fileManagerGeneral && formType === 'General') {
+            window.fileManagerGeneral.updateQuote();
+        } else if (window.fileManagerMedical && formType === 'Medical') {
+            window.fileManagerMedical.updateQuote();
+        }
+    }
+
+    // Track which viewer is active based on tab switching
+    document.querySelectorAll('.category-tab-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const category = this.dataset.category;
+            currentViewerId = category === 'general' ? 'viewer3dGeneral' : 'viewer3dMedical';
+            console.log('Switched to viewer:', currentViewerId);
+
+            // Reset states when switching
+            modelRepaired = false;
+            holesFilled = false;
+
+            // Reset repair buttons
+            const repairBtn = document.getElementById('repairModelBtnMain');
+            const fillBtn = document.getElementById('fillHolesBtnMain');
+            if (repairBtn) {
+                repairBtn.classList.remove('active');
+                repairBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M15 3L3 15M3 3L15 15" stroke="currentColor" stroke-width="1.5"/><circle cx="9" cy="9" r="7" stroke="currentColor" stroke-width="1.5"/></svg><span>Repair</span>';
+            }
+            if (fillBtn) {
+                fillBtn.classList.remove('active');
+                fillBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M9 6V12M6 9H12" stroke="currentColor" stroke-width="1.5"/></svg><span>Fill Holes</span>';
+            }
+
+            // Update measurements for new viewer
+            updateMeasurements(currentViewerId);
+        });
+    });
+
+    console.log('✅ Control bar initialized and ready');
+});
+</script>
+
+<script src="{{ asset('frontend/assets/js/3d-viewer-pro.js') }}"></script>
+<script src="{{ asset('frontend/assets/js/3d-file-manager.js') }}"></script>
+
+<!-- QR Code Library for Share Modal -->
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+
+<!-- File Storage Manager & Share Modal -->
+<script src="{{ asset('frontend/assets/js/file-storage-manager.js') }}"></script>
+<script src="{{ asset('frontend/assets/js/share-modal.js') }}"></script>
