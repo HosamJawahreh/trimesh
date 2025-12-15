@@ -19,10 +19,10 @@
 
                                         {{-- Category Tabs --}}
                                         <div class="btn-group w-100 mb-3" role="group">
-                                            <button type="button" class="btn btn-sm category-tab-btn active" data-category="general" style="border-radius: 8px 0 0 8px; padding: 10px; font-size: 0.85rem; font-weight: 600; border: 1px solid #dee2e6; background: white; color: #2c3e50; transition: all 0.2s;">
+                                            <button type="button" class="btn btn-sm category-tab-btn active" data-category="general" style="border-radius: 8px 0 0 8px; padding: 10px; font-size: 0.85rem; font-weight: 600;">
                                                 General
                                             </button>
-                                            <button type="button" class="btn btn-sm category-tab-btn" data-category="medical" style="border-radius: 0 8px 8px 0; padding: 10px; font-size: 0.85rem; font-weight: 600; border: 1px solid #dee2e6; background: #f8f9fa; color: #6c757d; transition: all 0.2s;">
+                                            <button type="button" class="btn btn-sm category-tab-btn" data-category="medical" style="border-radius: 0 8px 8px 0; padding: 10px; font-size: 0.85rem; font-weight: 600;">
                                                 Medical
                                             </button>
                                         </div>
@@ -285,10 +285,10 @@
                                     <div class="p-3 p-lg-4">
                                         <!-- Category Tabs -->
                                         <div class="btn-group w-100 mb-3" role="group">
-                                            <button type="button" class="btn btn-sm category-tab-btn" data-category="general" style="border-radius: 8px 0 0 8px; padding: 10px; font-size: 0.85rem; font-weight: 600; border: 1px solid #dee2e6; background: #f8f9fa; color: #6c757d; transition: all 0.2s;">
+                                            <button type="button" class="btn btn-sm category-tab-btn" data-category="general" style="border-radius: 8px 0 0 8px; padding: 10px; font-size: 0.85rem; font-weight: 600;">
                                                 General
                                             </button>
-                                            <button type="button" class="btn btn-sm category-tab-btn active" data-category="medical" style="border-radius: 0 8px 8px 0; padding: 10px; font-size: 0.85rem; font-weight: 600; border: 1px solid #dee2e6; background: white; color: #2c3e50; transition: all 0.2s;">
+                                            <button type="button" class="btn btn-sm category-tab-btn active" data-category="medical" style="border-radius: 0 8px 8px 0; padding: 10px; font-size: 0.85rem; font-weight: 600;">
                                                 Medical
                                             </button>
                                         </div>
@@ -828,16 +828,26 @@
 </section>
 
 <style>
-/* Active Tab Styling */
+/* Category Tab Button Styling */
+.category-tab-btn {
+    background: #f8f9fa !important;
+    color: #6c757d !important;
+    border-color: #dee2e6 !important;
+    transition: all 0.3s ease !important;
+}
+
+/* Active Tab Styling - Primary Blue */
 .category-tab-btn.active {
-    background: #0071cc !important;
+    background: #4a90e2 !important;
     color: white !important;
-    border-color: #0071cc !important;
+    border-color: #4a90e2 !important;
+    box-shadow: 0 2px 4px rgba(74, 144, 226, 0.3) !important;
 }
 
 .category-tab-btn:hover:not(.active) {
-    background: #e8f4f8;
-    color: #0071cc;
+    background: #e8f4f8 !important;
+    color: #4a90e2 !important;
+    border-color: #4a90e2 !important;
 }
 
 /* Mobile Responsive Styles */
@@ -1132,15 +1142,11 @@ document.addEventListener('DOMContentLoaded', function() {
             const formSwitchBtns = document.querySelectorAll('.form-switch-btn-3d');
             const quoteViewer = document.querySelector('.quote-viewer');
 
-            // Update active state for inline tabs
+            // Update active state for inline tabs - let CSS handle the styling
             categoryTabs.forEach(t => {
                 t.classList.remove('active');
-                t.style.background = '#f8f9fa';
-                t.style.color = '#6c757d';
             });
             this.classList.add('active');
-            this.style.background = 'white';
-            this.style.color = '#2c3e50';
 
             // Update viewer background based on mode
             if (quoteViewer) {

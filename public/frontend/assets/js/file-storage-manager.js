@@ -83,7 +83,7 @@ class FileStorageManager {
                 }
             };
 
-            // Save to IndexedDB
+            // Save to IndexedDB (local storage)
             const transaction = this.db.transaction([this.storeName], 'readwrite');
             const objectStore = transaction.objectStore(this.storeName);
             const request = objectStore.add(fileRecord);
@@ -94,6 +94,12 @@ class FileStorageManager {
                     console.log('✅ File saved to IndexedDB:', fileId);
                     console.log('⏰ Expires in 72 hours:', new Date(expiryTime));
                     this.updateURL(fileId);
+                    
+                    // Also save to server for global sharing
+                    this.saveToServer(fileRecord).catch(err => {
+                        console.warn('⚠️ Could not save to server, sharing will be local only:', err.message);
+                    });
+                    
                     resolve(fileId);
                 };
                 request.onerror = () => reject(request.error);
@@ -105,21 +111,82 @@ class FileStorageManager {
     }
 
     /**
-     * Load file from IndexedDB
+     * Save file to server for global sharing
+     */
+    async saveToServer(fileRecord) {
+        try {
+            // Convert ArrayBuffer to base64
+            const base64Data = this.arrayBufferToBase64(fileRecord.fileData);
+            
+            const response = await fetch('/api/3d-files/store', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+                },
+                body: JSON.stringify({
+                    file: base64Data,
+                    fileName: fileRecord.fileName,
+                    cameraState: JSON.stringify(fileRecord.edits?.camera),
+                    metadata: JSON.stringify(fileRecord.metadata)
+                })
+            });
+
+            const result = await response.json();
+            
+            if (result.success) {
+                console.log('✅ File also saved to server for global sharing');
+                // Store server file ID mapping
+                this.serverFileId = result.fileId;
+                return result;
+            } else {
+                throw new Error(result.message);
+            }
+        } catch (error) {
+            console.error('❌ Failed to save to server:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Convert ArrayBuffer to Base64
+     */
+    arrayBufferToBase64(buffer) {
+        let binary = '';
+        const bytes = new Uint8Array(buffer);
+        const len = bytes.byteLength;
+        for (let i = 0; i < len; i++) {
+            binary += String.fromCharCode(bytes[i]);
+        }
+        return btoa(binary);
+    }
+
+    /**
+     * Load file from IndexedDB or Server
      */
     async loadFile(fileId) {
         try {
+            // First try loading from IndexedDB (local)
             const transaction = this.db.transaction([this.storeName], 'readonly');
             const objectStore = transaction.objectStore(this.storeName);
             const request = objectStore.get(fileId);
 
-            return new Promise((resolve, reject) => {
-                request.onsuccess = () => {
+            return new Promise(async (resolve, reject) => {
+                request.onsuccess = async () => {
                     const fileRecord = request.result;
 
                     if (!fileRecord) {
-                        console.warn('⚠️ File not found:', fileId);
-                        resolve(null);
+                        // Not found locally, try loading from server
+                        console.log('📡 File not found locally, trying server...');
+                        const serverFile = await this.loadFromServer(fileId).catch(() => null);
+                        if (serverFile) {
+                            console.log('✅ File loaded from server');
+                            this.currentFileId = fileId;
+                            resolve(serverFile);
+                        } else {
+                            console.warn('⚠️ File not found locally or on server:', fileId);
+                            resolve(null);
+                        }
                         return;
                     }
 
@@ -139,6 +206,59 @@ class FileStorageManager {
             });
         } catch (error) {
             console.error('❌ Error loading file:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Load file from server
+     */
+    async loadFromServer(fileId) {
+        try {
+            const response = await fetch(`/api/3d-files/${fileId}`);
+            const result = await response.json();
+
+            if (!result.success) {
+                throw new Error(result.message);
+            }
+
+            // Convert base64 back to ArrayBuffer
+            const binary = atob(result.fileData);
+            const bytes = new Uint8Array(binary.length);
+            for (let i = 0; i < binary.length; i++) {
+                bytes[i] = binary.charCodeAt(i);
+            }
+            const arrayBuffer = bytes.buffer;
+
+            // Create file record in same format as IndexedDB
+            const fileRecord = {
+                id: result.fileId,
+                fileName: result.fileName,
+                fileData: arrayBuffer,
+                uploadTime: result.uploadTime,
+                expiryTime: result.expiryTime,
+                edits: {
+                    camera: result.cameraState,
+                    transformations: [],
+                    repairs: [],
+                    measurements: []
+                },
+                metadata: result.metadata || {}
+            };
+
+            // Optionally save to local IndexedDB for caching
+            try {
+                const transaction = this.db.transaction([this.storeName], 'readwrite');
+                const objectStore = transaction.objectStore(this.storeName);
+                objectStore.add(fileRecord);
+                console.log('💾 File cached locally from server');
+            } catch (e) {
+                // Ignore if already exists
+            }
+
+            return fileRecord;
+        } catch (error) {
+            console.error('❌ Failed to load from server:', error);
             throw error;
         }
     }
@@ -182,8 +302,14 @@ class FileStorageManager {
             const request = objectStore.put(fileRecord);
 
             return new Promise((resolve, reject) => {
-                request.onsuccess = () => {
-                    console.log('✅ Edits saved:', editType);
+                request.onsuccess = async () => {
+                    console.log('✅ Edits saved locally:', editType);
+                    
+                    // If it's a camera edit, also sync to server
+                    if (editType === 'camera' && this.serverFileId) {
+                        await this.syncCameraToServer(fileId, editData);
+                    }
+                    
                     resolve(true);
                 };
                 request.onerror = () => reject(request.error);
@@ -191,6 +317,36 @@ class FileStorageManager {
         } catch (error) {
             console.error('❌ Error updating edits:', error);
             return false;
+        }
+    }
+
+    /**
+     * Sync camera state to server
+     */
+    async syncCameraToServer(fileId, cameraState) {
+        try {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+            if (!csrfToken) {
+                console.warn('⚠️ No CSRF token found, skipping server sync');
+                return;
+            }
+
+            const response = await fetch(`/api/3d-files/${fileId}/camera`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken
+                },
+                body: JSON.stringify({ cameraState })
+            });
+
+            const result = await response.json();
+            if (result.success) {
+                console.log('☁️ Camera state synced to server');
+            }
+        } catch (error) {
+            console.warn('⚠️ Failed to sync camera to server:', error);
+            // Don't throw - local save already succeeded
         }
     }
 

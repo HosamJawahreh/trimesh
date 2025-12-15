@@ -13,13 +13,6 @@ return new class extends Migration
     {
         Schema::create('quotes', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->nullable()->constrained()->onDelete('cascade');
-            $table->string('customer_name')->nullable();
-            $table->string('customer_email')->nullable();
-            $table->string('customer_phone')->nullable();
-            $table->text('notes')->nullable();
-            $table->decimal('total_price', 10, 2)->default(0);
-            $table->enum('status', ['pending', 'submitted', 'completed', 'cancelled'])->default('pending');
             $table->timestamps();
         });
     }

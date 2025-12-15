@@ -797,7 +797,10 @@
                 const viewer = window.viewerGeneral || window.viewerMedical;
                 
                 if (measurementMode) {
-                    console.log('📏 Measurement mode activated - Controls disabled');
+                    console.log('📏 Measurement mode activated');
+                    console.log('   Viewer:', viewer ? 'Available' : 'Not available');
+                    console.log('   Canvas:', viewer && viewer.renderer ? 'Available' : 'Not available');
+                    
                     // Disable auto-rotation when measuring
                     stopAutoRotation();
                     const autoRotateBtn = document.getElementById('autoRotateBtnMain');
@@ -859,7 +862,8 @@
         }
 
         // Handle clicks on the 3D model for measurement
-        function setupMeasurementClickHandler() {
+        // Make it globally accessible
+        window.setupMeasurementClickHandler = function() {
             const viewer = window.viewerGeneral || window.viewerMedical;
             if (!viewer || !viewer.renderer) {
                 console.warn('⚠️ Viewer or renderer not available for measurement setup');
@@ -1237,18 +1241,25 @@
             if (viewer.controls.autoRotate !== undefined) {
                 viewer.controls.autoRotate = true;
                 viewer.controls.autoRotateSpeed = 2.0;
-                console.log('✅ Auto-rotation enabled');
+                // Force update controls
+                viewer.controls.update();
+                console.log('✅ Auto-rotation enabled, state:', viewer.controls.autoRotate);
             }
         }
 
         function stopAutoRotation() {
             console.log('🛑 Stopping auto-rotation');
             const viewer = window.viewerGeneral || window.viewerMedical;
-            if (!viewer || !viewer.controls) return;
+            if (!viewer || !viewer.controls) {
+                console.log('⚠️ No viewer or controls found');
+                return;
+            }
 
             if (viewer.controls.autoRotate !== undefined) {
                 viewer.controls.autoRotate = false;
-                console.log('✅ Auto-rotation disabled');
+                // Force update controls
+                viewer.controls.update();
+                console.log('✅ Auto-rotation disabled, state:', viewer.controls.autoRotate);
             }
         }
 
@@ -1639,6 +1650,10 @@
             
             // Wait for model to be fully loaded
             await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // Setup measurement handler for loaded file
+            console.log('🎯 Setting up measurement handlers for shared file...');
+            setupMeasurementClickHandler();
             
             // Restore camera state
             if (fileRecord.edits && fileRecord.edits.camera) {
