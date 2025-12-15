@@ -54,7 +54,7 @@
         box-shadow: 2px 0 12px rgba(0, 0, 0, 0.1) !important;
     }
 
-    /* Viewer - Fixed Right with Shapeways gradient */
+    /* Viewer - Fixed Right with dynamic background based on mode */
     .quote-viewer {
         position: fixed !important;
         left: 380px !important;
@@ -65,6 +65,17 @@
         height: 100vh !important;
         background: linear-gradient(180deg, #afc5d8 0%, #e8eef3 100%) !important;
         overflow: hidden !important;
+        transition: background 0.3s ease !important;
+    }
+
+    /* General mode - Blue gradient */
+    .quote-viewer.mode-general {
+        background: linear-gradient(180deg, #4a90e2 0%, #7ab8f5 50%, #b8d8f7 100%) !important;
+    }
+
+    /* Medical mode - Original Shapeways gradient */
+    .quote-viewer.mode-medical {
+        background: linear-gradient(180deg, #afc5d8 0%, #e8eef3 100%) !important;
     }
 
     /* 3D Viewer Canvas Container */
@@ -620,7 +631,7 @@
     </div>
 
     <!-- Viewer Area -->
-    <div class="quote-viewer">
+    <div class="quote-viewer mode-general">
         <!-- The 3D canvas will be inserted here by JavaScript -->
     </div>
 
@@ -701,7 +712,7 @@
                     </svg>
                     <span>Repair & Fill</span>
                 </button>
-                <button type="button" class="control-btn active" id="autoRotateBtnMain" title="Auto-rotate model">
+                <button type="button" class="control-btn" id="autoRotateBtnMain" title="Auto-rotate model (upload a file first)" style="opacity: 0.5; cursor: not-allowed;" disabled>
                     <svg width="16" height="16" viewBox="0 0 18 18" fill="none">
                         <path d="M15 9C15 12.3137 12.3137 15 9 15C5.68629 15 3 12.3137 3 9C3 5.68629 5.68629 3 9 3C11.0605 3 12.8792 4.01099 14 5.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
                         <path d="M15 3V7H11" stroke="currentColor" stroke-width="1.5"/>
@@ -767,7 +778,7 @@
 
         // State
         let gridVisible = true;
-        let autoRotateEnabled = true;
+        let autoRotateEnabled = false; // Start disabled until file is uploaded
         let modelRepaired = false;
         let holesFilled = false;
 
@@ -1061,6 +1072,13 @@
         const rotateBtn = document.getElementById('autoRotateBtnMain');
         if (rotateBtn) {
             rotateBtn.addEventListener('click', function() {
+                // Check if a file has been uploaded
+                const viewer = window.viewerGeneral || window.viewerMedical;
+                if (!viewer || !viewer.uploadedFiles || viewer.uploadedFiles.length === 0) {
+                    console.warn('⚠️ Cannot enable auto-rotate: No file uploaded');
+                    return;
+                }
+                
                 autoRotateEnabled = !autoRotateEnabled;
                 this.classList.toggle('active', autoRotateEnabled);
                 console.log('🔄 Auto-rotate:', autoRotateEnabled);
@@ -1301,8 +1319,18 @@
         console.log('🎨 Model loaded event triggered');
         const viewer = window.viewerGeneral || window.viewerMedical;
         
+        // Enable auto-rotate button now that a file is uploaded
+        const rotateBtn = document.getElementById('autoRotateBtnMain');
+        if (rotateBtn) {
+            rotateBtn.disabled = false;
+            rotateBtn.style.opacity = '1';
+            rotateBtn.style.cursor = 'pointer';
+            rotateBtn.title = 'Auto-rotate model';
+            console.log('✅ Auto-rotate button enabled');
+        }
+        
         if (viewer && viewer.camera && viewer.controls) {
-            // Only rotate and start auto-rotate for NEW uploads (not restored sessions)
+            // Only rotate for NEW uploads (not restored sessions)
             if (!isRestoredSession) {
                 console.log('🆕 New file upload detected - applying default view');
                 
@@ -1316,11 +1344,10 @@
                 camera.position.set(target.x, target.y, target.z - distance);
                 controls.update();
 
-                // Start auto-rotation only for new uploads
+                // Don't start auto-rotation automatically - let user control it
                 if (controls.autoRotate !== undefined) {
-                    controls.autoRotate = true;
-                    controls.autoRotateSpeed = 2.0;
-                    console.log('✅ Camera rotated 180° and auto-rotate started');
+                    controls.autoRotate = false;
+                    console.log('✅ Camera rotated 180°, auto-rotate disabled by default');
                 }
             } else {
                 console.log('🔄 Restored session - keeping saved camera state');

@@ -1130,6 +1130,7 @@ document.addEventListener('DOMContentLoaded', function() {
         tab.addEventListener('click', function() {
             const category = this.getAttribute('data-category');
             const formSwitchBtns = document.querySelectorAll('.form-switch-btn-3d');
+            const quoteViewer = document.querySelector('.quote-viewer');
 
             // Update active state for inline tabs
             categoryTabs.forEach(t => {
@@ -1140,6 +1141,13 @@ document.addEventListener('DOMContentLoaded', function() {
             this.classList.add('active');
             this.style.background = 'white';
             this.style.color = '#2c3e50';
+
+            // Update viewer background based on mode
+            if (quoteViewer) {
+                quoteViewer.classList.remove('mode-general', 'mode-medical');
+                quoteViewer.classList.add(`mode-${category}`);
+                console.log(`✓ Viewer background changed to ${category} mode`);
+            }
 
             // Also update main form switch buttons
             formSwitchBtns.forEach(btn => {
@@ -1161,6 +1169,11 @@ document.addEventListener('DOMContentLoaded', function() {
                         window.viewerGeneral.onWindowResize();
                         console.log('✓ General viewer resized');
                     }
+                    // Update quote if files are uploaded
+                    if (window.fileManagerGeneral && window.viewerGeneral && window.viewerGeneral.uploadedFiles && window.viewerGeneral.uploadedFiles.length > 0) {
+                        window.fileManagerGeneral.updateQuote();
+                        console.log('✓ General quote updated');
+                    }
                 }, 100);
             } else {
                 document.getElementById('generalForm3d').style.display = 'none';
@@ -1177,6 +1190,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (window.viewerMedical && window.viewerMedical.model) {
                         window.viewerMedical.fitCameraToModel();
                         console.log('✓ Medical model refitted to camera');
+                    }
+                    
+                    // Update quote if files are uploaded
+                    if (window.fileManagerMedical && window.viewerMedical && window.viewerMedical.uploadedFiles && window.viewerMedical.uploadedFiles.length > 0) {
+                        window.fileManagerMedical.updateQuote();
+                        console.log('✓ Medical quote updated');
                     }
                 }, 100);
             }
