@@ -1381,6 +1381,12 @@
     // Save file to IndexedDB when uploaded
     window.addEventListener('modelLoaded', async function(event) {
         try {
+            // Don't save if this is a restored session (file already in storage)
+            if (isRestoredSession) {
+                console.log('ℹ️ Skipping save - restored session');
+                return;
+            }
+
             const viewer = window.viewerGeneral || window.viewerMedical;
             if (!viewer || !viewer.uploadedFiles || viewer.uploadedFiles.length === 0) {
                 console.warn('⚠️ No uploaded files found in viewer');
@@ -1396,6 +1402,9 @@
             console.log('💾 Preparing to save file:', uploadedFile.file.name);
             console.log('   File size:', (uploadedFile.file.size / 1024 / 1024).toFixed(2), 'MB');
             
+            // Show saving notification
+            showNotification('💾 Saving file to browser storage...', 'info');
+            
             // Convert File to ArrayBuffer for IndexedDB storage
             const arrayBuffer = await uploadedFile.file.arrayBuffer();
             console.log('   Converted to ArrayBuffer');
@@ -1408,14 +1417,17 @@
                 uploadedFile.mesh
             );
 
-            if (!fileId || fileId === 'null' || fileId === 'undefined') {
-                console.error('❌ Failed to generate valid file ID');
+            if (!fileId || fileId === 'null' || fileId === 'undefined' || !fileId.startsWith('file_')) {
+                console.error('❌ Failed to generate valid file ID:', fileId);
                 showNotification('❌ Failed to save file to storage', 'error');
                 return;
             }
 
             console.log('✅ File saved to browser storage:', fileId);
             console.log('   Storage ID set as currentFileId');
+            
+            // Show success notification
+            showNotification('✅ File saved successfully!', 'success');
             
             // Auto-save camera state every 30 seconds
             startAutoSave(fileId);
@@ -1430,43 +1442,80 @@
     const shareBtnMain = document.getElementById('shareBtnMain');
     if (shareBtnMain) {
         shareBtnMain.addEventListener('click', async function() {
-            // Check if file is uploaded (either in storage or viewer)
-            const viewer = window.viewerGeneral || window.viewerMedical;
-            const hasUploadedFile = viewer && viewer.uploadedFiles && viewer.uploadedFiles.length > 0;
-            let fileId = window.fileStorageManager.currentFileId;
-            
-            if (!fileId && !hasUploadedFile) {
-                showNotification('⚠️ Please upload a 3D model first', 'warning');
-                return;
-            }
-
-            // If file is uploaded but not saved yet, wait for it to save
-            if (hasUploadedFile && !fileId) {
-                showNotification('💾 Saving file...', 'info');
+            try {
+                // Check if file is uploaded (either in storage or viewer)
+                const viewer = window.viewerGeneral || window.viewerMedical;
+                const hasUploadedFile = viewer && viewer.uploadedFiles && viewer.uploadedFiles.length > 0;
+                let fileId = window.fileStorageManager?.currentFileId;
                 
-                // Wait for modelLoaded event to complete saving
-                let attempts = 0;
-                while (!window.fileStorageManager.currentFileId && attempts < 10) {
-                    await new Promise(resolve => setTimeout(resolve, 200));
-                    attempts++;
+                console.log('🔍 Share button clicked - Current file ID:', fileId);
+                console.log('   Has uploaded file:', hasUploadedFile);
+                
+                if (!fileId && !hasUploadedFile) {
+                    showNotification('⚠️ Please upload a 3D model first', 'warning');
+                    return;
                 }
+
+                // If file is uploaded but not saved yet, trigger save and wait
+                if (hasUploadedFile && !fileId) {
+                    showNotification('💾 Preparing file for sharing...', 'info');
+                    
+                    // Get the uploaded file from viewer
+                    const uploadedFile = viewer.uploadedFiles[0];
+                    if (!uploadedFile || !uploadedFile.file) {
+                        showNotification('❌ Failed to access file data', 'error');
+                        return;
+                    }
+
+                    try {
+                        // Convert File to ArrayBuffer
+                        const arrayBuffer = await uploadedFile.file.arrayBuffer();
+                        
+                        // Save file to IndexedDB
+                        fileId = await window.fileStorageManager.saveFile(
+                            arrayBuffer,
+                            uploadedFile.file.name,
+                            uploadedFile.geometry,
+                            uploadedFile.mesh
+                        );
+
+                        console.log('✅ File saved with ID:', fileId);
+                    } catch (saveError) {
+                        console.error('❌ Failed to save file:', saveError);
+                        showNotification('❌ Failed to save file: ' + saveError.message, 'error');
+                        return;
+                    }
+                }
+
+                // Final validation before opening modal
+                if (!fileId || fileId === 'null' || fileId === 'undefined' || !fileId.startsWith('file_')) {
+                    showNotification('❌ Invalid file ID. Please try uploading the file again.', 'error');
+                    console.error('❌ Invalid file ID:', fileId);
+                    return;
+                }
+
+                // Verify file exists in storage
+                const fileRecord = await window.fileStorageManager.loadFile(fileId);
+                if (!fileRecord) {
+                    showNotification('❌ File not found in storage. Please upload again.', 'error');
+                    return;
+                }
+
+                // Save current camera state before sharing
+                await saveCameraState();
                 
-                fileId = window.fileStorageManager.currentFileId;
+                // Open share modal with validated file ID
+                if (window.shareModal && typeof window.shareModal.open === 'function') {
+                    await window.shareModal.open(fileId);
+                    console.log('🔗 Share modal opened with file ID:', fileId);
+                } else {
+                    console.error('❌ Share modal not available');
+                    showNotification('❌ Share feature is not available', 'error');
+                }
+            } catch (error) {
+                console.error('❌ Share button error:', error);
+                showNotification('❌ Failed to share: ' + error.message, 'error');
             }
-
-            // Final validation before opening modal
-            if (!fileId || fileId === 'null' || fileId === 'undefined') {
-                showNotification('❌ Failed to save file. Please try uploading again.', 'error');
-                console.error('❌ Invalid file ID:', fileId);
-                return;
-            }
-
-            // Save current camera state before sharing
-            await saveCameraState();
-            
-            // Open share modal with validated file ID
-            await window.shareModal.open(fileId);
-            console.log('🔗 Share modal opened with file ID:', fileId);
         });
     }
 
@@ -1519,8 +1568,16 @@
             
             if (!fileRecord) {
                 showNotification('⚠️ File not found or expired', 'error');
+                console.error('❌ File record not found in storage');
+                // Clear invalid URL parameter
+                const url = new URL(window.location.href);
+                url.searchParams.delete('file');
+                window.history.replaceState({}, '', url.toString());
                 return;
             }
+
+            console.log('✅ File record found:', fileRecord.fileName);
+            console.log('   File size:', (fileRecord.metadata?.fileSize / 1024 / 1024).toFixed(2), 'MB');
 
             // Mark as restored session to prevent auto-rotate
             isRestoredSession = true;
@@ -1533,34 +1590,76 @@
                 type: 'application/octet-stream'
             });
 
-            // Trigger file upload
-            const viewer = window.viewerGeneral || window.viewerMedical;
-            if (viewer) {
-                await viewer.loadFile(file, fileRecord.fileName);
-                
-                // Restore camera state
-                if (fileRecord.edits.camera) {
-                    setTimeout(() => {
-                        restoreCameraState(fileRecord.edits.camera);
-                    }, 1000);
-                }
-
-                showNotification('✅ Shared model loaded successfully!', 'success');
-                console.log('✅ Shared file loaded:', fileRecord.fileName);
+            // Wait for viewer to be fully initialized
+            let viewer = window.viewerGeneral || window.viewerMedical;
+            let attempts = 0;
+            while (!viewer && attempts < 20) {
+                await new Promise(resolve => setTimeout(resolve, 100));
+                viewer = window.viewerGeneral || window.viewerMedical;
+                attempts++;
             }
+
+            if (!viewer) {
+                console.error('❌ Viewer not initialized');
+                showNotification('❌ Failed to load file: Viewer not ready', 'error');
+                isRestoredSession = false;
+                return;
+            }
+
+            // Trigger file upload
+            console.log('📤 Loading file into viewer...');
+            await viewer.loadFile(file, fileRecord.fileName);
+            
+            // Wait for model to be fully loaded
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // Restore camera state
+            if (fileRecord.edits && fileRecord.edits.camera) {
+                console.log('📷 Restoring camera state...');
+                setTimeout(() => {
+                    restoreCameraState(fileRecord.edits.camera);
+                }, 500);
+            }
+
+            // Set current file ID
+            window.fileStorageManager.currentFileId = fileId;
+
+            showNotification('✅ Shared model loaded successfully!', 'success');
+            console.log('✅ Shared file loaded successfully');
+            console.log('   Current file ID set to:', fileId);
+            
+            // Restart auto-save
+            startAutoSave(fileId);
         } catch (error) {
             console.error('❌ Failed to load shared file:', error);
-            showNotification('❌ Failed to load shared file', 'error');
+            showNotification('❌ Failed to load shared file: ' + error.message, 'error');
             isRestoredSession = false; // Reset on error
+            
+            // Clear invalid URL parameter
+            const url = new URL(window.location.href);
+            url.searchParams.delete('file');
+            window.history.replaceState({}, '', url.toString());
         }
     }
 
     // Restore camera state from saved data
     function restoreCameraState(cameraData) {
         const viewer = window.viewerGeneral || window.viewerMedical;
-        if (!viewer || !viewer.camera || !viewer.controls) return;
+        if (!viewer || !viewer.camera || !viewer.controls) {
+            console.warn('⚠️ Cannot restore camera: Viewer not ready');
+            return;
+        }
+
+        if (!cameraData || !cameraData.position) {
+            console.warn('⚠️ Invalid camera data');
+            return;
+        }
 
         try {
+            console.log('📷 Restoring camera state...');
+            console.log('   Position:', cameraData.position);
+            console.log('   Target:', cameraData.target);
+
             viewer.camera.position.set(
                 cameraData.position.x,
                 cameraData.position.y,
@@ -1583,13 +1682,14 @@
                 );
             }
 
-            if (cameraData.zoom) {
+            if (cameraData.zoom && cameraData.zoom > 0) {
                 viewer.camera.zoom = cameraData.zoom;
                 viewer.camera.updateProjectionMatrix();
             }
 
             viewer.controls.update();
-            console.log('✅ Camera state restored');
+            viewer.render();
+            console.log('✅ Camera state restored successfully');
         } catch (error) {
             console.error('❌ Failed to restore camera state:', error);
         }
@@ -1610,6 +1710,8 @@
             const lastFile = allFiles[0];
 
             console.log('📂 Found last uploaded file:', lastFile.fileName);
+            console.log('   File ID:', lastFile.id);
+            console.log('   Upload time:', new Date(lastFile.uploadTime).toLocaleString());
             
             // Mark as restored session to prevent auto-rotate
             isRestoredSession = true;
@@ -1622,31 +1724,47 @@
                 type: 'application/octet-stream'
             });
 
-            // Wait for viewer to be ready
-            await new Promise(resolve => setTimeout(resolve, 500));
+            // Wait for viewer to be fully initialized
+            let viewer = window.viewerGeneral || window.viewerMedical;
+            let attempts = 0;
+            while (!viewer && attempts < 20) {
+                await new Promise(resolve => setTimeout(resolve, 100));
+                viewer = window.viewerGeneral || window.viewerMedical;
+                attempts++;
+            }
+
+            if (!viewer) {
+                console.error('❌ Viewer not initialized');
+                showNotification('❌ Failed to restore session: Viewer not ready', 'error');
+                isRestoredSession = false;
+                return;
+            }
 
             // Trigger file upload
-            const viewer = window.viewerGeneral || window.viewerMedical;
-            if (viewer) {
-                await viewer.loadFile(file, lastFile.fileName);
-                
-                // Restore camera state
-                if (lastFile.edits.camera) {
-                    setTimeout(() => {
-                        restoreCameraState(lastFile.edits.camera);
-                    }, 1000);
-                }
-
-                // Update URL with file ID
-                window.fileStorageManager.updateURL(lastFile.id);
-                window.fileStorageManager.currentFileId = lastFile.id;
-
-                showNotification('✅ Session restored successfully!', 'success');
-                console.log('✅ Last file loaded:', lastFile.fileName);
-                
-                // Restart auto-save
-                startAutoSave(lastFile.id);
+            console.log('📤 Loading file into viewer...');
+            await viewer.loadFile(file, lastFile.fileName);
+            
+            // Wait for model to be fully loaded
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // Restore camera state
+            if (lastFile.edits && lastFile.edits.camera) {
+                console.log('📷 Restoring camera state...');
+                setTimeout(() => {
+                    restoreCameraState(lastFile.edits.camera);
+                }, 500);
             }
+
+            // Update URL with file ID and set current file ID
+            window.fileStorageManager.currentFileId = lastFile.id;
+            window.fileStorageManager.updateURL(lastFile.id);
+
+            showNotification('✅ Session restored successfully!', 'success');
+            console.log('✅ Last file loaded successfully');
+            console.log('   Current file ID set to:', window.fileStorageManager.currentFileId);
+            
+            // Restart auto-save
+            startAutoSave(lastFile.id);
         } catch (error) {
             console.error('❌ Failed to load last file:', error);
             isRestoredSession = false; // Reset on error
