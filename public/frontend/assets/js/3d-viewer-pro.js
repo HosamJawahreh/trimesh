@@ -289,8 +289,20 @@ class Professional3DViewer {
         this.scene.add(gridHelper);
     }
 
-    async loadFile(file) {
+    async loadFile(file, storageId = null) {
         console.log(`📂 Loading file: ${file.name} (${Utils.formatFileSize(file.size)})`);
+
+        // Check if file is already loaded to prevent duplicates
+        const isDuplicate = this.uploadedFiles.some(f =>
+            f.file.name === file.name &&
+            f.file.size === file.size &&
+            (storageId ? f.storageId === storageId : true)
+        );
+
+        if (isDuplicate) {
+            console.warn('⚠️ File already loaded, skipping:', file.name);
+            return null;
+        }
 
         try {
             // Validate file
@@ -320,7 +332,7 @@ class Professional3DViewer {
 
             // Store the file data for multi-file management
             if (result.geometry) {
-                this.addFile(file, result.geometry);
+                this.addFile(file, result.geometry, storageId);
                 console.log('✓ File added, total files now:', this.uploadedFiles.length);
 
                 // Trigger pricing update immediately
@@ -600,7 +612,7 @@ class Professional3DViewer {
     }
 
     // Multi-file management methods
-    addFile(file, geometry) {
+    addFile(file, geometry, storageId = null) {
         console.log(`📦 Adding file: ${file.name}`);
         const volume = this.calculateVolume(geometry);
         console.log(`   Calculated volume:`, volume);
@@ -617,7 +629,8 @@ class Professional3DViewer {
             geometry: geometry,
             mesh: meshReference, // Store reference to the actual mesh
             volume: volume,
-            timestamp: Date.now()
+            timestamp: Date.now(),
+            storageId: storageId // Track the server/storage file ID
         };
 
         this.uploadedFiles.push(fileData);
@@ -1097,6 +1110,23 @@ function setupFileHandlers() {
                     console.log('═══════════════════════════════════════');
                     console.log('✅ All files loaded successfully!');
                     console.log('═══════════════════════════════════════');
+
+                    // Enable auto-rotate button after successful file load
+                    const autoRotateBtn = document.getElementById('autoRotateBtnMain');
+                    if (autoRotateBtn) {
+                        autoRotateBtn.disabled = false;
+                        autoRotateBtn.style.opacity = '1';
+                        autoRotateBtn.style.cursor = 'pointer';
+                        console.log('✅ Auto-rotate button enabled');
+                    }
+
+                    // Setup measurement click handler for newly loaded files
+                    if (window.setupMeasurementClickHandler) {
+                        setTimeout(() => {
+                            window.setupMeasurementClickHandler();
+                            console.log('✅ Measurement handler setup after file load');
+                        }, 500);
+                    }
                 } catch (error) {
                     console.error('❌ Error loading files:', error);
                     // Don't reset input on error so user can retry
@@ -1155,6 +1185,23 @@ function setupFileHandlers() {
                     console.log('═══════════════════════════════════════');
                     console.log('✅ All medical files loaded successfully!');
                     console.log('═══════════════════════════════════════');
+
+                    // Enable auto-rotate button after successful file load
+                    const autoRotateBtn = document.getElementById('autoRotateBtnMain');
+                    if (autoRotateBtn) {
+                        autoRotateBtn.disabled = false;
+                        autoRotateBtn.style.opacity = '1';
+                        autoRotateBtn.style.cursor = 'pointer';
+                        console.log('✅ Auto-rotate button enabled');
+                    }
+
+                    // Setup measurement click handler for newly loaded files
+                    if (window.setupMeasurementClickHandler) {
+                        setTimeout(() => {
+                            window.setupMeasurementClickHandler();
+                            console.log('✅ Measurement handler setup after medical file load');
+                        }, 500);
+                    }
                 } catch (error) {
                     console.error('❌ Error loading medical files:', error);
                 }
@@ -1228,6 +1275,23 @@ function setupDragAndDrop() {
                         await viewerInstance.loadFile(file);
                     }
                     console.log('✓ All dropped files loaded successfully');
+
+                    // Enable auto-rotate button after successful file load
+                    const autoRotateBtn = document.getElementById('autoRotateBtnMain');
+                    if (autoRotateBtn) {
+                        autoRotateBtn.disabled = false;
+                        autoRotateBtn.style.opacity = '1';
+                        autoRotateBtn.style.cursor = 'pointer';
+                        console.log('✅ Auto-rotate button enabled');
+                    }
+
+                    // Setup measurement click handler for newly loaded files
+                    if (window.setupMeasurementClickHandler) {
+                        setTimeout(() => {
+                            window.setupMeasurementClickHandler();
+                            console.log('✅ Measurement handler setup after drag-drop');
+                        }, 500);
+                    }
                 } catch (error) {
                     console.error(error);
                 }

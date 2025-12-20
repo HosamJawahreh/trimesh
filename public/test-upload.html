@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Upload Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .test-section {
+            border: 2px solid #4CAF50;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .log {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .log div {
+            margin: 5px 0;
+        }
+        .success { color: green; }
+        .error { color: red; }
+        .info { color: blue; }
+        button {
+            background: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        input[type="file"] {
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 File Upload Diagnostic Tool</h1>
+
+    <div class="test-section">
+        <h2>Test 1: API Endpoint Check</h2>
+        <button onclick="testAPIEndpoint()">Test API Endpoint</button>
+        <div id="apiTest" class="log"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 2: Simple File Upload</h2>
+        <input type="file" id="testFile" accept=".stl,.obj,.ply">
+        <button onclick="testFileUpload()">Upload Test File</button>
+        <div id="uploadTest" class="log"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 3: Retrieve Uploaded File</h2>
+        <input type="text" id="fileIdInput" placeholder="Enter File ID">
+        <button onclick="testFileRetrieval()">Retrieve File</button>
+        <div id="retrieveTest" class="log"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 4: Database Check</h2>
+        <button onclick="checkDatabase()">Check Database</button>
+        <div id="dbTest" class="log"></div>
+    </div>
+
+    <script>
+        function log(containerId, message, type = 'info') {
+            const container = document.getElementById(containerId);
+            const div = document.createElement('div');
+            div.className = type;
+            div.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        async function testAPIEndpoint() {
+            const container = document.getElementById('apiTest');
+            container.innerHTML = '';
+
+            log('apiTest', '🔍 Testing API endpoint...', 'info');
+
+            try {
+                const response = await fetch('/api/3d-files/store', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        file: btoa('test data'),
+                        fileName: 'test.stl'
+                    })
+                });
+
+                log('apiTest', `Response status: ${response.status} ${response.statusText}`,
+                    response.ok ? 'success' : 'error');
+
+                const result = await response.json();
+                log('apiTest', `Response: ${JSON.stringify(result, null, 2)}`,
+                    result.success ? 'success' : 'error');
+
+                if (result.success) {
+                    document.getElementById('fileIdInput').value = result.fileId;
+                }
+            } catch (error) {
+                log('apiTest', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testFileUpload() {
+            const container = document.getElementById('uploadTest');
+            container.innerHTML = '';
+
+            const fileInput = document.getElementById('testFile');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                log('uploadTest', '❌ Please select a file first', 'error');
+                return;
+            }
+
+            log('uploadTest', `📤 Uploading: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`, 'info');
+
+            try {
+                // Read file as ArrayBuffer
+                const arrayBuffer = await file.arrayBuffer();
+                log('uploadTest', `✅ File read: ${arrayBuffer.byteLength} bytes`, 'success');
+
+                // Convert to base64
+                log('uploadTest', '🔄 Converting to base64...', 'info');
+                const base64 = arrayBufferToBase64(arrayBuffer);
+                log('uploadTest', `✅ Base64 length: ${base64.length}`, 'success');
+
+                // Upload
+                log('uploadTest', '📤 Sending to server...', 'info');
+                const response = await fetch('/api/3d-files/store', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        file: base64,
+                        fileName: file.name
+                    })
+                });
+
+                log('uploadTest', `Response: ${response.status} ${response.statusText}`,
+                    response.ok ? 'success' : 'error');
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    log('uploadTest', `❌ Error: ${errorText}`, 'error');
+                    return;
+                }
+
+                const result = await response.json();
+                log('uploadTest', `✅ Upload successful!`, 'success');
+                log('uploadTest', `File ID: ${result.fileId}`, 'success');
+                log('uploadTest', `Expires: ${new Date(result.expiryTime)}`, 'info');
+
+                document.getElementById('fileIdInput').value = result.fileId;
+            } catch (error) {
+                log('uploadTest', `❌ Error: ${error.message}`, 'error');
+                console.error(error);
+            }
+        }
+
+        async function testFileRetrieval() {
+            const container = document.getElementById('retrieveTest');
+            container.innerHTML = '';
+
+            const fileId = document.getElementById('fileIdInput').value;
+
+            if (!fileId) {
+                log('retrieveTest', '❌ Please enter a File ID', 'error');
+                return;
+            }
+
+            log('retrieveTest', `🔍 Retrieving file: ${fileId}`, 'info');
+
+            try {
+                const response = await fetch(`/api/3d-files/${fileId}`, {
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+
+                log('retrieveTest', `Response: ${response.status} ${response.statusText}`,
+                    response.ok ? 'success' : 'error');
+
+                const result = await response.json();
+
+                if (result.success) {
+                    log('retrieveTest', `✅ File found!`, 'success');
+                    log('retrieveTest', `File name: ${result.fileName}`, 'info');
+                    log('retrieveTest', `Upload time: ${new Date(result.uploadTime)}`, 'info');
+                    log('retrieveTest', `Expiry time: ${new Date(result.expiryTime)}`, 'info');
+                    log('retrieveTest', `File data length: ${result.fileData.length} bytes`, 'info');
+                } else {
+                    log('retrieveTest', `❌ ${result.message}`, 'error');
+                }
+            } catch (error) {
+                log('retrieveTest', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function checkDatabase() {
+            const container = document.getElementById('dbTest');
+            container.innerHTML = '';
+
+            log('dbTest', '🔍 Checking database...', 'info');
+            log('dbTest', '⚠️ This requires backend implementation', 'info');
+            log('dbTest', 'Run in terminal: php artisan tinker', 'info');
+            log('dbTest', 'Then: App\\Models\\ThreeDFile::all();', 'info');
+        }
+
+        function arrayBufferToBase64(buffer) {
+            let binary = '';
+            const bytes = new Uint8Array(buffer);
+            const len = bytes.byteLength;
+            for (let i = 0; i < len; i++) {
+                binary += String.fromCharCode(bytes[i]);
+            }
+            return btoa(binary);
+        }
+    </script>
+</body>
+</html>

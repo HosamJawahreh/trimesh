@@ -453,26 +453,41 @@ class ShareModal {
     showToast(message, type = 'success') {
         const toast = document.createElement('div');
         toast.className = 'share-toast';
-        toast.textContent = message;
+
+        // Create toast with icon
+        const icon = type === 'error' ? '⚠️' : '✓';
+        const bgGradient = type === 'error'
+            ? 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)'
+            : 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)';
+
+        toast.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <span style="font-size: 20px; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; background: rgba(255,255,255,0.2); border-radius: 50%;">${icon}</span>
+                <span>${message.replace(/^[✅❌]\s*/, '')}</span>
+            </div>
+        `;
+
         toast.style.cssText = `
             position: fixed;
-            bottom: 32px;
-            right: 32px;
-            padding: 16px 24px;
-            background: ${type === 'error' ? '#e74c3c' : '#27ae60'};
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100%);
+            padding: 16px 28px;
+            background: ${bgGradient};
             color: white;
-            border-radius: 10px;
+            border-radius: 12px;
             font-size: 15px;
             font-weight: 500;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
             z-index: 10001;
-            animation: toastSlideIn 0.3s ease;
+            animation: toastSlideInTop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+            backdrop-filter: blur(10px);
         `;
 
         document.body.appendChild(toast);
 
         setTimeout(() => {
-            toast.style.animation = 'toastSlideOut 0.3s ease';
+            toast.style.animation = 'toastSlideOutTop 0.3s ease forwards';
             setTimeout(() => toast.remove(), 300);
         }, 3000);
     }
@@ -484,23 +499,24 @@ window.shareModal = new ShareModal();
 // Add toast animations
 const toastStyles = document.createElement('style');
 toastStyles.textContent = `
-    @keyframes toastSlideIn {
+    @keyframes toastSlideInTop {
         from {
-            transform: translateX(400px);
+            transform: translateX(-50%) translateY(-100%);
             opacity: 0;
         }
         to {
-            transform: translateX(0);
+            transform: translateX(-50%) translateY(0);
             opacity: 1;
         }
     }
-    @keyframes toastSlideOut {
+
+    @keyframes toastSlideOutTop {
         from {
-            transform: translateX(0);
+            transform: translateX(-50%) translateY(0);
             opacity: 1;
         }
         to {
-            transform: translateX(400px);
+            transform: translateX(-50%) translateY(-150%);
             opacity: 0;
         }
     }

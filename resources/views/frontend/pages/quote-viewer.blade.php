@@ -3,6 +3,7 @@
      Professional & Optimized Layout
      ============================================ --}}
 
+<link rel="stylesheet" href="{{ asset('frontend/assets/css/bootstrap.css') }}">
 <section class="dgm-3d-quote-area pb-100">
     <div class="container">
         {{-- General 3D Printing Form --}}
@@ -17,65 +18,85 @@
                                 <div class="col-12 col-lg-3">
                                     <div class="p-3 p-lg-4">
 
+                                        {{-- Site Logo --}}
+                                        <div class="text-center" style="padding: 0 0 15px 0;">
+                                            <img src="{{ asset($settings->logo) }}" alt="{{ $settings->app_name }}" style="max-width: 200px; height: auto;">
+                                        </div>
+
                                         {{-- Category Tabs --}}
                                         <div class="btn-group w-100 mb-3" role="group">
                                             <button type="button" class="btn btn-sm category-tab-btn active" data-category="general" style="border-radius: 8px 0 0 8px; padding: 10px; font-size: 0.85rem; font-weight: 600;">
                                                 General
-                                            </button>
-                                            <button type="button" class="btn btn-sm category-tab-btn" data-category="medical" style="border-radius: 0 8px 8px 0; padding: 10px; font-size: 0.85rem; font-weight: 600;">
-                                                Medical
-                                            </button>
-                                        </div>
+                                            <script type="module">
+                                            import * as THREE from 'three';
+                                            import { repairAndRecalculateAll } from '/frontend/assets/js/3d-file-manager.js';
+                                            document.addEventListener('DOMContentLoaded', function() {
+                                                const priceSummaryGeneral = document.getElementById('priceSummaryGeneral');
+                                                if (priceSummaryGeneral) priceSummaryGeneral.style.display = 'none';
+                                                function hidePriceSummary() {
+                                                    if (priceSummaryGeneral) priceSummaryGeneral.style.display = 'none';
+                                                    const priceSidebar = document.querySelector('.total-price, #quoteTotalPriceGeneral');
+                                                    if (priceSidebar) priceSidebar.textContent = '';
+                                                    const volumeSidebar = document.getElementById('quoteTotalVolumeGeneral');
+                                                    if (volumeSidebar) volumeSidebar.textContent = '';
+                                                }
+                                                const fileInput = document.getElementById('fileInput3d');
+                                                if (fileInput) fileInput.addEventListener('change', hidePriceSummary);
+                                                document.addEventListener('fileRemoved', hidePriceSummary);
+                                                const saveBtn = document.getElementById('saveCalculationsBtn');
+                                                if (saveBtn) {
+                                                    saveBtn.addEventListener('click', async function() {
+                                                        await repairAndRecalculateAll(window.viewerGeneral, THREE, () => window.showAllFilePrices && window.showAllFilePrices('General'), 'priceSummaryGeneral');
+                                                    });
+                                                }
+                                            });
+                                            </script>
+<script type="module">
+import * as THREE from 'three';
+import { repairAndRecalculateAll } from '/frontend/assets/js/3d-file-manager.js';
+document.addEventListener('DOMContentLoaded', function() {
+    const priceSummaryMedical = document.getElementById('priceSummaryMedical');
+    if (priceSummaryMedical) priceSummaryMedical.style.display = 'none';
+    function hidePriceSummaryMedical() {
+        if (priceSummaryMedical) priceSummaryMedical.style.display = 'none';
+        const priceSidebar = document.querySelector('.total-price, #quoteTotalPriceMedical');
+        if (priceSidebar) priceSidebar.textContent = '';
+        const volumeSidebar = document.getElementById('quoteTotalVolumeMedical');
+        if (volumeSidebar) volumeSidebar.textContent = '';
+    }
+    const fileInput = document.getElementById('fileInput3dMedical');
+    if (fileInput) fileInput.addEventListener('change', hidePriceSummaryMedical);
+    document.addEventListener('fileRemoved', hidePriceSummaryMedical);
+    const saveBtn = document.getElementById('saveCalculationsBtn');
+    if (saveBtn) {
+        saveBtn.addEventListener('click', async function() {
+            await repairAndRecalculateAll(window.viewerMedical, THREE, () => window.showAllFilePrices && window.showAllFilePrices('Medical'), 'priceSummaryMedical');
+        });
+    }
+});
+</script>
 
-                                        <!-- Upload Area -->
-                                        <div class="upload-drop-zone-3d text-center p-3 mb-3" style="border: 2px dashed #cbd5e0; border-radius: 10px; background: white; cursor: pointer; transition: all 0.3s;">
-                                            <input type="file" id="fileInput3d" style="display: none;" accept=".stl,.obj,.ply" multiple>
-                                            <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" class="mb-2">
-                                                <circle cx="20" cy="20" r="20" fill="#e8f4f8"/>
-                                                <path d="M20 10L26 16L20 22L14 16L20 10Z" stroke="#4a90e2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                                <path d="M14 22L20 28L26 22" stroke="#4a90e2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/>
-                                            </svg>
-                                            <p class="mb-1" style="font-size: 0.9rem; font-weight: 600; color: #2c3e50;">Drop files or click</p>
-                                            <small class="text-muted" style="font-size: 0.8rem;">STL, OBJ, PLY (Max 100MB each) • Multiple files supported</small>
-                                        </div>
-
-                                        <!-- Uploaded Files List -->
-                                        <div id="uploadedFilesList" class="mb-3" style="display: none;">
-                                            <label class="form-label mb-2" style="font-size: 0.85rem; font-weight: 600; color: #495057;">Uploaded Files (<span id="fileCount">0</span>)</label>
-                                            <div id="filesContainer" style="max-height: 200px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 8px; background: #f8f9fa;"></div>
+                                        <!-- Technology -->
+                                        <div class="mb-3">
+                                            <label class="form-label mb-2" style="font-size: 0.85rem; font-weight: 600; color: #495057;">Technology</label>
+                                            <select id="technologySelectGeneral" class="form-select form-select-sm" style="border-radius: 8px; border: 1px solid #dee2e6; font-size: 0.85rem; padding: 8px 12px;">
+                                                <option value="fdm" selected>FDM (Fused Deposition Modeling)</option>
+                                                <option value="sla">SLA (Stereolithography)</option>
+                                                <option value="sls">SLS (Selective Laser Sintering)</option>
+                                                <option value="dmls">DMLS (Direct Metal Laser Sintering)</option>
+                                                <option value="mjf">MJF (Multi Jet Fusion)</option>
+                                            </select>
                                         </div>
 
                                         <!-- Material -->
                                         <div class="mb-3">
                                             <label class="form-label mb-2" style="font-size: 0.85rem; font-weight: 600; color: #495057;">Material</label>
-                                            <select id="materialSelectGeneral" class="form-select form-select-sm" style="border-radius: 8px; border: 1px solid #dee2e6; font-size: 0.85rem; padding: 8px 12px;" onchange="if(window.fileManagerGeneral && window.viewerGeneral.uploadedFiles.length > 0) { console.log('Material changed to:', this.value); window.fileManagerGeneral.updateQuote(); }">
+                                            <select id="materialSelectGeneral" class="form-select form-select-sm" style="border-radius: 8px; border: 1px solid #dee2e6; font-size: 0.85rem; padding: 8px 12px;">
                                                 <option value="pla">PLA</option>
                                                 <option value="abs">ABS</option>
                                                 <option value="petg">PETG</option>
                                                 <option value="nylon">Nylon</option>
                                                 <option value="resin">Resin</option>
-                                            </select>
-                                        </div>
-
-                                        <!-- Quality -->
-                                        <div class="mb-3">
-                                            <label class="form-label mb-2" style="font-size: 0.85rem; font-weight: 600; color: #495057;">Quality</label>
-                                            <select id="qualitySelectGeneral" class="form-select form-select-sm" style="border-radius: 8px; border: 1px solid #dee2e6; font-size: 0.85rem; padding: 8px 12px;" onchange="if(window.fileManagerGeneral && window.viewerGeneral.uploadedFiles.length > 0) { console.log('Quality changed to:', this.value); window.fileManagerGeneral.updateQuote(); }">
-                                                <option value="draft">Draft (0.3mm)</option>
-                                                <option value="standard" selected>Standard (0.2mm)</option>
-                                                <option value="high">High (0.1mm)</option>
-                                                <option value="ultra">Ultra (0.05mm)</option>
-                                            </select>
-                                        </div>
-
-                                        <!-- Infill -->
-                                        <div class="mb-3">
-                                            <label class="form-label mb-2" style="font-size: 0.85rem; font-weight: 600; color: #495057;">Infill</label>
-                                            <select id="infillSelectGeneral" class="form-select form-select-sm" style="border-radius: 8px; border: 1px solid #dee2e6; font-size: 0.85rem; padding: 8px 12px;" onchange="if(window.fileManagerGeneral && window.viewerGeneral.uploadedFiles.length > 0) { console.log('Infill changed to:', this.value); window.fileManagerGeneral.updateQuote(); }">
-                                                <option value="20">20%</option>
-                                                <option value="50" selected>50%</option>
-                                                <option value="80">80%</option>
-                                                <option value="100">100%</option>
                                             </select>
                                         </div>
 
@@ -96,10 +117,58 @@
                                         </div>
 
                                         <!-- Price Summary -->
-                                        <div class="mt-3 p-3" style="background: white; border-radius: 12px; border: 2px solid #e9ecef; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+                                        <div id="priceSummaryGeneral" class="mt-3 p-3" style="display: none !important; background: white; border-radius: 12px; border: 2px solid #e9ecef; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+
+<script>
+// Hide price summary and sidebar price by default, only show after Save & Calculate and after repair
+document.addEventListener('DOMContentLoaded', function() {
+    const priceSummaryGeneral = document.getElementById('priceSummaryGeneral');
+    if (priceSummaryGeneral) priceSummaryGeneral.style.display = 'none';
+
+    // Hide price summary and sidebar price on file upload or removal
+    function hidePriceSummary() {
+        if (priceSummaryGeneral) priceSummaryGeneral.style.display = 'none';
+        // Hide sidebar price
+        const priceSidebar = document.querySelector('.total-price, #quoteTotalPriceGeneral');
+        if (priceSidebar) priceSidebar.textContent = '';
+        // Hide volume
+        const volumeSidebar = document.getElementById('quoteTotalVolumeGeneral');
+        if (volumeSidebar) volumeSidebar.textContent = '';
+    }
+    const fileInput = document.getElementById('fileInput3d');
+    if (fileInput) fileInput.addEventListener('change', hidePriceSummary);
+    document.addEventListener('fileRemoved', hidePriceSummary);
+
+    const saveBtn = document.getElementById('saveCalculationsBtn');
+    if (saveBtn) {
+        saveBtn.addEventListener('click', async function() {
+            // Repair all uploaded models before calculating price
+            if (window.viewerGeneral && window.viewerGeneral.uploadedFiles) {
+                for (const fileData of window.viewerGeneral.uploadedFiles) {
+                    if (fileData.mesh && window.viewerGeneral.repairMesh) {
+                        await window.viewerGeneral.repairMesh(fileData.mesh, { fillHoles: true });
+                    }
+                }
+            }
+            // After repair, recalculate volume and price
+            if (window.viewerGeneral && window.viewerGeneral.uploadedFiles) {
+                window.viewerGeneral.uploadedFiles.forEach(fileData => {
+                    if (window.viewerGeneral.calculateVolume) {
+                        fileData.volume = window.viewerGeneral.calculateVolume(fileData.mesh);
+                    }
+                });
+            }
+            // Show price summary
+            if (priceSummaryGeneral) priceSummaryGeneral.style.display = 'block';
+            // Calculate and show all file prices
+            if (window.showAllFilePrices) window.showAllFilePrices('General');
+        });
+    }
+});
+</script>
                                             <div class="d-flex justify-content-between align-items-center mb-2 pb-2" style="border-bottom: 1px solid #f1f3f5;">
                                                 <span style="font-size: 0.8rem; color: #6c757d; font-weight: 500;">Volume</span>
-                                                <strong id="quoteTotalVolumeGeneral" style="font-weight: 600; font-size: 0.85rem; color: #2c3e50;">0 cm³</strong>
+                                                <strong id="quoteTotalVolumeGeneral" style="font-weight: 600; font-size: 0.85rem; color: #2c3e50; display: none;">0 cm³</strong>
                                             </div>
                                             <div class="d-flex justify-content-between align-items-center mb-2 pb-2" style="border-bottom: 1px solid #f1f3f5;">
                                                 <span style="font-size: 0.8rem; color: #6c757d; font-weight: 500;">Print Time</span>
@@ -107,7 +176,7 @@
                                             </div>
                                             <div class="d-flex justify-content-between align-items-center mt-2 pt-2">
                                                 <span style="font-size: 0.85rem; font-weight: 600; color: #495057; text-transform: uppercase; letter-spacing: 0.3px;">Total Price</span>
-                                                <h4 class="mb-0" id="quoteTotalPriceGeneral" style="font-weight: 700; font-size: 1.3rem; color: #2c3e50;">$0</h4>
+                                                <h4 class="mb-0" id="quoteTotalPriceGeneral" style="font-weight: 700; font-size: 1.3rem; color: #2c3e50; display: none;">$0</h4>
                                             </div>
                                             <button type="button" class="btn w-100 mt-2" id="btnRequestQuoteGeneral" style="border-radius: 10px; font-weight: 600; font-size: 0.85rem; padding: 10px; background: #4a90e2; color: white; border: none; transition: all 0.3s; box-shadow: 0 2px 8px rgba(74, 144, 226, 0.3);">
                                                 Request Quote →
@@ -196,42 +265,95 @@
                                                         <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                                                             <path d="M8 14L2 10L8 6L14 10L8 14Z" stroke="currentColor" stroke-width="1.5"/>
                                                         </svg>
-                                                        <span>Bottom</span>
-                                                    </button>
-                                                </div>
-                                            </div>
+                                                        <script>
+                                                        // Hide price summary/sidebar in HTML and only show after Save & Calculate and after repair/fill
+                                                        document.addEventListener('DOMContentLoaded', function() {
+                                                            const priceSummaryGeneral = document.getElementById('priceSummaryGeneral');
+                                                            const priceSidebar = document.getElementById('quoteTotalPriceGeneral');
+                                                            const volumeSidebar = document.getElementById('quoteTotalVolumeGeneral');
+                                                            if (priceSummaryGeneral) priceSummaryGeneral.style.display = 'none';
+                                                            if (priceSidebar) priceSidebar.style.display = 'none';
+                                                            if (volumeSidebar) volumeSidebar.style.display = 'none';
 
-                                            <div class="control-divider"></div>
+                                                            // Hide price summary/sidebar on file upload or removal
+                                                            function hidePriceSummary() {
+                                                                if (priceSummaryGeneral) priceSummaryGeneral.style.display = 'none';
+                                                                if (priceSidebar) priceSidebar.style.display = 'none';
+                                                                if (volumeSidebar) volumeSidebar.style.display = 'none';
+                                                            }
+                                                            const fileInput = document.getElementById('fileInput3d');
+                                                            if (fileInput) fileInput.addEventListener('change', hidePriceSummary);
+                                                            document.addEventListener('fileRemoved', hidePriceSummary);
 
-                                            <div class="control-section tools-section">
-                                                <div class="control-label">Tools</div>
-                                                <div class="tool-buttons">
-                                                    <button type="button" class="control-btn tool-btn" id="toggleGridBtn" title="Toggle Grid">
+                                                            const saveBtn = document.getElementById('saveCalculationsBtn');
+                                                            if (saveBtn) {
+                                                                saveBtn.addEventListener('click', async function() {
+                                                                    let repairImplemented = false;
+                                                                    // 1. Repair/fill all uploaded meshes before calculation
+                                                                    if (window.viewerGeneral && window.viewerGeneral.uploadedFiles) {
+                                                                        for (const fileData of window.viewerGeneral.uploadedFiles) {
+                                                                            if (fileData.mesh && typeof window.viewerGeneral.repairMesh === 'function') {
+                                                                                repairImplemented = true;
+                                                                                await window.viewerGeneral.repairMesh(fileData.mesh, { fillHoles: true });
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                    // 2. Recalculate volume for all files
+                                                                    if (window.viewerGeneral && window.viewerGeneral.uploadedFiles) {
+                                                                        window.viewerGeneral.uploadedFiles.forEach(fileData => {
+                                                                            if (fileData.mesh && typeof window.viewerGeneral.calculateVolume === 'function') {
+                                                                                fileData.volume = window.viewerGeneral.calculateVolume(fileData.mesh);
+                                                                            }
+                                                                        });
+                                                                    }
+                                                                    // 3. Calculate and show all file prices
+                                                                    if (window.showAllFilePrices) window.showAllFilePrices('General');
+                                                                    // 4. Show price summary/sidebar
+                                                                    if (priceSummaryGeneral) priceSummaryGeneral.style.display = 'block';
+                                                                    if (priceSidebar) priceSidebar.style.display = 'block';
+                                                                    if (volumeSidebar) volumeSidebar.style.display = 'block';
+                                                                    // 5. Show warning if repair/fill is not implemented
+                                                                    if (!repairImplemented) {
+                                                                        let warn = document.getElementById('meshRepairWarning');
+                                                                        if (!warn) {
+                                                                            warn = document.createElement('div');
+                                                                            warn.id = 'meshRepairWarning';
+                                                                            warn.style = 'color: #d84315; font-weight: bold; margin-top: 10px;';
+                                                                            warn.textContent = '⚠️ Mesh repair/fill is not implemented. Please implement repairMesh for watertight models!';
+                                                                            if (priceSummaryGeneral) priceSummaryGeneral.parentNode.insertBefore(warn, priceSummaryGeneral.nextSibling);
+                                                                        }
+                                                                    } else {
+                                                                        const warn = document.getElementById('meshRepairWarning');
+                                                                        if (warn) warn.remove();
+                                                                    }
+                                                                });
+                                                            }
+                                                        });
+                                                        </script>
                                                         <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                                                            <path d="M1 1H17M1 6H17M1 11H17M1 16H17M6 1V17M11 1V17" stroke="currentColor" stroke-width="1.5"/>
+                                                            <path d="M9 2C9 2 9 7 9 7M9 7L6.5 4.5M9 7L11.5 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                                            <path d="M9 16C9 16 9 11 9 11M9 11L6.5 13.5M9 11L11.5 13.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                                            <path d="M2 9C2 9 7 9 7 9M7 9L4.5 6.5M7 9L4.5 11.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                                            <path d="M16 9C16 9 11 9 11 9M11 9L13.5 6.5M11 9L13.5 11.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                                                         </svg>
-                                                        <span>Grid</span>
+                                                        <span>Pan</span>
                                                     </button>
-                                                    <button type="button" class="control-btn tool-btn" id="repairModelBtn" title="Repair Model">
+                                                    <button type="button" class="control-btn tool-btn" id="screenshotBtn" title="Take Screenshot">
                                                         <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                                                            <path d="M15 3L3 15M3 3L15 15" stroke="currentColor" stroke-width="1.5"/>
-                                                            <circle cx="9" cy="9" r="7" stroke="currentColor" stroke-width="1.5"/>
+                                                            <rect x="2" y="4" width="14" height="11" rx="2" stroke="currentColor" stroke-width="1.5"/>
+                                                            <circle cx="9" cy="9.5" r="2.5" stroke="currentColor" stroke-width="1.5"/>
+                                                            <path d="M6 4L7 2H11L12 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
                                                         </svg>
-                                                        <span>Repair</span>
+                                                        <span>Screenshot</span>
                                                     </button>
-                                                    <button type="button" class="control-btn tool-btn" id="fillHolesBtn" title="Fill Holes">
+                                                    <button type="button" class="control-btn tool-btn" id="shareGeneralBtn" title="Share Model">
                                                         <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                                                            <circle cx="9" cy="9" r="7" stroke="currentColor" stroke-width="1.5"/>
-                                                            <path d="M9 6V12M6 9H12" stroke="currentColor" stroke-width="1.5"/>
+                                                            <circle cx="13" cy="4" r="2.5" stroke="currentColor" stroke-width="1.5"/>
+                                                            <circle cx="5" cy="9" r="2.5" stroke="currentColor" stroke-width="1.5"/>
+                                                            <circle cx="13" cy="14" r="2.5" stroke="currentColor" stroke-width="1.5"/>
+                                                            <path d="M7.5 10L10.5 12.5M7.5 8L10.5 5.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
                                                         </svg>
-                                                        <span>Fill Holes</span>
-                                                    </button>
-                                                    <button type="button" class="control-btn tool-btn" id="autoRotateBtn" title="Auto Rotate" class="active">
-                                                        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                                                            <path d="M15 9C15 12.3137 12.3137 15 9 15C5.68629 15 3 12.3137 3 9C3 5.68629 5.68629 3 9 3C10.5 3 11.9 3.5 13 4.5" stroke="currentColor" stroke-width="1.5"/>
-                                                            <path d="M15 3V7H11" stroke="currentColor" stroke-width="1.5"/>
-                                                        </svg>
-                                                        <span>Rotate</span>
+                                                        <span>Share</span>
                                                     </button>
                                                 </div>
                                             </div>
@@ -282,7 +404,7 @@
                             <div class="row g-0">
                                 <!-- Left Side: Controls -->
                                 <div class="col-12 col-lg-3" style="background: #f8f9fa; border-right: 1px solid #e9ecef;">
-                                    <div class="p-3 p-lg-4">
+                                    <div class="">
                                         <!-- Category Tabs -->
                                         <div class="btn-group w-100 mb-3" role="group">
                                             <button type="button" class="btn btn-sm category-tab-btn" data-category="general" style="border-radius: 8px 0 0 8px; padding: 10px; font-size: 0.85rem; font-weight: 600;">
@@ -311,30 +433,31 @@
                                             <div id="filesContainerMedical" style="max-height: 200px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 8px; background: #f8f9fa;"></div>
                                         </div>
 
+                                        <!-- Technology -->
+                                        <div class="mb-3">
+                                            <label class="form-label mb-2" style="font-size: 0.85rem; font-weight: 600; color: #495057;">Technology</label>
+                                            <select id="technologySelectMedical" class="form-select form-select-sm" style="border-radius: 6px; border: 1px solid #dee2e6; font-size: 0.85rem;">
+                                                <option value="sla" selected>SLA (Stereolithography)</option>
+                                                <option value="dmls">DMLS (Direct Metal Laser Sintering)</option>
+                                                <option value="mjf">MJF (Multi Jet Fusion)</option>
+                                                <option value="polyjet">PolyJet</option>
+                                            </select>
+                                        </div>
+
                                         <!-- Material -->
                                         <div class="mb-3">
                                             <label class="form-label mb-2" style="font-size: 0.85rem; font-weight: 600; color: #495057;">Material</label>
-                                            <select id="materialSelectMedical" class="form-select form-select-sm" style="border-radius: 6px; border: 1px solid #dee2e6; font-size: 0.85rem;" onchange="if(window.fileManagerMedical && window.viewerMedical.uploadedFiles.length > 0) { console.log('Medical material changed to:', this.value); window.fileManagerMedical.updateQuote(); }">
+                                            <select id="materialSelectMedical" class="form-select form-select-sm" style="border-radius: 6px; border: 1px solid #dee2e6; font-size: 0.85rem;">
                                                 <option value="medical-resin">Medical Resin</option>
                                                 <option value="biocompatible">Biocompatible</option>
                                                 <option value="surgical">Surgical Grade</option>
                                             </select>
                                         </div>
 
-                                        <!-- Quality -->
-                                        <div class="mb-3">
-                                            <label class="form-label mb-2" style="font-size: 0.85rem; font-weight: 600; color: #495057;">Quality</label>
-                                            <select id="qualitySelectMedical" class="form-select form-select-sm" style="border-radius: 6px; border: 1px solid #dee2e6; font-size: 0.85rem;" onchange="if(window.fileManagerMedical && window.viewerMedical.uploadedFiles.length > 0) { console.log('Medical quality changed to:', this.value); window.fileManagerMedical.updateQuote(); }">
-                                                <option value="high">High (0.1mm)</option>
-                                                <option value="ultra" selected>Ultra (0.05mm)</option>
-                                                <option value="extreme">Extreme (0.025mm)</option>
-                                            </select>
-                                        </div>
-
                                         <!-- Application -->
                                         <div class="mb-3">
                                             <label class="form-label mb-2" style="font-size: 0.85rem; font-weight: 600; color: #495057;">Application</label>
-                                            <select id="applicationSelectMedical" class="form-select form-select-sm" style="border-radius: 6px; border: 1px solid #dee2e6; font-size: 0.85rem;" onchange="if(window.fileManagerMedical && window.viewerMedical.uploadedFiles.length > 0) { console.log('Medical application changed to:', this.value); window.fileManagerMedical.updateQuote(); }">
+                                            <select id="applicationSelectMedical" class="form-select form-select-sm" style="border-radius: 6px; border: 1px solid #dee2e6; font-size: 0.85rem;">
                                                 <option value="surgical">Surgical Guide</option>
                                                 <option value="dental">Dental Model</option>
                                                 <option value="anatomical">Anatomical</option>
@@ -355,7 +478,7 @@
                                         </div>
 
                                         <!-- Price Summary -->
-                                        <div class="mt-3 p-3" style="background: white; border-radius: 12px; border: 2px solid #e9ecef; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+                                        <div id="priceSummaryMedical" class="mt-3 p-3" style="display: none; background: white; border-radius: 12px; border: 2px solid #e9ecef; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
                                             <div class="d-flex justify-content-between align-items-center mb-2 pb-2" style="border-bottom: 1px solid #f1f3f5;">
                                                 <span style="font-size: 0.8rem; color: #6c757d; font-weight: 500;">Volume</span>
                                                 <strong id="quoteTotalVolumeMedical" style="font-weight: 600; font-size: 0.85rem; color: #2c3e50;">0 cm³</strong>
@@ -474,21 +597,129 @@
                                                             <path d="M15 3L3 15M3 3L15 15" stroke="currentColor" stroke-width="1.5"/>
                                                             <circle cx="9" cy="9" r="7" stroke="currentColor" stroke-width="1.5"/>
                                                         </svg>
-                                                        <span>Repair</span>
-                                                    </button>
-                                                    <button type="button" class="control-btn tool-btn" id="fillHolesBtn" title="Fill Holes">
+                                                        <script type="module">
+                                                        // --- Mesh Repair using @jscad/modeling ---
+                                                        // 1. Install @jscad/modeling: npm install @jscad/modeling
+                                                        // 2. Bundle for browser (Vite/Webpack will handle import)
+                                                        // 3. This script assumes Three.js BufferGeometry for meshes
+
+                                                        import * as jscad from 'https://cdn.jsdelivr.net/npm/@jscad/modeling@2.19.0/dist/jscad-modeling.min.js';
+
+                                                        // Convert Three.js BufferGeometry to JSCAD poly3 geometry
+                                                        function threeToJscadPoly3(bufferGeometry) {
+                                                            const pos = bufferGeometry.attributes.position.array;
+                                                            const indices = bufferGeometry.index ? bufferGeometry.index.array : null;
+                                                            const vertices = [];
+                                                            for (let i = 0; i < pos.length; i += 3) {
+                                                                vertices.push([pos[i], pos[i + 1], pos[i + 2]]);
+                                                            }
+                                                            const polygons = [];
+                                                            if (indices) {
+                                                                for (let i = 0; i < indices.length; i += 3) {
+                                                                    polygons.push([vertices[indices[i]], vertices[indices[i + 1]], vertices[indices[i + 2]]]);
+                                                                }
+                                                            } else {
+                                                                for (let i = 0; i < vertices.length; i += 3) {
+                                                                    polygons.push([vertices[i], vertices[i + 1], vertices[i + 2]]);
+                                                                }
+                                                            }
+                                                            return jscad.geometries.poly3.create(polygons);
+                                                        }
+
+                                                        // Convert JSCAD poly3 geometry back to Three.js BufferGeometry
+                                                        function jscadPoly3ToThree(poly3) {
+                                                            const polygons = poly3.polygons;
+                                                            const positions = [];
+                                                            const indices = [];
+                                                            let vertCount = 0;
+                                                            for (const poly of polygons) {
+                                                                if (poly.length === 3) {
+                                                                    for (const v of poly) positions.push(...v);
+                                                                    indices.push(vertCount, vertCount + 1, vertCount + 2);
+                                                                    vertCount += 3;
+                                                                }
+                                                            }
+                                                            const geometry = new THREE.BufferGeometry();
+                                                            geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+                                                            geometry.setIndex(indices);
+                                                            geometry.computeVertexNormals();
+                                                            return geometry;
+                                                        }
+
+                                                        // Mesh repair function using JSCAD
+                                                        async function repairMesh(mesh, { fillHoles = true } = {}) {
+                                                            // Convert Three.js geometry to JSCAD poly3
+                                                            const poly3 = threeToJscadPoly3(mesh.geometry);
+                                                            // Use JSCAD's repair/fill operation
+                                                            let repaired = poly3;
+                                                            if (fillHoles) {
+                                                                repaired = jscad.modifiers.repairHoles(poly3);
+                                                            }
+                                                            // Convert back to Three.js geometry
+                                                            mesh.geometry.dispose();
+                                                            mesh.geometry = jscadPoly3ToThree(repaired);
+                                                            mesh.geometry.computeBoundingBox();
+                                                            mesh.geometry.computeBoundingSphere();
+                                                            return mesh;
+                                                        }
+
+                                                        // Attach to viewerGeneral for Save & Calculate logic
+                                                        if (!window.viewerGeneral) window.viewerGeneral = {};
+                                                        window.viewerGeneral.repairMesh = repairMesh;
+
+                                                        // --- UI Logic: Hide price summary and sidebar price by default, only show after Save & Calculate and after repair ---
+                                                        document.addEventListener('DOMContentLoaded', function() {
+                                                            const priceSummaryGeneral = document.getElementById('priceSummaryGeneral');
+                                                            if (priceSummaryGeneral) priceSummaryGeneral.style.display = 'none';
+
+                                                            // Hide price summary and sidebar price on file upload or removal
+                                                            function hidePriceSummary() {
+                                                                if (priceSummaryGeneral) priceSummaryGeneral.style.display = 'none';
+                                                                // Hide sidebar price
+                                                                const priceSidebar = document.querySelector('.total-price, #quoteTotalPriceGeneral');
+                                                                if (priceSidebar) priceSidebar.textContent = '';
+                                                                // Hide volume
+                                                                const volumeSidebar = document.getElementById('quoteTotalVolumeGeneral');
+                                                                if (volumeSidebar) volumeSidebar.textContent = '';
+                                                            }
+                                                            const fileInput = document.getElementById('fileInput3d');
+                                                            if (fileInput) fileInput.addEventListener('change', hidePriceSummary);
+                                                            document.addEventListener('fileRemoved', hidePriceSummary);
+
+                                                            const saveBtn = document.getElementById('saveCalculationsBtn');
+                                                            if (saveBtn) {
+                                                                saveBtn.addEventListener('click', async function() {
+                                                                    // Repair all uploaded models before calculating price
+                                                                    if (window.viewerGeneral && window.viewerGeneral.uploadedFiles) {
+                                                                        for (const fileData of window.viewerGeneral.uploadedFiles) {
+                                                                            if (fileData.mesh && window.viewerGeneral.repairMesh) {
+                                                                                await window.viewerGeneral.repairMesh(fileData.mesh, { fillHoles: true });
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                    // After repair, recalculate volume and price
+                                                                    if (window.viewerGeneral && window.viewerGeneral.uploadedFiles) {
+                                                                        window.viewerGeneral.uploadedFiles.forEach(fileData => {
+                                                                            if (window.viewerGeneral.calculateVolume) {
+                                                                                fileData.volume = window.viewerGeneral.calculateVolume(fileData.mesh);
+                                                                            }
+                                                                        });
+                                                                    }
+                                                                    // Show price summary
+                                                                    if (priceSummaryGeneral) priceSummaryGeneral.style.display = 'block';
+                                                                    // Calculate and show all file prices
+                                                                    if (window.showAllFilePrices) window.showAllFilePrices('General');
+                                                                });
+                                                            }
+                                                        });
+                                                        </script>
                                                         <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                                                            <circle cx="9" cy="9" r="7" stroke="currentColor" stroke-width="1.5"/>
-                                                            <path d="M9 6V12M6 9H12" stroke="currentColor" stroke-width="1.5"/>
+                                                            <circle cx="13" cy="4" r="2.5" stroke="currentColor" stroke-width="1.5"/>
+                                                            <circle cx="5" cy="9" r="2.5" stroke="currentColor" stroke-width="1.5"/>
+                                                            <circle cx="13" cy="14" r="2.5" stroke="currentColor" stroke-width="1.5"/>
+                                                            <path d="M7.5 10L10.5 12.5M7.5 8L10.5 5.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
                                                         </svg>
-                                                        <span>Fill Holes</span>
-                                                    </button>
-                                                    <button type="button" class="control-btn tool-btn active" id="autoRotateBtn" title="Auto Rotate">
-                                                        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                                                            <path d="M15 9C15 12.3137 12.3137 15 9 15C5.68629 15 3 12.3137 3 9C3 5.68629 5.68629 3 9 3C10.5 3 11.9 3.5 13 4.5" stroke="currentColor" stroke-width="1.5"/>
-                                                            <path d="M15 3V7H11" stroke="currentColor" stroke-width="1.5"/>
-                                                        </svg>
-                                                        <span>Rotate</span>
+                                                        <span>Share</span>
                                                     </button>
                                                 </div>
                                             </div>
@@ -894,7 +1125,7 @@
 }
 
 .file-list-item .remove-file-btn {
-    opacity: 0;
+    opacity: 1;
     transition: opacity 0.2s ease;
 }
 
@@ -1040,104 +1271,307 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Color Picker for General
-    const colorBtns = document.querySelectorAll('.color-btn');
-    colorBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
-            colorBtns.forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-            const color = this.getAttribute('data-color');
-            if (window.viewerGeneral && window.viewerGeneral.model) {
-                window.viewerGeneral.changeModelColor(color);
-            }
+    // Wait for viewers to be ready before setting up color pickers
+    window.addEventListener('viewersReady', () => {
+        console.log('🎨 Setting up color pickers and control handlers...');
+
+        // Color Picker for General
+        const colorBtns = document.querySelectorAll('.color-btn');
+        console.log(`   Found ${colorBtns.length} general color buttons`);
+        colorBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                console.log('🎨 General color button clicked:', this.getAttribute('data-color'));
+                colorBtns.forEach(b => {
+                    b.classList.remove('active');
+                    b.style.border = '2px solid #dee2e6';
+                });
+                this.classList.add('active');
+                this.style.border = '3px solid #0047AD';
+
+                const color = this.getAttribute('data-color');
+
+                // Apply to selected file only
+                if (window.selectedFileId && window.viewerGeneral) {
+                    const fileData = window.viewerGeneral.uploadedFiles.find(f => f.id === window.selectedFileId);
+                    if (fileData && fileData.mesh) {
+                        // Update file settings
+                        if (!fileData.settings) fileData.settings = {};
+                        fileData.settings.color = color;
+
+                        // Apply color to mesh
+                        const newColor = new window.THREE.Color(color);
+                        if (Array.isArray(fileData.mesh.material)) {
+                            fileData.mesh.material.forEach(mat => mat.color.copy(newColor));
+                        } else {
+                            fileData.mesh.material.color.copy(newColor);
+                        }
+
+                        console.log(`🎨 Color applied to file ${fileData.file.name}`);
+
+                        // Save state
+                        if (window.viewerStateManager) {
+                            window.viewerStateManager.saveState('File Color Changed');
+                        }
+                    }
+                } else if (window.viewerGeneral && window.viewerGeneral.model) {
+                    // Fallback: Apply to all models
+                    window.viewerGeneral.changeModelColor(color);
+                    if (window.viewerStateManager) {
+                        window.viewerStateManager.saveState('Color Changed');
+                    }
+                }
+            });
         });
+
+        // Color Picker for Medical
+        const colorBtnsMedical = document.querySelectorAll('.color-btn-medical');
+        console.log(`   Found ${colorBtnsMedical.length} medical color buttons`);
+        colorBtnsMedical.forEach(btn => {
+            btn.addEventListener('click', function() {
+                console.log('🎨 Medical color button clicked:', this.getAttribute('data-color'));
+                colorBtnsMedical.forEach(b => {
+                    b.classList.remove('active');
+                    b.style.border = '2px solid #dee2e6';
+                });
+                this.classList.add('active');
+                this.style.border = '3px solid #0047AD';
+
+                const color = this.getAttribute('data-color');
+
+                // Apply to selected file only
+                if (window.selectedFileId && window.viewerMedical) {
+                    const fileData = window.viewerMedical.uploadedFiles.find(f => f.id === window.selectedFileId);
+                    if (fileData && fileData.mesh) {
+                        // Update file settings
+                        if (!fileData.settings) fileData.settings = {};
+                        fileData.settings.color = color;
+
+                        // Apply color to mesh
+                        const newColor = new window.THREE.Color(color);
+                        if (Array.isArray(fileData.mesh.material)) {
+                            fileData.mesh.material.forEach(mat => mat.color.copy(newColor));
+                        } else {
+                            fileData.mesh.material.color.copy(newColor);
+                        }
+
+                        console.log(`🎨 Color applied to file ${fileData.file.name}`);
+
+                        // Save state
+                        if (window.viewerStateManager) {
+                            window.viewerStateManager.saveState('File Color Changed');
+                        }
+                    }
+                } else if (window.viewerMedical && window.viewerMedical.model) {
+                    // Fallback: Apply to all models
+                    window.viewerMedical.changeModelColor(color);
+                    if (window.viewerStateManager) {
+                        window.viewerStateManager.saveState('Color Changed');
+                    }
+                }
+            });
+        });
+
+        // Material Select for General
+        const materialSelectGen = document.getElementById('materialSelectGeneral');
+        if (materialSelectGen) {
+            materialSelectGen.addEventListener('change', function() {
+                const material = this.value;
+                const costs = { pla: 0.02, abs: 0.025, petg: 0.03, nylon: 0.04, tpu: 0.05, resin: 0.08 };
+                const cost = costs[material] || 0.02;
+
+                if (window.selectedFileId && window.viewerGeneral) {
+                    const fileData = window.viewerGeneral.uploadedFiles.find(f => f.id === window.selectedFileId);
+                    if (fileData) {
+                        if (!fileData.settings) fileData.settings = {};
+                        fileData.settings.material = material;
+                        fileData.settings.materialCost = cost;
+                        console.log(`🔧 Material changed to ${material} for ${fileData.file.name}`);
+
+                        // Recalculate price
+                        if (window.calculateFilePrice) {
+                            window.calculateFilePrice(window.selectedFileId, window.viewerGeneral, 'General');
+                        }
+
+                        if (window.viewerStateManager) {
+                            window.viewerStateManager.saveState('Material Changed');
+                        }
+                    }
+                }
+            });
+        }
+
+        // Technology Select for General
+        const technologySelectGen = document.getElementById('technologySelectGeneral');
+        if (technologySelectGen) {
+            technologySelectGen.addEventListener('change', function() {
+                const technology = this.value;
+                const multipliers = { fdm: 1.0, sla: 1.5, sls: 2.0, dmls: 3.0, mjf: 2.5 };
+                const multiplier = multipliers[technology] || 1.0;
+
+                if (window.selectedFileId && window.viewerGeneral) {
+                    const fileData = window.viewerGeneral.uploadedFiles.find(f => f.id === window.selectedFileId);
+                    if (fileData) {
+                        if (!fileData.settings) fileData.settings = {};
+                        fileData.settings.technology = technology;
+                        fileData.settings.technologyMultiplier = multiplier;
+                        console.log(`⚙️ Technology changed to ${technology} for ${fileData.file.name}`);
+
+                        // Recalculate price
+                        if (window.calculateFilePrice) {
+                            window.calculateFilePrice(window.selectedFileId, window.viewerGeneral, 'General');
+                        }
+
+                        if (window.viewerStateManager) {
+                            window.viewerStateManager.saveState('Technology Changed');
+                        }
+                    }
+                }
+            });
+        }
+
+        // Material Select for Medical
+        const materialSelectMed = document.getElementById('materialSelectMedical');
+        if (materialSelectMed) {
+            materialSelectMed.addEventListener('change', function() {
+                const material = this.value;
+                const costs = { pla: 0.02, abs: 0.025, petg: 0.03, nylon: 0.04, tpu: 0.05, resin: 0.08 };
+                const cost = costs[material] || 0.02;
+
+                if (window.selectedFileId && window.viewerMedical) {
+                    const fileData = window.viewerMedical.uploadedFiles.find(f => f.id === window.selectedFileId);
+                    if (fileData) {
+                        if (!fileData.settings) fileData.settings = {};
+                        fileData.settings.material = material;
+                        fileData.settings.materialCost = cost;
+                        console.log(`🔧 Material changed to ${material} for ${fileData.file.name}`);
+
+                        // Recalculate price
+                        if (window.calculateFilePrice) {
+                            window.calculateFilePrice(window.selectedFileId, window.viewerMedical, 'Medical');
+                        }
+
+                        if (window.viewerStateManager) {
+                            window.viewerStateManager.saveState('Material Changed');
+                        }
+                    }
+                }
+            });
+        }
+
+        // Technology Select for Medical
+        const technologySelectMed = document.getElementById('technologySelectMedical');
+        if (technologySelectMed) {
+            technologySelectMed.addEventListener('change', function() {
+                const technology = this.value;
+                const multipliers = { fdm: 1.0, sla: 1.5, sls: 2.0, dmls: 3.0, mjf: 2.5 };
+                const multiplier = multipliers[technology] || 1.0;
+
+                if (window.selectedFileId && window.viewerMedical) {
+                    const fileData = window.viewerMedical.uploadedFiles.find(f => f.id === window.selectedFileId);
+                    if (fileData) {
+                        if (!fileData.settings) fileData.settings = {};
+                        fileData.settings.technology = technology;
+                        fileData.settings.technologyMultiplier = multiplier;
+                        console.log(`⚙️ Technology changed to ${technology} for ${fileData.file.name}`);
+
+                        // Recalculate price
+                        if (window.calculateFilePrice) {
+                            window.calculateFilePrice(window.selectedFileId, window.viewerMedical, 'Medical');
+                        }
+
+                        if (window.viewerStateManager) {
+                            window.viewerStateManager.saveState('Technology Changed');
+                        }
+                    }
+                }
+            });
+        }
+
+        console.log('✓ Color pickers and control handlers ready');
+
+        // Viewer Controls - General
+        const resetViewGen = document.getElementById('resetViewGeneral');
+        const wireframeGen = document.getElementById('wireframeToggleGeneral');
+        const fullscreenGen = document.getElementById('fullscreenGeneral');
+
+        if (resetViewGen) {
+            resetViewGen.addEventListener('click', () => {
+                console.log('🔄 Reset view clicked');
+                if (window.viewerGeneral && window.viewerGeneral.model) {
+                    window.viewerGeneral.fitCameraToModel();
+                }
+            });
+        }
+
+        if (wireframeGen) {
+            let wireframeMode = false;
+            wireframeGen.addEventListener('click', () => {
+                wireframeMode = !wireframeMode;
+                console.log('🔲 Wireframe toggle:', wireframeMode);
+                if (window.viewerGeneral && window.viewerGeneral.model) {
+                    window.viewerGeneral.toggleWireframe(wireframeMode);
+                }
+                wireframeGen.style.background = wireframeMode ? '#2c3e50' : '';
+                wireframeGen.style.color = wireframeMode ? 'white' : '';
+            });
+        }
+
+        if (fullscreenGen) {
+            fullscreenGen.addEventListener('click', () => {
+                const viewer = document.getElementById('viewer3dGeneral');
+                if (viewer.requestFullscreen) {
+                    viewer.requestFullscreen();
+                }
+            });
+        }
+
+        // Viewer Controls - Medical
+        const resetViewMed = document.getElementById('resetViewMedical');
+        const wireframeMed = document.getElementById('wireframeToggleMedical');
+        const fullscreenMed = document.getElementById('fullscreenMedical');
+
+        if (resetViewMed) {
+            resetViewMed.addEventListener('click', () => {
+                console.log('🔄 Medical reset view clicked');
+                if (window.viewerMedical && window.viewerMedical.model) {
+                    window.viewerMedical.fitCameraToModel();
+                }
+            });
+        }
+
+        if (wireframeMed) {
+            let wireframeMode = false;
+            wireframeMed.addEventListener('click', () => {
+                wireframeMode = !wireframeMode;
+                console.log('🔲 Medical wireframe toggle:', wireframeMode);
+                if (window.viewerMedical && window.viewerMedical.model) {
+                    window.viewerMedical.toggleWireframe(wireframeMode);
+                }
+                wireframeMed.style.background = wireframeMode ? '#d84315' : '';
+                wireframeMed.style.color = wireframeMode ? 'white' : '';
+            });
+        }
+
+        if (fullscreenMed) {
+            fullscreenMed.addEventListener('click', () => {
+                const viewer = document.getElementById('viewer3dMedical');
+                if (viewer.requestFullscreen) {
+                    viewer.requestFullscreen();
+                }
+            });
+        }
+
+        console.log('✓ Viewer controls ready');
     });
 
-    // Color Picker for Medical
-    const colorBtnsMedical = document.querySelectorAll('.color-btn-medical');
-    colorBtnsMedical.forEach(btn => {
-        btn.addEventListener('click', function() {
-            colorBtnsMedical.forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-            const color = this.getAttribute('data-color');
-            if (window.viewerMedical && window.viewerMedical.model) {
-                window.viewerMedical.changeModelColor(color);
-            }
-        });
-    });
-
-    // Viewer Controls - General
-    const resetViewGen = document.getElementById('resetViewGeneral');
-    const wireframeGen = document.getElementById('wireframeToggleGeneral');
-    const fullscreenGen = document.getElementById('fullscreenGeneral');
-
-    if (resetViewGen) {
-        resetViewGen.addEventListener('click', () => {
-            if (window.viewerGeneral && window.viewerGeneral.model) {
-                window.viewerGeneral.fitCameraToModel();
-            }
-        });
-    }
-
-    if (wireframeGen) {
-        let wireframeMode = false;
-        wireframeGen.addEventListener('click', () => {
-            wireframeMode = !wireframeMode;
-            if (window.viewerGeneral && window.viewerGeneral.model) {
-                window.viewerGeneral.toggleWireframe(wireframeMode);
-            }
-            wireframeGen.style.background = wireframeMode ? '#2c3e50' : '';
-            wireframeGen.style.color = wireframeMode ? 'white' : '';
-        });
-    }
-
-    if (fullscreenGen) {
-        fullscreenGen.addEventListener('click', () => {
-            const viewer = document.getElementById('viewer3dGeneral');
-            if (viewer.requestFullscreen) {
-                viewer.requestFullscreen();
-            }
-        });
-    }
-
-    // Viewer Controls - Medical
-    const resetViewMed = document.getElementById('resetViewMedical');
-    const wireframeMed = document.getElementById('wireframeToggleMedical');
-    const fullscreenMed = document.getElementById('fullscreenMedical');
-
-    if (resetViewMed) {
-        resetViewMed.addEventListener('click', () => {
-            if (window.viewerMedical && window.viewerMedical.model) {
-                window.viewerMedical.fitCameraToModel();
-            }
-        });
-    }
-
-    if (wireframeMed) {
-        let wireframeMode = false;
-        wireframeMed.addEventListener('click', () => {
-            wireframeMode = !wireframeMode;
-            if (window.viewerMedical && window.viewerMedical.model) {
-                window.viewerMedical.toggleWireframe(wireframeMode);
-            }
-            wireframeMed.style.background = wireframeMode ? '#d84315' : '';
-            wireframeMed.style.color = wireframeMode ? 'white' : '';
-        });
-    }
-
-    if (fullscreenMed) {
-        fullscreenMed.addEventListener('click', () => {
-            const viewer = document.getElementById('viewer3dMedical');
-            if (viewer.requestFullscreen) {
-                viewer.requestFullscreen();
-            }
-        });
-    }
-
-    // Category Tab Switching
+    // Category Tab Switching - Must be inside DOMContentLoaded
+    console.log('🔄 Setting up category tab switching...');
     const categoryTabs = document.querySelectorAll('.category-tab-btn');
+    console.log(`   Found ${categoryTabs.length} category tab buttons`);
+
     categoryTabs.forEach(tab => {
         tab.addEventListener('click', function() {
+            console.log('🔘 Category tab clicked:', this.getAttribute('data-category'));
             const category = this.getAttribute('data-category');
             const formSwitchBtns = document.querySelectorAll('.form-switch-btn-3d');
             const quoteViewer = document.querySelector('.quote-viewer');
@@ -1197,7 +1631,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         window.viewerMedical.fitCameraToModel();
                         console.log('✓ Medical model refitted to camera');
                     }
-                    
+
                     // Update quote if files are uploaded
                     if (window.fileManagerMedical && window.viewerMedical && window.viewerMedical.uploadedFiles && window.viewerMedical.uploadedFiles.length > 0) {
                         window.fileManagerMedical.updateQuote();
@@ -1627,29 +2061,253 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Build file list HTML
         filesContainer.innerHTML = files.map((fileData, index) => `
-            <div class="file-list-item d-flex align-items-center justify-content-between p-2 border-bottom" style="background: white;" data-file-id="${fileData.id}">
+            <div class="file-list-item d-flex align-items-center justify-content-between p-2 border-bottom file-item-selectable"
+                 style="background: white; cursor: pointer; transition: all 0.2s;"
+                 data-file-id="${fileData.id}"
+                 onclick="selectFile('${formType}', ${fileData.id})">
                 <div class="d-flex align-items-center flex-grow-1">
                     <div class="file-icon me-2" style="width: 32px; height: 32px; background: #0047AD; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.7rem; font-weight: bold;">
                         ${getFileExtension(fileData.file.name).toUpperCase()}
                     </div>
                     <div class="flex-grow-1">
-                        <div style="font-size: 0.8rem; font-weight: 600; color: #2c3e50;">${fileData.file.name}</div>
+                        <div style="font-size: 0.85rem; font-weight: 600; color: #2c3e50;">${fileData.file.name}</div>
                         <small style="font-size: 0.7rem; color: #6c757d;">
-                            ${formatFileSize(fileData.file.size)} • ${(fileData.volume?.cm3 || 0).toFixed(2)} cm³
+                            ${formatFileSize(fileData.file.size)} • <span class="file-volume-display">${(fileData.volume?.cm3 || 0).toFixed(2)} cm³</span>
                         </small>
                     </div>
                 </div>
-                <button class="btn btn-sm btn-outline-danger remove-file-btn" onclick="removeFile('${formType}', ${fileData.id})" style="padding: 2px 8px; font-size: 0.75rem; border-radius: 4px;">
-                    <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
-                        <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
-                        <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
-                    </svg>
-                </button>
+                <div class="d-flex gap-1" onclick="event.stopPropagation()">
+                    <button class="btn btn-sm btn-outline-primary toggle-visibility-btn" data-file-id="${fileData.id}" title="Toggle visibility" style="padding: 2px 6px; font-size: 0.75rem; border-radius: 4px;">
+                        <svg class="eye-visible" width="12" height="12" viewBox="0 0 16 16" fill="currentColor" style="display: block;">
+                            <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z"/>
+                            <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z"/>
+                        </svg>
+                        <svg class="eye-hidden" width="12" height="12" viewBox="0 0 16 16" fill="currentColor" style="display: none;">
+                            <path d="M13.359 11.238C15.06 9.72 16 8 16 8s-3-5.5-8-5.5a7.028 7.028 0 0 0-2.79.588l.77.771A5.944 5.944 0 0 1 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.134 13.134 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755-.165.165-.337.328-.517.486l.708.709z"/>
+                            <path d="M11.297 9.176a3.5 3.5 0 0 0-4.474-4.474l.823.823a2.5 2.5 0 0 1 2.829 2.829l.822.822zm-2.943 1.299.822.822a3.5 3.5 0 0 1-4.474-4.474l.823.823a2.5 2.5 0 0 0 2.829 2.829z"/>
+                            <path d="M3.35 5.47c-.18.16-.353.322-.518.487A13.134 13.134 0 0 0 1.172 8l.195.288c.335.48.83 1.12 1.465 1.755C4.121 11.332 5.881 12.5 8 12.5c.716 0 1.39-.133 2.02-.36l.77.772A7.029 7.029 0 0 1 8 13.5C3 13.5 0 8 0 8s.939-1.721 2.641-3.238l.708.709zm10.296 8.884-12-12 .708-.708 12 12-.708.708z"/>
+                        </svg>
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger remove-file-btn" onclick="event.stopPropagation(); removeFile('${formType}', ${fileData.id})" style="padding: 2px 8px; font-size: 0.75rem; border-radius: 4px;">
+                        <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
+                            <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
+                            <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
+                        </svg>
+                    </button>
+                </div>
             </div>
         `).join('');
 
         console.log(`✓ File list updated for ${formType}: ${files.length} files`);
+
+        // Attach visibility toggle handlers
+        attachVisibilityHandlers(formType, viewer);
+
+        // Select first file by default if none selected
+        if (files.length > 0 && !window.selectedFileId) {
+            selectFile(formType, files[0].id);
+        }
     }
+
+    // Select a file to edit its properties
+    window.selectFile = function(formType, fileId) {
+        const viewer = formType === 'General' ? window.viewerGeneral : window.viewerMedical;
+        if (!viewer) return;
+
+        const fileData = viewer.uploadedFiles.find(f => f.id === fileId);
+        if (!fileData) return;
+
+        // Store selected file
+        window.selectedFileId = fileId;
+        window.selectedFormType = formType;
+
+        // Update UI to show which file is selected
+        const containerSelector = `#filesContainer${formType === 'General' ? '' : formType}`;
+        document.querySelectorAll(`${containerSelector} .file-list-item`).forEach(item => {
+            if (parseFloat(item.getAttribute('data-file-id')) === fileId) {
+                item.style.background = 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)';
+                item.style.borderLeft = '4px solid #0047AD';
+            } else {
+                item.style.background = 'white';
+                item.style.borderLeft = 'none';
+            }
+        });
+
+        // Update the sidebar controls to reflect this file's settings
+        const settings = fileData.settings || {};
+
+        // Update material select
+        const materialSelect = document.getElementById(`materialSelect${formType}`);
+        if (materialSelect) {
+            materialSelect.value = settings.material || 'pla';
+        }
+
+        // Update technology select
+        const technologySelect = document.getElementById(`technologySelect${formType}`);
+        if (technologySelect) {
+            technologySelect.value = settings.technology || 'fdm';
+        }
+
+        // Update color buttons
+        const colorButtons = document.querySelectorAll(`.color-btn${formType === 'Medical' ? '-medical' : ''}`);
+        colorButtons.forEach(btn => {
+            const btnColor = btn.getAttribute('data-color');
+            if (btnColor === (settings.color || '#808080')) {
+                btn.classList.add('active');
+                btn.style.border = '3px solid #0047AD';
+            } else {
+                btn.classList.remove('active');
+                btn.style.border = '2px solid #dee2e6';
+            }
+        });
+
+        console.log(`📁 File selected: ${fileData.file.name} (ID: ${fileId})`);
+    };
+
+    // Attach visibility toggle handlers
+    function attachVisibilityHandlers(formType, viewer) {
+        const visibilityButtons = document.querySelectorAll(`#filesContainer${formType === 'General' ? '' : formType} .toggle-visibility-btn`);
+        console.log(`👁️ Attaching ${visibilityButtons.length} visibility handlers for ${formType}`);
+
+        visibilityButtons.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const fileId = parseFloat(btn.getAttribute('data-file-id'));
+                toggleFileVisibility(formType, fileId, btn, viewer);
+            });
+        });
+    }
+
+    // Toggle file visibility
+    function toggleFileVisibility(formType, fileId, button, viewer) {
+        const fileData = viewer.uploadedFiles.find(f => f.id === fileId);
+        if (!fileData || !fileData.mesh) {
+            console.warn('👁️ File or mesh not found:', fileId);
+            return;
+        }
+
+        // Toggle mesh visibility in Three.js
+        fileData.mesh.visible = !fileData.mesh.visible;
+
+        // Update button icon
+        const eyeVisible = button.querySelector('.eye-visible');
+        const eyeHidden = button.querySelector('.eye-hidden');
+
+        if (fileData.mesh.visible) {
+            // File is visible - show eye icon
+            eyeVisible.style.display = 'block';
+            eyeHidden.style.display = 'none';
+            button.classList.remove('btn-outline-secondary');
+            button.classList.add('btn-outline-primary');
+            button.title = 'Hide file';
+        } else {
+            // File is hidden - show crossed eye icon
+            eyeVisible.style.display = 'none';
+            eyeHidden.style.display = 'block';
+            button.classList.remove('btn-outline-primary');
+            button.classList.add('btn-outline-secondary');
+            button.title = 'Show file';
+        }
+
+        // Update the file item styling
+        const fileItem = button.closest('.file-list-item');
+        if (fileItem) {
+            fileItem.style.opacity = fileData.mesh.visible ? '1' : '0.5';
+        }
+
+        console.log(`👁️ File visibility toggled:`, {
+            fileId,
+            fileName: fileData.file.name,
+            isVisible: fileData.mesh.visible
+        });
+    }
+
+    // Calculate price for individual file
+    window.calculateFilePrice = function(fileId, viewer, formType) {
+        const fileData = viewer.uploadedFiles.find(f => f.id === fileId);
+        if (!fileData || !fileData.volume) {
+            console.warn(`⚠️ Cannot calculate price for file ${fileId}: No volume data`);
+            return;
+        }
+
+        // Get settings (use defaults if not set)
+        const settings = fileData.settings || {};
+        const materialCost = settings.materialCost || 0.02; // Default PLA
+        const technologyMultiplier = settings.technologyMultiplier || 1.0; // Default FDM
+        const volume = fileData.volume.cm3 || 0;
+
+        // Calculate price: Volume × Material Cost × Technology Multiplier
+        const price = volume * materialCost * technologyMultiplier;
+
+        // Store calculated price
+        fileData.calculatedPrice = price;
+
+        console.log(`💰 Price calculated for file ${fileId}:`, {
+            volume: volume.toFixed(2),
+            materialCost,
+            technologyMultiplier,
+            price: price.toFixed(2)
+        });
+
+        // Don't display yet - will be shown when "Save & Calculate" is clicked
+        // Just store it for now
+
+        return price;
+    }
+
+    // Show all file prices (called when "Save & Calculate" is clicked)
+    window.showAllFilePrices = function(formType) {
+        const viewer = formType === 'General' ? window.viewerGeneral : window.viewerMedical;
+        if (!viewer || !viewer.uploadedFiles) return;
+
+        let totalPrice = 0;
+
+        viewer.uploadedFiles.forEach(fileData => {
+            // Calculate price if not already calculated
+            if (fileData.calculatedPrice === undefined) {
+                calculateFilePrice(fileData.id, viewer, formType);
+            }
+
+            const price = fileData.calculatedPrice || 0;
+            totalPrice += price;
+
+            // Find and show the price display for this file
+            const fileItem = document.querySelector(`[data-file-id="${fileData.id}"] .file-price-display`);
+            if (fileItem) {
+                fileItem.style.display = 'block';
+
+                const priceValue = fileItem.querySelector('.file-price-value');
+                const priceBreakdown = fileItem.querySelector('.file-price-breakdown');
+
+                if (priceValue) {
+                    priceValue.textContent = `$${price.toFixed(2)}`;
+                }
+
+                if (priceBreakdown) {
+                    const volume = fileData.volume?.cm3 || 0;
+                    const materialCost = fileData.settings?.materialCost || 0.02;
+                    const techMultiplier = fileData.settings?.technologyMultiplier || 1.0;
+                    priceBreakdown.textContent = `${volume.toFixed(2)} cm³ × $${materialCost} × ${techMultiplier}`;
+                }
+            }
+        });
+
+        // Update total price in the summary section
+        const priceSummary = document.getElementById(`priceSummary${formType}`);
+        if (priceSummary) {
+            priceSummary.style.display = 'block';
+
+            // Update total price display
+            const totalPriceElement = priceSummary.querySelector('.total-price');
+            if (totalPriceElement) {
+                totalPriceElement.textContent = `$${totalPrice.toFixed(2)}`;
+            }
+        }
+
+        console.log(`💵 All file prices displayed for ${formType}. Total: $${totalPrice.toFixed(2)}`);
+
+        return totalPrice;
+    };
 
     // Helper functions
     function getFileExtension(filename) {
@@ -1835,6 +2493,119 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Inject Screenshot and Share buttons into bottom toolbar
+    function injectToolbarButtons() {
+        console.log('🔧 Injecting screenshot and share buttons...');
+
+        // Find the tools section in the bottom control bar
+        const toolsSections = document.querySelectorAll('.tool-buttons');
+
+        toolsSections.forEach((toolsSection, index) => {
+            // Check if screenshot button already exists
+            if (toolsSection.querySelector('#screenshotBtnMain, #screenshotBtnMedicalMain')) {
+                console.log('Screenshot button already exists in toolbar', index);
+                return;
+            }
+
+            const isGeneral = index === 0;
+            const screenshotId = isGeneral ? 'screenshotBtnMain' : 'screenshotBtnMedicalMain';
+            const shareId = isGeneral ? 'shareBtnMain' : 'shareBtnMedicalMain';
+
+            // Create Screenshot button
+            const screenshotBtn = document.createElement('button');
+            screenshotBtn.type = 'button';
+            screenshotBtn.className = 'control-btn tool-btn';
+            screenshotBtn.id = screenshotId;
+            screenshotBtn.title = 'Take Screenshot';
+            screenshotBtn.innerHTML = `
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                    <rect x="2" y="4" width="14" height="11" rx="2" stroke="currentColor" stroke-width="1.5"/>
+                    <circle cx="9" cy="9.5" r="2.5" stroke="currentColor" stroke-width="1.5"/>
+                    <path d="M6 4L7 2H11L12 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+                <span>Screenshot</span>
+            `;
+
+            // Create Share button
+            const shareBtn = document.createElement('button');
+            shareBtn.type = 'button';
+            shareBtn.className = 'control-btn tool-btn';
+            shareBtn.id = shareId;
+            shareBtn.title = 'Share Model';
+            shareBtn.innerHTML = `
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                    <circle cx="13" cy="4" r="2.5" stroke="currentColor" stroke-width="1.5"/>
+                    <circle cx="5" cy="9" r="2.5" stroke="currentColor" stroke-width="1.5"/>
+                    <circle cx="13" cy="14" r="2.5" stroke="currentColor" stroke-width="1.5"/>
+                    <path d="M7.5 10L10.5 12.5M7.5 8L10.5 5.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+                <span>Share</span>
+            `;
+
+            // Add buttons to toolbar
+            toolsSection.appendChild(screenshotBtn);
+            toolsSection.appendChild(shareBtn);
+
+            console.log(`✅ Added screenshot and share buttons to toolbar ${index}`);
+
+            // Add event listeners
+            screenshotBtn.addEventListener('click', function() {
+                console.log('📸 Screenshot button clicked');
+                const viewerId = isGeneral ? 'viewer3dGeneral' : 'viewer3dMedical';
+                const viewer = isGeneral ? window.viewerGeneral : window.viewerMedical;
+
+                if (!viewer) {
+                    console.error('Viewer not found!');
+                    return;
+                }
+
+                try {
+                    // Render the scene
+                    viewer.renderer.render(viewer.scene, viewer.camera);
+
+                    // Get the canvas as data URL
+                    const dataURL = viewer.renderer.domElement.toDataURL('image/png');
+
+                    // Create download link
+                    const link = document.createElement('a');
+                    link.download = `3d-model-screenshot-${Date.now()}.png`;
+                    link.href = dataURL;
+                    link.click();
+
+                    console.log('✅ Screenshot captured successfully');
+
+                    // Visual feedback
+                    this.classList.add('active');
+                    setTimeout(() => this.classList.remove('active'), 500);
+                } catch (error) {
+                    console.error('Screenshot error:', error);
+                }
+            });
+
+            shareBtn.addEventListener('click', function() {
+                console.log('🔗 Share button clicked');
+
+                if (window.shareModal) {
+                    // Get the first file ID if available
+                    const filesList = document.querySelectorAll('[data-file-id]');
+                    const firstFileId = filesList.length > 0 ? filesList[0].dataset.fileId : null;
+
+                    window.shareModal.open(firstFileId);
+                } else {
+                    console.error('Share modal not found!');
+                }
+            });
+        });
+    }
+
+    // Inject buttons after a short delay to ensure DOM is ready
+    setTimeout(injectToolbarButtons, 1000);
+
+    // Also try to inject when viewersReady event fires
+    window.addEventListener('viewersReady', () => {
+        setTimeout(injectToolbarButtons, 500);
+    });
+
     // Helper functions
     function setCameraView(viewerId, view) {
         const viewer = viewerId === 'viewer3dGeneral' ? window.viewerGeneral : window.viewerMedical;
@@ -2008,15 +2779,700 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     console.log('✅ Control bar initialized and ready');
+
+    // ============================================
+    // MEASUREMENT TOOL - Two-Point Distance (Three.js)
+    // ============================================
+
+    let measurementMode = false;
+    let measurementPoints = [];
+    let measurementMarkers = [];
+    let measurementLine = null;
+    let measurementLabel = null;
+    let currentViewer = null;
+
+    // Initialize Measurement Tool
+    function initMeasurementTool() {
+        // Try both IDs - measureToolBtn (from quote-viewer) and measureToolBtnMain (from quote)
+        const measureBtn = document.getElementById('measureToolBtnMain') || document.getElementById('measureToolBtn');
+        if (!measureBtn) {
+            console.warn('Measure button not found (tried measureToolBtnMain and measureToolBtn)');
+            return;
+        }
+
+        console.log('📏 Found measure button:', measureBtn.id);
+
+        measureBtn.addEventListener('click', () => {
+            measurementMode = !measurementMode;
+
+            if (measurementMode) {
+                // Activate measurement mode
+                measureBtn.classList.add('active');
+                measureBtn.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+                measureBtn.style.color = 'white';
+                console.log('📏 Measurement mode ACTIVE - Click two points on the model');
+
+                // Clear any existing measurements
+                clearMeasurement();
+                measurementPoints = [];
+
+                // Show instruction notification
+                showMeasurementNotification('Click first point on the model', 'info', 3000);
+            } else {
+                // Deactivate measurement mode
+                measureBtn.classList.remove('active');
+                measureBtn.style.background = '';
+                measureBtn.style.color = '';
+                clearMeasurement();
+                measurementPoints = [];
+                console.log('📏 Measurement mode OFF');
+            }
+        });
+
+        console.log('✅ Measurement tool initialized');
+    }
+
+    // Handle canvas clicks for measurement
+    function handleMeasurementClick(event, viewer) {
+        if (!measurementMode || !viewer || !viewer.scene || !viewer.camera) return;
+
+        currentViewer = viewer;
+        const THREE = window.THREE;
+
+        // Get normalized device coordinates (-1 to +1)
+        const rect = viewer.renderer.domElement.getBoundingClientRect();
+        const mouse = new THREE.Vector2();
+        mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+        // Create raycaster
+        const raycaster = new THREE.Raycaster();
+        raycaster.setFromCamera(mouse, viewer.camera);
+
+        // Find intersections with model group
+        let intersects = [];
+        if (viewer.modelGroup) {
+            intersects = raycaster.intersectObject(viewer.modelGroup, true);
+        }
+
+        if (intersects.length === 0) {
+            console.log('❌ No mesh hit at click position');
+            showMeasurementNotification('Click on the model surface', 'warning', 2000);
+            return;
+        }
+
+        const point = intersects[0].point;
+        console.log('✅ Point picked:', { x: point.x.toFixed(2), y: point.y.toFixed(2), z: point.z.toFixed(2) });
+
+        // Handle the click based on current state
+        if (measurementPoints.length === 0) {
+            // First point
+            measurementPoints.push(point.clone());
+            createMarker(viewer.scene, point, 0);
+            showMeasurementNotification('Click second point', 'info', 3000);
+            console.log('📍 Start point placed');
+        } else if (measurementPoints.length === 1) {
+            // Second point - complete measurement
+            measurementPoints.push(point.clone());
+            createMarker(viewer.scene, point, 1);
+            drawLine(viewer.scene);
+            calculateAndDisplayDistance(viewer.scene);
+            console.log('📍 End point placed - measurement complete');
+        } else {
+            // Third click - reset and start new measurement
+            console.log('🔄 Starting new measurement');
+            clearMeasurement();
+            measurementPoints = [];
+            // Place first point of new measurement
+            measurementPoints.push(point.clone());
+            createMarker(viewer.scene, point, 0);
+            showMeasurementNotification('Click second point', 'info', 3000);
+            console.log('📍 New start point placed');
+        }
+    }
+
+    // Create a visual marker sphere at the clicked point
+    function createMarker(scene, position, index) {
+        const THREE = window.THREE;
+
+        // Create sphere geometry
+        const geometry = new THREE.SphereGeometry(2, 16, 16);
+
+        // Create material - different colors for start/end
+        const material = new THREE.MeshBasicMaterial({
+            color: index === 0 ? 0x00ff00 : 0xff0000, // Green for start, Red for end
+            transparent: true,
+            opacity: 0.8
+        });
+
+        const marker = new THREE.Mesh(geometry, material);
+        marker.position.copy(position);
+        marker.name = `measurementMarker${index}`;
+
+        scene.add(marker);
+        measurementMarkers.push(marker);
+
+        console.log(`✓ Marker ${index + 1} created at:`, position);
+    }
+
+    // Draw line between two points
+    function drawLine(scene) {
+        const THREE = window.THREE;
+
+        if (measurementPoints.length < 2) return;
+
+        const point1 = measurementPoints[0];
+        const point2 = measurementPoints[1];
+
+        // Calculate direction and distance
+        const direction = new THREE.Vector3().subVectors(point2, point1);
+        const distance = direction.length();
+
+        // Create a tube geometry for a visible thick line
+        const curve = new THREE.LineCurve3(point1, point2);
+        const tubeGeometry = new THREE.TubeGeometry(curve, 1, 0.5, 8, false);
+
+        // Create bright blue material with emissive property
+        const material = new THREE.MeshBasicMaterial({
+            color: 0x0088ff, // Bright blue
+            transparent: false,
+            depthTest: true,
+            side: THREE.DoubleSide
+        });
+
+        measurementLine = new THREE.Mesh(tubeGeometry, material);
+        measurementLine.name = 'measurementLine';
+        scene.add(measurementLine);
+
+        console.log('✓ Blue line drawn between points');
+    }
+
+    // Calculate distance and create label
+    function calculateAndDisplayDistance(scene) {
+        const THREE = window.THREE;
+
+        if (measurementPoints.length < 2) return;
+
+        const point1 = measurementPoints[0];
+        const point2 = measurementPoints[1];
+
+        // Calculate distance
+        const distance = point1.distanceTo(point2);
+
+        console.log('📏 Distance measured:', distance.toFixed(2), 'mm');
+
+        // Create 3D text label at midpoint
+        const midPoint = new THREE.Vector3().addVectors(point1, point2).multiplyScalar(0.5);
+        createMeasurementLabel(scene, midPoint, distance);
+
+        // Show notification with result
+        showMeasurementNotification(
+            `Distance: ${distance.toFixed(2)} mm (${(distance / 10).toFixed(2)} cm)`,
+            'success',
+            7000
+        );
+    }
+
+    // Create a 3D text label using canvas texture
+    function createMeasurementLabel(scene, position, distance) {
+        const THREE = window.THREE;
+
+        // Create canvas for text
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        canvas.width = 512;
+        canvas.height = 128;
+
+        // Draw background
+        context.fillStyle = 'rgba(0, 0, 0, 0.8)';
+        context.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Draw border
+        context.strokeStyle = '#ffff00';
+        context.lineWidth = 4;
+        context.strokeRect(2, 2, canvas.width - 4, canvas.height - 4);
+
+        // Draw text
+        const text = `${distance.toFixed(2)} mm`;
+        context.font = 'bold 48px Arial';
+        context.fillStyle = 'white';
+        context.textAlign = 'center';
+        context.textBaseline = 'middle';
+        context.fillText(text, canvas.width / 2, canvas.height / 2);
+
+        // Create texture from canvas
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.needsUpdate = true;
+
+        // Create plane for label
+        const geometry = new THREE.PlaneGeometry(40, 10);
+        const material = new THREE.MeshBasicMaterial({
+            map: texture,
+            transparent: true,
+            side: THREE.DoubleSide,
+            depthTest: false, // Always visible on top
+            depthWrite: false, // Don't write to depth buffer
+            opacity: 1.0
+        });
+
+        measurementLabel = new THREE.Mesh(geometry, material);
+        measurementLabel.position.copy(position);
+        measurementLabel.position.y += 15; // Offset above midpoint
+        measurementLabel.name = 'measurementLabel';
+        measurementLabel.renderOrder = 9999; // Render absolutely last
+        measurementLabel.frustumCulled = false; // Never cull from view
+
+        // Store viewer reference for later
+        measurementLabel.userData.viewer = currentViewer;
+
+        scene.add(measurementLabel);
+        console.log('✓ Label created and added to scene');
+        console.log('  Label renderOrder:', measurementLabel.renderOrder);
+        console.log('  Label frustumCulled:', measurementLabel.frustumCulled);
+
+        // Update label rotation continuously
+        updateLabelRotation();
+    }
+
+    // Update label to always face camera (continuous animation)
+    function updateLabelRotation() {
+        if (!measurementLabel || !currentViewer || !currentViewer.camera) {
+            // Stop if label doesn't exist
+            return;
+        }
+
+        // Make label face camera
+        measurementLabel.quaternion.copy(currentViewer.camera.quaternion);
+
+        // Continue updating
+        requestAnimationFrame(updateLabelRotation);
+    }
+
+    // Clear all measurement visuals
+    function clearMeasurement() {
+        const THREE = window.THREE;
+
+        if (!currentViewer || !currentViewer.scene) {
+            // Try to find viewer
+            if (window.viewerGeneral && window.viewerGeneral.scene) {
+                currentViewer = window.viewerGeneral;
+            } else if (window.viewerMedical && window.viewerMedical.scene) {
+                currentViewer = window.viewerMedical;
+            }
+        }
+
+        if (!currentViewer || !currentViewer.scene) return;
+
+        const scene = currentViewer.scene;
+
+        // Remove markers
+        measurementMarkers.forEach(marker => {
+            if (marker) {
+                scene.remove(marker);
+                if (marker.geometry) marker.geometry.dispose();
+                if (marker.material) marker.material.dispose();
+            }
+        });
+        measurementMarkers = [];
+
+        // Remove line
+        if (measurementLine) {
+            scene.remove(measurementLine);
+            if (measurementLine.geometry) measurementLine.geometry.dispose();
+            if (measurementLine.material) measurementLine.material.dispose();
+            measurementLine = null;
+        }
+
+        // Remove label
+        if (measurementLabel) {
+            scene.remove(measurementLabel);
+            if (measurementLabel.geometry) measurementLabel.geometry.dispose();
+            if (measurementLabel.material) {
+                if (measurementLabel.material.map) measurementLabel.material.map.dispose();
+                measurementLabel.material.dispose();
+            }
+            measurementLabel = null;
+        }
+
+        console.log('🧹 Measurement cleared');
+    }
+
+    // Show notification for measurement tool
+    function showMeasurementNotification(message, type = 'info', duration = 3000) {
+        const notification = document.createElement('div');
+        const colors = {
+            info: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            success: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)',
+            warning: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)'
+        };
+
+        notification.style.cssText = `
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background: ${colors[type]};
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 9999;
+            animation: slideIn 0.3s ease-out;
+            font-weight: 500;
+        `;
+        notification.textContent = message;
+        document.body.appendChild(notification);
+
+        setTimeout(() => {
+            notification.style.animation = 'slideOut 0.3s ease-out';
+            setTimeout(() => notification.remove(), 300);
+        }, duration);
+    }
+
+    // ============================================
+    // PAN TOOL - Drag and Move Model
+    // ============================================
+
+    let panMode = false;
+    let isDragging = false;
+    let previousMousePosition = { x: 0, y: 0 };
+
+    // Initialize Pan Tool
+    function initPanTool() {
+        // General viewer pan button
+        const panBtn = document.getElementById('panToolBtn');
+        if (panBtn) {
+            panBtn.addEventListener('click', () => togglePanMode(panBtn, 'general'));
+        }
+
+        // Medical viewer pan button
+        const panBtnMedical = document.getElementById('panToolBtnMedical');
+        if (panBtnMedical) {
+            panBtnMedical.addEventListener('click', () => togglePanMode(panBtnMedical, 'medical'));
+        }
+
+        console.log('✅ Pan tool initialized');
+    }
+
+    function togglePanMode(button, viewerType) {
+        panMode = !panMode;
+
+        if (panMode) {
+            // Activate pan mode
+            button.classList.add('active');
+            button.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+            button.style.color = 'white';
+
+            // Disable orbit controls rotation, keep zoom
+            if (window.viewerGeneral && window.viewerGeneral.controls) {
+                window.viewerGeneral.controls.enableRotate = false;
+            }
+            if (window.viewerMedical && window.viewerMedical.controls) {
+                window.viewerMedical.controls.enableRotate = false;
+            }
+
+            console.log('✋ Pan mode ACTIVE - Drag to move the model');
+            showMeasurementNotification('Drag to move the model', 'info', 3000);
+        } else {
+            // Deactivate pan mode
+            button.classList.remove('active');
+            button.style.background = '';
+            button.style.color = '';
+
+            // Re-enable orbit controls rotation
+            if (window.viewerGeneral && window.viewerGeneral.controls) {
+                window.viewerGeneral.controls.enableRotate = true;
+            }
+            if (window.viewerMedical && window.viewerMedical.controls) {
+                window.viewerMedical.controls.enableRotate = true;
+            }
+
+            console.log('✋ Pan mode OFF');
+        }
+    }
+
+    // Handle mouse events for panning
+    function setupPanHandlers(canvas, viewer) {
+        canvas.addEventListener('mousedown', (event) => {
+            if (!panMode || !viewer.modelGroup) return;
+            isDragging = true;
+            previousMousePosition = { x: event.clientX, y: event.clientY };
+            canvas.style.cursor = 'grabbing';
+        });
+
+        canvas.addEventListener('mousemove', (event) => {
+            if (!panMode) {
+                canvas.style.cursor = 'default';
+                return;
+            }
+
+            if (!isDragging) {
+                canvas.style.cursor = 'grab';
+                return;
+            }
+
+            if (!viewer.modelGroup) return;
+
+            const deltaX = event.clientX - previousMousePosition.x;
+            const deltaY = event.clientY - previousMousePosition.y;
+
+            // Calculate movement speed based on camera distance
+            const distance = viewer.camera.position.length();
+            const movementSpeed = distance * 0.001;
+
+            // Move the model group
+            viewer.modelGroup.position.x += deltaX * movementSpeed;
+            viewer.modelGroup.position.y -= deltaY * movementSpeed;
+
+            previousMousePosition = { x: event.clientX, y: event.clientY };
+        });
+
+        canvas.addEventListener('mouseup', () => {
+            if (!panMode) return;
+            isDragging = false;
+            canvas.style.cursor = 'grab';
+        });
+
+        canvas.addEventListener('mouseleave', () => {
+            if (!panMode) return;
+            isDragging = false;
+            canvas.style.cursor = 'default';
+        });
+    }
+
+    // ============================================
+    // END PAN TOOL
+    // ============================================
+
+    // ============================================
+    // SCREENSHOT TOOL - Capture Viewer as Image
+    // ============================================
+
+    function initScreenshotTool() {
+        // General viewer screenshot button
+        const screenshotBtn = document.getElementById('screenshotBtn');
+        if (screenshotBtn) {
+            screenshotBtn.addEventListener('click', () => takeScreenshot('general'));
+        }
+
+        // Medical viewer screenshot button
+        const screenshotBtnMedical = document.getElementById('screenshotBtnMedical');
+        if (screenshotBtnMedical) {
+            screenshotBtnMedical.addEventListener('click', () => takeScreenshot('medical'));
+        }
+
+        console.log('✅ Screenshot tool initialized');
+    }
+
+    function takeScreenshot(viewerType) {
+        const viewer = viewerType === 'general' ? window.viewerGeneral : window.viewerMedical;
+
+        if (!viewer || !viewer.renderer) {
+            console.warn('⚠️ No viewer available for screenshot');
+            showMeasurementNotification('No 3D model loaded', 'warning', 2000);
+            return;
+        }
+
+        try {
+            // Render the scene to ensure it's up to date
+            viewer.renderer.render(viewer.scene, viewer.camera);
+
+            // Get the canvas element
+            const canvas = viewer.renderer.domElement;
+
+            // Convert canvas to blob
+            canvas.toBlob((blob) => {
+                if (!blob) {
+                    console.error('Failed to create image blob');
+                    showMeasurementNotification('Screenshot failed', 'error', 2000);
+                    return;
+                }
+
+                // Create download link
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+                const filename = `3d-viewer-${viewerType}-${timestamp}.png`;
+
+                link.href = url;
+                link.download = filename;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+                // Clean up
+                setTimeout(() => URL.revokeObjectURL(url), 100);
+
+                console.log('📸 Screenshot saved:', filename);
+                showMeasurementNotification('Screenshot saved! 📸', 'success', 2000);
+            }, 'image/png', 1.0); // High quality PNG
+
+        } catch (error) {
+            console.error('Screenshot error:', error);
+            showMeasurementNotification('Screenshot failed', 'error', 2000);
+        }
+    }
+
+    // ============================================
+    // END SCREENSHOT TOOL
+    // ============================================
+
+    // ============================================
+    // SHARE BUTTON HANDLERS
+    // ============================================
+
+    function initShareButtons() {
+        // General viewer share button
+        const shareGeneralBtn = document.getElementById('shareGeneralBtn');
+        if (shareGeneralBtn) {
+            shareGeneralBtn.addEventListener('click', () => handleShareClick('general'));
+        }
+
+        // Medical viewer share button
+        const shareMedicalBtn = document.getElementById('shareMedicalBtn');
+        if (shareMedicalBtn) {
+            shareMedicalBtn.addEventListener('click', () => handleShareClick('medical'));
+        }
+
+        console.log('✅ Share buttons initialized');
+    }
+
+    function handleShareClick(viewerType) {
+        // Check if there are any uploaded files
+        if (!window.fileStorageManager || window.fileStorageManager.files.length === 0) {
+            console.warn('⚠️ No files to share');
+            showMeasurementNotification('Please upload a 3D model first', 'warning', 2000);
+            return;
+        }
+
+        // Get the first file ID (or you could let user select which file to share)
+        const firstFileId = window.fileStorageManager.files[0].id;
+
+        // Open the share modal
+        if (window.shareModal) {
+            window.shareModal.open(firstFileId);
+            console.log('🔗 Share modal opened for viewer:', viewerType);
+        } else {
+            console.error('❌ Share modal not available');
+            showMeasurementNotification('Share feature not available', 'error', 2000);
+        }
+    }
+
+    // ============================================
+    // END SHARE BUTTON HANDLERS
+    // ============================================
+
+    // Setup click handlers on canvas
+    window.addEventListener('viewersReady', () => {
+        console.log('📏 Setting up measurement tool handlers...');
+
+        // Initialize measurement tool
+        initMeasurementTool();
+
+        // Initialize pan tool
+        initPanTool();
+
+        // Initialize screenshot tool
+        initScreenshotTool();
+
+        // Initialize share buttons
+        initShareButtons();
+
+        // Add click listeners to both viewers (Three.js uses renderer.domElement)
+        if (window.viewerGeneral && window.viewerGeneral.renderer) {
+            const canvas = window.viewerGeneral.renderer.domElement;
+            canvas.addEventListener('click', (event) => {
+                handleMeasurementClick(event, window.viewerGeneral);
+            });
+            // Setup pan handlers
+            setupPanHandlers(canvas, window.viewerGeneral);
+            console.log('✅ Measurement and Pan handlers added to General viewer');
+        }
+
+        if (window.viewerMedical && window.viewerMedical.renderer) {
+            const canvas = window.viewerMedical.renderer.domElement;
+            canvas.addEventListener('click', (event) => {
+                handleMeasurementClick(event, window.viewerMedical);
+            });
+            // Setup pan handlers
+            setupPanHandlers(canvas, window.viewerMedical);
+            console.log('✅ Measurement and Pan handlers added to Medical viewer');
+        }
+    });
+
+    // ============================================
+    // END MEASUREMENT TOOL
+    // ============================================
 });
 </script>
 
-<script src="{{ asset('frontend/assets/js/3d-viewer-pro.js') }}"></script>
-<script src="{{ asset('frontend/assets/js/3d-file-manager.js') }}"></script>
+<script src="{{ asset('frontend/assets/js/3d-viewer-pro.js') }}?v=3"></script>
+<script src="{{ asset('frontend/assets/js/3d-file-manager.js') }}?v=3"></script>
 
 <!-- QR Code Library for Share Modal -->
 <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 
 <!-- File Storage Manager & Share Modal -->
-<script src="{{ asset('frontend/assets/js/file-storage-manager.js') }}"></script>
-<script src="{{ asset('frontend/assets/js/share-modal.js') }}"></script>
+<script src="{{ asset('frontend/assets/js/file-storage-manager.js') }}?v=4"></script>
+<script src="{{ asset('frontend/assets/js/share-modal.js') }}?v=4"></script>
+
+<!-- Initialize File Storage and Load from URL -->
+<script>
+(async function() {
+    // Initialize file storage manager
+    window.fileStorageManager = new FileStorageManager();
+    await window.fileStorageManager.init();
+
+    // Check if there are file IDs in the URL
+    const fileIdsFromURL = window.fileStorageManager.getFileIdFromURL();
+
+    if (fileIdsFromURL) {
+        console.log('📂 Loading files from URL...');
+
+        // Handle both single file and multiple files
+        const fileIds = Array.isArray(fileIdsFromURL) ? fileIdsFromURL : [fileIdsFromURL];
+        console.log(`   Found ${fileIds.length} file ID(s):`, fileIds);
+
+        // Wait for viewer to be ready
+        const waitForViewer = () => {
+            return new Promise((resolve) => {
+                if (window.viewerGeneral && window.viewerGeneral.initialized) {
+                    resolve();
+                } else {
+                    window.addEventListener('viewersReady', () => resolve(), { once: true });
+                }
+            });
+        };
+
+        await waitForViewer();
+        console.log('✅ Viewer ready, loading files...');
+
+        // Load each file
+        for (const fileId of fileIds) {
+            try {
+                console.log(`   Loading file: ${fileId}`);
+                const fileRecord = await window.fileStorageManager.loadFile(fileId);
+
+                if (fileRecord && fileRecord.fileData) {
+                    // Convert ArrayBuffer to File object
+                    const blob = new Blob([fileRecord.fileData], { type: 'application/octet-stream' });
+                    const file = new File([blob], fileRecord.fileName, { type: 'application/octet-stream' });
+
+                    // Load into viewer with storage ID to prevent duplicates
+                    if (window.viewerGeneral) {
+                        await window.viewerGeneral.loadFile(file, fileId);
+                        console.log(`   ✅ Loaded: ${fileRecord.fileName}`);
+                    }
+                } else {
+                    console.warn(`   ⚠️ File not found or invalid: ${fileId}`);
+                }
+            } catch (error) {
+                console.error(`   ❌ Error loading file ${fileId}:`, error);
+            }
+        }
+
+        console.log('✅ All files from URL loaded successfully!');
+    } else {
+        console.log('ℹ️ No files in URL - starting with empty viewer');
+    }
+})();
+</script>

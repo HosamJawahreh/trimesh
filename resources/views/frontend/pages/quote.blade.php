@@ -566,7 +566,7 @@
         <div class="measurement-info" style="color: #ff9800; font-size: 13px; margin-bottom: 15px;">
             Hover over model surfaces
         </div>
-        
+
         <!-- Measurement Units -->
         <div style="margin-bottom: 15px;">
             <div style="font-weight: 600; margin-bottom: 8px; font-size: 13px; color: #666;">Measurement Units</div>
@@ -576,16 +576,16 @@
                 <button class="unit-btn" data-unit="in">in</button>
             </div>
         </div>
-        
+
         <!-- Current Reading -->
         <div style="margin-bottom: 20px;">
             <div style="font-weight: 600; margin-bottom: 8px; font-size: 13px; color: #666;">Current Reading</div>
             <div id="currentReading" style="background: #fffbea; padding: 15px; border-radius: 8px; border: 2px solid #ffd54f;">
-                <div id="thicknessValue" style="font-size: 24px; font-weight: 700; color: #333; margin-bottom: 4px;">-</div>
+                <div id="thicknessValue" style="font-size: 20px; font-weight: 700; color: #333; margin-bottom: 4px;">-</div>
                 <div style="font-size: 12px; color: #999;">Hover over model<br>to start measuring</div>
             </div>
         </div>
-        
+
         <!-- Model Dimensions -->
         <div style="margin-bottom: 15px;">
             <div style="font-weight: 600; margin-bottom: 8px; font-size: 13px; color: #666;">Model Dimensions</div>
@@ -604,7 +604,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Visual Indicators -->
         <div>
             <div style="font-weight: 600; margin-bottom: 8px; font-size: 13px; color: #666;">Visual Indicators</div>
@@ -637,49 +637,6 @@
 
     <!-- Control Bar -->
     <div class="viewer-bottom-controls" id="mainControlBar">
-        <!-- Camera Views - Compact with hover dropdown -->
-        <div class="control-section camera-section">
-            <div class="control-label">📹 Camera View</div>
-            <div class="camera-grid">
-                <button type="button" class="control-btn camera-btn" data-view="top" title="Top View">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                        <path d="M12 5L12 19M12 5L8 9M12 5L16 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                    </svg>
-                    <span>Top</span>
-                </button>
-                <button type="button" class="control-btn camera-btn active" data-view="front" title="Front View">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                        <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/>
-                        <circle cx="12" cy="12" r="3" fill="currentColor"/>
-                    </svg>
-                    <span>Front</span>
-                </button>
-                <button type="button" class="control-btn camera-btn" data-view="right" title="Right View">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                        <path d="M19 12L5 12M19 12L15 8M19 12L15 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                    </svg>
-                    <span>Right</span>
-                </button>
-                <button type="button" class="control-btn camera-btn" data-view="left" title="Left View">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                        <path d="M5 12L19 12M5 12L9 8M5 12L9 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                    </svg>
-                    <span>Left</span>
-                </button>
-                <button type="button" class="control-btn camera-btn" data-view="bottom" title="Bottom View">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                        <path d="M12 19L12 5M12 19L8 15M12 19L16 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                    </svg>
-                    <span>Bottom</span>
-                </button>
-                <button type="button" class="control-btn camera-btn" data-view="reset" title="Reset Camera">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                        <path d="M12 4V1L8 5L12 9V6C15.31 6 18 8.69 18 12C18 13.01 17.75 13.97 17.3 14.8L18.76 16.26C19.54 15.03 20 13.57 20 12C20 7.58 16.42 4 12 4ZM12 18C8.69 18 6 15.31 6 12C6 10.99 6.25 10.03 6.7 9.2L5.24 7.74C4.46 8.97 4 10.43 4 12C4 16.42 7.58 20 12 20V23L16 19L12 15V18Z" fill="currentColor"/>
-                    </svg>
-                    <span>Reset</span>
-                </button>
-            </div>
-        </div>
 
         <div class="control-divider"></div>
 
@@ -687,6 +644,45 @@
         <div class="control-section tools-section">
             <div class="control-label">Tools</div>
             <div class="tools-grid">
+                <!-- Camera View Buttons -->
+                <button type="button" class="control-btn camera-btn" data-view="top" title="Top View">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                        <path d="M12 5L12 19M12 5L8 9M12 5L16 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    <span>Top</span>
+                </button>
+                <button type="button" class="control-btn camera-btn active" data-view="front" title="Front View">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/>
+                        <circle cx="12" cy="12" r="3" fill="currentColor"/>
+                    </svg>
+                    <span>Front</span>
+                </button>
+                <button type="button" class="control-btn camera-btn" data-view="right" title="Right View">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                        <path d="M19 12L5 12M19 12L15 8M19 12L15 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    <span>Right</span>
+                </button>
+                <button type="button" class="control-btn camera-btn" data-view="left" title="Left View">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                        <path d="M5 12L19 12M5 12L9 8M5 12L9 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    <span>Left</span>
+                </button>
+                <button type="button" class="control-btn camera-btn" data-view="bottom" title="Bottom View">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                        <path d="M12 19L12 5M12 19L8 15M12 19L16 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    <span>Bottom</span>
+                </button>
+                <button type="button" class="control-btn camera-btn" data-view="reset" title="Reset Camera">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                        <path d="M12 4V1L8 5L12 9V6C15.31 6 18 8.69 18 12C18 13.01 17.75 13.97 17.3 14.8L18.76 16.26C19.54 15.03 20 13.57 20 12C20 7.58 16.42 4 12 4ZM12 18C8.69 18 6 15.31 6 12C6 10.99 6.25 10.03 6.7 9.2L5.24 7.74C4.46 8.97 4 10.43 4 12C4 16.42 7.58 20 12 20V23L16 19L12 15V18Z" fill="currentColor"/>
+                    </svg>
+                    <span>Reset</span>
+                </button>
+
                 <button type="button" class="control-btn active" id="toggleGridBtnMain" title="Toggle Grid">
                     <svg width="16" height="16" viewBox="0 0 18 18" fill="none">
                         <rect x="2" y="2" width="14" height="14" stroke="currentColor" stroke-width="1.5"/>
@@ -705,19 +701,24 @@
                     </svg>
                     <span>Measure</span>
                 </button>
-                <button type="button" class="control-btn" id="repairAndFillBtnMain" title="Repair mesh and fill holes">
-                    <svg width="16" height="16" viewBox="0 0 18 18" fill="none">
-                        <path d="M9 2L3 8L9 14L15 8L9 2Z" stroke="currentColor" stroke-width="1.5"/>
-                        <circle cx="12" cy="12" r="4" fill="currentColor" opacity="0.3"/>
-                    </svg>
-                    <span>Repair & Fill</span>
-                </button>
-                <button type="button" class="control-btn" id="autoRotateBtnMain" title="Auto-rotate model (upload a file first)" style="opacity: 0.5; cursor: not-allowed;" disabled>
+                <!-- Repair & Fill button removed - now automated in Save & Calculate -->
+                <button type="button" class="control-btn" id="autoRotateBtnMain" title="Auto-rotate model">
                     <svg width="16" height="16" viewBox="0 0 18 18" fill="none">
                         <path d="M15 9C15 12.3137 12.3137 15 9 15C5.68629 15 3 12.3137 3 9C3 5.68629 5.68629 3 9 3C11.0605 3 12.8792 4.01099 14 5.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
                         <path d="M15 3V7H11" stroke="currentColor" stroke-width="1.5"/>
                     </svg>
                     <span>Rotate</span>
+                </button>
+                <button type="button" class="control-btn" id="panToolBtnMain" title="Pan/Move model - Click and drag to move view">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                        <!-- Hand/Move icon -->
+                        <path d="M13 5L13 11M13 11L10 8M13 11L16 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M13 19L13 13M13 13L10 16M13 13L16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M5 13L11 13M11 13L8 10M11 13L8 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M19 13L13 13M13 13L16 10M13 13L16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <circle cx="13" cy="13" r="2" fill="currentColor"/>
+                    </svg>
+                    <span>Move</span>
                 </button>
             </div>
         </div>
@@ -735,7 +736,7 @@
                 </svg>
                 <span>Share</span>
             </button>
-            
+
             <button type="button" class="control-btn save-btn" id="saveCalculationsBtnMain" title="Save and calculate pricing">
                 <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
                     <path d="M15 16H3C2.44772 16 2 15.5523 2 15V3C2 2.44772 2.44772 2 3 2H12L16 6V15C16 15.5523 15.5523 16 15 16Z" stroke="currentColor" stroke-width="1.5"/>
@@ -750,19 +751,32 @@
 <script>
     // ============================================
     // CONTROL BAR FUNCTIONALITY - THREE.JS
+    // VERSION: CANVAS-DIRECT-HANDLERS-{{ time() }}
     // ============================================
-    
+    console.log('🔥 QUOTE SCRIPT - CANVAS DIRECT HANDLERS - TS:', {{ time() }});
+
     // Global state for measurement tool (needs to be accessible by event handlers)
     let measurementMode = false;
     let measurementPoints = [];
     let measurementMarkers = [];
     let measurementLine = null;
-    
+
+    // Global state for pan tool
+    let panMode = false;
+    let isPanning = false;
+    let selectedModel = null; // The model being dragged
+    let dragPlane = null; // Invisible plane for dragging
+    let dragOffset = null; // Will be initialized as THREE.Vector3 when needed
+    let originalMaterialEmissive = null; // Store original emissive color for highlight
+
+    // Flag to prevent duplicate event listeners
+    let measurementClickHandlerSet = false;
+
     // Wait for everything to load including quote-viewer scripts
     window.addEventListener('load', function() {
         console.log('🎯 Initializing control bar for Three.js...');
         console.log('🔍 Script loaded successfully at:', new Date().toLocaleTimeString());
-        
+
         // Small delay to ensure quote-viewer is fully initialized
         setTimeout(initControls, 500);
     });
@@ -789,18 +803,35 @@
         const clearMeasurementsBtn = document.getElementById('clearMeasurements');
 
         if (measureToolBtn) {
-            measureToolBtn.addEventListener('click', function() {
+            measureToolBtn.addEventListener('click', function(e) {
+                e.stopPropagation(); // Prevent click from reaching document mousedown handler
+
                 measurementMode = !measurementMode;
                 this.classList.toggle('active', measurementMode);
                 measurementPanel.classList.toggle('active', measurementMode);
-                
+
                 const viewer = window.viewerGeneral || window.viewerMedical;
-                
+
                 if (measurementMode) {
                     console.log('📏 Measurement mode activated');
-                    console.log('   Viewer:', viewer ? 'Available' : 'Not available');
-                    console.log('   Canvas:', viewer && viewer.renderer ? 'Available' : 'Not available');
-                    
+                    console.log('   Viewer:', viewer ? 'Available ✅' : 'Not available ❌');
+                    console.log('   Canvas:', viewer && viewer.renderer ? 'Available ✅' : 'Not available ❌');
+                    console.log('   measurementMode variable:', measurementMode);
+                    console.log('   panMode variable:', panMode);
+
+                    // Disable pan mode when measurement is active
+                    if (panMode) {
+                        panMode = false;
+                        const panToolBtn = document.getElementById('panToolBtnMain');
+                        if (panToolBtn) {
+                            panToolBtn.classList.remove('active');
+                        }
+                        if (viewer && viewer.renderer && viewer.renderer.domElement) {
+                            viewer.renderer.domElement.style.cursor = 'default';
+                        }
+                        console.log('👋 Pan mode disabled by measurement mode');
+                    }
+
                     // Disable auto-rotation when measuring
                     stopAutoRotation();
                     const autoRotateBtn = document.getElementById('autoRotateBtnMain');
@@ -808,7 +839,7 @@
                         autoRotateBtn.classList.remove('active');
                     }
                     autoRotateEnabled = false;
-                    
+
                     // Keep orbit controls enabled but reduce sensitivity
                     if (viewer && viewer.controls) {
                         viewer.controls.enableRotate = true;
@@ -834,13 +865,14 @@
         if (clearMeasurementsBtn) {
             clearMeasurementsBtn.addEventListener('click', function() {
                 clearMeasurementData();
-                document.getElementById('measurementResult').style.display = 'none';
+                const resultEl = document.getElementById('measurementResult');
+                if (resultEl) resultEl.style.display = 'none';
             });
         }
 
         function clearMeasurementData() {
             measurementPoints = [];
-            
+
             const viewer = window.viewerGeneral || window.viewerMedical;
             if (!viewer || !viewer.scene) return;
 
@@ -864,6 +896,12 @@
         // Handle clicks on the 3D model for measurement
         // Make it globally accessible
         window.setupMeasurementClickHandler = function() {
+            // Prevent duplicate event listeners
+            if (measurementClickHandlerSet) {
+                console.log('⚠️ Measurement click handler already set, skipping');
+                return;
+            }
+
             const viewer = window.viewerGeneral || window.viewerMedical;
             if (!viewer || !viewer.renderer) {
                 console.warn('⚠️ Viewer or renderer not available for measurement setup');
@@ -871,11 +909,11 @@
             }
 
             const canvas = viewer.renderer.domElement;
-            console.log('✅ Measurement click handler setup complete on canvas');
-            
+            console.log('✅ Setting up measurement click handler on canvas');
+
             canvas.addEventListener('click', function(event) {
                 if (!measurementMode) {
-                    console.log('⏸️ Click ignored - measurement mode not active');
+                    // Don't log for every click, too spammy
                     return;
                 }
 
@@ -897,7 +935,7 @@
 
                 // Find all meshes from uploaded files AND modelGroup
                 const meshes = [];
-                
+
                 // Method 1: Get from uploadedFiles array
                 if (viewer.uploadedFiles && viewer.uploadedFiles.length > 0) {
                     viewer.uploadedFiles.forEach(fileData => {
@@ -906,7 +944,7 @@
                         }
                     });
                 }
-                
+
                 // Method 2: Traverse the entire scene to find all meshes
                 if (meshes.length === 0) {
                     viewer.scene.traverse((child) => {
@@ -925,11 +963,20 @@
 
                 if (intersects.length > 0) {
                     const point = intersects[0].point;
+
+                    // If measurement is complete (2 points) or starting fresh, clear and start new
+                    if (measurementPoints.length === 0 || measurementPoints.length === 2) {
+                        clearMeasurementData();
+                        const resultEl = document.getElementById('measurementResult');
+                        if (resultEl) resultEl.style.display = 'none';
+                        console.log('🧹 Starting new measurement');
+                    }
+
                     measurementPoints.push(point);
 
                     // Create marker sphere
                     const markerGeometry = new THREE.SphereGeometry(1, 16, 16);
-                    const markerMaterial = new THREE.MeshBasicMaterial({ 
+                    const markerMaterial = new THREE.MeshBasicMaterial({
                         color: measurementPoints.length === 1 ? 0xff6b35 : 0x4caf50
                     });
                     const marker = new THREE.Mesh(markerGeometry, markerMaterial);
@@ -939,35 +986,46 @@
 
                     console.log(`📍 Point ${measurementPoints.length}:`, point);
 
-                    // Update UI
+                    // Update UI (with null checks)
                     const coordStr = `(${point.x.toFixed(2)}, ${point.y.toFixed(2)}, ${point.z.toFixed(2)})`;
                     if (measurementPoints.length === 1) {
-                        document.getElementById('point1Coords').textContent = coordStr;
+                        const point1El = document.getElementById('point1Coords');
+                        if (point1El) point1El.textContent = coordStr;
                     } else if (measurementPoints.length === 2) {
-                        document.getElementById('point2Coords').textContent = coordStr;
-                        
+                        const point2El = document.getElementById('point2Coords');
+                        if (point2El) point2El.textContent = coordStr;
+
                         // Calculate distance
                         const distance = measurementPoints[0].distanceTo(measurementPoints[1]);
-                        document.getElementById('distanceValue').textContent = distance.toFixed(2) + ' mm';
-                        document.getElementById('measurementResult').style.display = 'block';
+                        const distanceEl = document.getElementById('distanceValue');
+                        const thicknessEl = document.getElementById('thicknessValue');
+                        const resultEl = document.getElementById('measurementResult');
 
-                        // Draw line between points
+                        // Update whichever element exists
+                        if (distanceEl) distanceEl.textContent = distance.toFixed(2) + ' mm';
+                        if (thicknessEl) thicknessEl.textContent = distance.toFixed(2) + ' mm';
+                        if (resultEl) resultEl.style.display = 'block';
+
+                        // Draw line between points - BLUE COLOR
                         const lineGeometry = new THREE.BufferGeometry().setFromPoints(measurementPoints);
-                        const lineMaterial = new THREE.LineBasicMaterial({ 
-                            color: 0xff6b35, 
-                            linewidth: 2 
+                        const lineMaterial = new THREE.LineBasicMaterial({
+                            color: 0x0088ff, // Blue color
+                            linewidth: 3
                         });
                         measurementLine = new THREE.Line(lineGeometry, lineMaterial);
                         viewer.scene.add(measurementLine);
 
                         console.log('📏 Distance:', distance.toFixed(2), 'mm');
 
-                        // Reset for next measurement
-                        setTimeout(() => {
-                            measurementPoints = [];
-                            document.getElementById('point1Coords').textContent = '-';
-                            document.getElementById('point2Coords').textContent = '-';
-                        }, 100);
+                        // DON'T reset measurementPoints - keep the measurement displayed
+                        // It will be cleared when user clicks for a new measurement
+                        // setTimeout(() => {
+                        //     measurementPoints = [];
+                        //     const p1El = document.getElementById('point1Coords');
+                        //     const p2El = document.getElementById('point2Coords');
+                        //     if (p1El) p1El.textContent = '-';
+                        //     if (p2El) p2El.textContent = '-';
+                        // }, 100);
                     }
                 }
             });
@@ -975,7 +1033,7 @@
             // Add hover handler for live measurement display
             canvas.addEventListener('mousemove', function(event) {
                 if (!measurementMode) return;
-                
+
                 if (!window.THREE) {
                     console.error('❌ THREE.js not loaded');
                     return;
@@ -988,11 +1046,12 @@
                 );
 
                 const raycaster = new THREE.Raycaster();
-                raycaster.setFromCamera(mouse, viewer.camera);
-
-                // Find all meshes from uploaded files AND modelGroup
+                // Increase threshold for better intersection detection with fine details
+                raycaster.params.Points.threshold = 0.5;
+                raycaster.params.Line.threshold = 1;
+                raycaster.setFromCamera(mouse, viewer.camera);                // Find all meshes from uploaded files AND modelGroup
                 const meshes = [];
-                
+
                 // Method 1: Get from uploadedFiles array
                 if (viewer.uploadedFiles && viewer.uploadedFiles.length > 0) {
                     viewer.uploadedFiles.forEach(fileData => {
@@ -1001,7 +1060,7 @@
                         }
                     });
                 }
-                
+
                 // Method 2: Traverse the entire scene to find all meshes
                 if (meshes.length === 0) {
                     viewer.scene.traverse((child) => {
@@ -1014,41 +1073,46 @@
                     });
                 }
 
-                console.log('🎯 Raycasting against', meshes.length, 'meshes');
-
+                // Removed spammy log here - fires on every mousemove
                 const intersects = raycaster.intersectObjects(meshes, true);
 
-                const currentReadingEl = document.getElementById('currentReading');
-                const readingLabelEl = document.getElementById('readingLabel');
+                const thicknessValueEl = document.getElementById('thicknessValue');
+
+                // If measurement is complete (2 points), don't update - keep the value displayed
+                if (measurementPoints.length === 2) {
+                    return; // Measurement complete, don't overwrite
+                }
 
                 if (intersects.length > 0) {
                     const point = intersects[0].point;
-                    
-                    console.log('📍 Hover intersect at:', {
-                        x: point.x.toFixed(2),
-                        y: point.y.toFixed(2),
-                        z: point.z.toFixed(2),
-                        distance: intersects[0].distance.toFixed(2),
-                        measurementPoints: measurementPoints.length
-                    });
-                    
-                    // If we have one point already, show distance to hover point
+
+                    // If we have one point already, show distance to hover point (live preview)
                     if (measurementPoints.length === 1) {
                         const distance = measurementPoints[0].distanceTo(point);
-                        console.log('📏 Distance to hover point:', distance.toFixed(2), 'mm');
-                        if (currentReadingEl) currentReadingEl.textContent = distance.toFixed(2) + ' mm';
-                        if (readingLabelEl) readingLabelEl.textContent = 'Wall Thickness';
-                    } else {
-                        // Show hover instructions
-                        if (currentReadingEl) currentReadingEl.textContent = 'Click to start';
-                        if (readingLabelEl) readingLabelEl.textContent = 'Hover over model';
+
+                        // Format distance with appropriate precision
+                        let formattedDistance;
+                        if (distance < 1) {
+                            formattedDistance = distance.toFixed(3); // Sub-millimeter precision
+                        } else if (distance < 10) {
+                            formattedDistance = distance.toFixed(2); // 0.01mm precision
+                        } else {
+                            formattedDistance = distance.toFixed(1); // 0.1mm precision
+                        }
+
+                        if (thicknessValueEl) thicknessValueEl.textContent = formattedDistance + ' mm';
+                    } else if (measurementPoints.length === 0) {
+                        // Show placeholder
+                        if (thicknessValueEl) thicknessValueEl.textContent = '-';
                     }
-                } else {
-                    console.log('❌ No intersection found');
-                    if (currentReadingEl) currentReadingEl.textContent = 'Hover over model';
-                    if (readingLabelEl) readingLabelEl.textContent = 'to start measuring';
+                } else if (measurementPoints.length === 0) {
+                    // Only reset if no measurement in progress
+                    if (thicknessValueEl) thicknessValueEl.textContent = '-';
                 }
             });
+
+            measurementClickHandlerSet = true;
+            console.log('✅ Measurement click handler setup complete');
         }
 
         // Camera buttons
@@ -1082,7 +1146,7 @@
                     console.warn('⚠️ Cannot enable auto-rotate: No file uploaded');
                     return;
                 }
-                
+
                 autoRotateEnabled = !autoRotateEnabled;
                 this.classList.toggle('active', autoRotateEnabled);
                 console.log('🔄 Auto-rotate:', autoRotateEnabled);
@@ -1094,80 +1158,344 @@
             });
         }
 
-        // Repair & Fill - Combined button that does both operations
-        const repairAndFillBtn = document.getElementById('repairAndFillBtnMain');
-        if (repairAndFillBtn) {
-            repairAndFillBtn.addEventListener('click', function() {
-                if (modelRepaired && holesFilled) {
-                    console.log('✅ Model already repaired and filled');
+        // Pan Tool - Drag to move model (variables declared at top level)
+        const panToolBtn = document.getElementById('panToolBtnMain');
+        console.log('🔍 Pan button found:', panToolBtn ? 'YES ✅' : 'NO ❌');
+
+        // Store canvas handlers so we can remove them later
+        let canvasPanHandlers = null;
+
+        if (panToolBtn) {
+            panToolBtn.addEventListener('click', function(e) {
+                e.stopPropagation(); // Prevent click from reaching document mousedown handler
+
+                const viewer = window.viewerGeneral || window.viewerMedical;
+                if (!viewer || !viewer.uploadedFiles || viewer.uploadedFiles.length === 0) {
+                    console.warn('⚠️ Cannot enable pan: No file uploaded');
                     return;
                 }
-                
+
+                panMode = !panMode;
+                this.classList.toggle('active', panMode);
+                console.log('👋 Pan mode:', panMode ? 'ENABLED ✅' : 'DISABLED ❌');
+                console.log('   Viewer:', viewer ? 'Available ✅' : 'Not available ❌');
+                console.log('   Files loaded:', viewer.uploadedFiles.length);
+
+                // Attach/detach handlers directly to canvas
+                if (panMode && viewer.renderer && viewer.renderer.domElement) {
+                    const canvas = viewer.renderer.domElement;
+                    console.log('🎯 Attaching pan handlers directly to canvas');
+                    console.log('   Canvas element:', canvas);
+                    console.log('   Canvas tag:', canvas.tagName);
+                    console.log('   Canvas width:', canvas.width, 'height:', canvas.height);
+
+                    // Create handlers
+                    canvasPanHandlers = {
+                        pointerdown: handleCanvasMouseDown,
+                        pointermove: handleCanvasMouseMove,
+                        pointerup: handleCanvasMouseUp
+                    };
+
+                    // Use POINTER events instead of mouse events (modern browsers)
+                    canvas.addEventListener('pointerdown', canvasPanHandlers.pointerdown);
+                    document.addEventListener('pointermove', canvasPanHandlers.pointermove);
+                    document.addEventListener('pointerup', canvasPanHandlers.pointerup);
+
+                    canvas.style.cursor = 'grab';
+                    console.log('✅ Canvas pan handlers attached (using pointer events)');
+                    console.log('   Handlers:', canvasPanHandlers);
+                } else if (!panMode && canvasPanHandlers) {
+                    const canvas = viewer.renderer.domElement;
+                    console.log('🔌 Removing pan handlers from canvas');
+
+                    // Remove handlers
+                    canvas.removeEventListener('pointerdown', canvasPanHandlers.pointerdown);
+                    document.removeEventListener('pointermove', canvasPanHandlers.pointermove);
+                    document.removeEventListener('pointerup', canvasPanHandlers.pointerup);
+
+                    canvasPanHandlers = null;
+                    canvas.style.cursor = 'default';
+                    console.log('✅ Canvas pan handlers removed');
+                }
+
+                // When pan mode is active, disable measurement mode
+                if (panMode && measurementMode) {
+                    measurementMode = false;
+                    const measureToolBtn = document.getElementById('measureToolBtnMain');
+                    if (measureToolBtn) {
+                        measureToolBtn.classList.remove('active');
+                    }
+                    const measurementPanel = document.getElementById('measurementPanel');
+                    if (measurementPanel) {
+                        measurementPanel.classList.remove('active');
+                    }
+                    console.log('📏 Measurement mode disabled by pan mode');
+                }
+
+                // When pan mode is active, disable rotation AND built-in orbit pan
+                if (viewer.controls) {
+                    viewer.controls.enableRotate = !panMode;
+                    viewer.controls.enablePan = false; // Always disable OrbitControls pan, we have custom one
+                    viewer.controls.enableZoom = true; // Keep zoom enabled always
+                }
+            });
+        }
+
+        // Canvas-specific pan handlers
+        function handleCanvasMouseDown(e) {
+            console.log('🖱️🖱️🖱️ CANVAS MOUSEDOWN FIRED! 🖱️🖱️🖱️');
+            console.log('   Event:', e);
+            console.log('   Target:', e.target);
+            console.log('   CurrentTarget:', e.currentTarget);
+
+            const viewer = window.viewerGeneral || window.viewerMedical;
+            if (!viewer) {
+                console.log('   ❌ No viewer');
+                return;
+            }
+            if (!window.THREE) {
+                console.log('   ❌ No THREE.js');
+                return;
+            }
+
+            console.log('   ✅ Starting pan drag');
+            console.log('   Files loaded:', viewer.uploadedFiles ? viewer.uploadedFiles.length : 0);
+
+            const canvas = viewer.renderer.domElement;
+
+            // Raycasting to detect which model was clicked
+            const rect = canvas.getBoundingClientRect();
+            const mouse = new window.THREE.Vector2(
+                ((e.clientX - rect.left) / rect.width) * 2 - 1,
+                -((e.clientY - rect.top) / rect.height) * 2 + 1
+            );
+
+            const raycaster = new window.THREE.Raycaster();
+            raycaster.setFromCamera(mouse, viewer.camera);
+
+            // Find all model meshes (can be Mesh or Group containing meshes)
+            const meshes = [];
+            if (viewer.uploadedFiles && viewer.uploadedFiles.length > 0) {
+                viewer.uploadedFiles.forEach(fileData => {
+                    if (fileData.mesh) {
+                        meshes.push(fileData.mesh);
+                    }
+                });
+            }
+
+            console.log('   Meshes found for raycasting:', meshes.length);
+            console.log('   Mesh types:', meshes.map(m => m.type || m.constructor.name));
+
+            const intersects = raycaster.intersectObjects(meshes, true);
+            console.log('   Intersections found:', intersects.length);
+
+            if (intersects.length > 0) {
+                // Find which fileData mesh was clicked
+                let clickedObject = intersects[0].object;
+                selectedModel = null;
+
+                console.log('   Clicked object:', clickedObject);
+                console.log('   Clicked object type:', clickedObject.type || clickedObject.constructor.name);
+
+                // Find the exact mesh from uploadedFiles that was clicked
+                for (const fileData of viewer.uploadedFiles) {
+                    // Direct match
+                    if (fileData.mesh === clickedObject) {
+                        selectedModel = fileData.mesh;
+                        console.log('   ✓ Direct match found');
+                        break;
+                    }
+
+                    // Check if clickedObject is a descendant of this mesh
+                    let parent = clickedObject.parent;
+                    while (parent) {
+                        if (parent === fileData.mesh) {
+                            selectedModel = fileData.mesh;
+                            console.log('   ✓ Parent match found');
+                            break;
+                        }
+                        // Stop at modelGroup level to avoid selecting all files
+                        if (parent.name === 'modelGroup' || parent.type === 'Group' && parent.parent?.type === 'Scene') {
+                            break;
+                        }
+                        parent = parent.parent;
+                    }
+                    if (selectedModel) break;
+                }
+
+                if (!selectedModel) {
+                    console.log('   ❌ Could not find matching mesh in uploadedFiles');
+                    console.log('   Available meshes:', viewer.uploadedFiles.map(f => f.mesh));
+                    return;
+                }
+
+                isPanning = true;
+                canvas.style.cursor = 'grabbing';
+
+                // Highlight the selected model
+                if (selectedModel.material) {
+                    originalMaterialEmissive = selectedModel.material.emissive ? selectedModel.material.emissive.getHex() : 0x000000;
+                    selectedModel.material.emissive = new window.THREE.Color(0x4488ff);
+                    selectedModel.material.emissiveIntensity = 0.3;
+                }
+
+                // Create an invisible plane at the model's position for dragging
+                const normal = new window.THREE.Vector3(0, 0, 1);
+                normal.applyQuaternion(viewer.camera.quaternion);
+                dragPlane = new window.THREE.Plane();
+                dragPlane.setFromNormalAndCoplanarPoint(normal, selectedModel.position);
+
+                // Calculate offset between intersection point and model position
+                const intersectionPoint = new window.THREE.Vector3();
+                raycaster.ray.intersectPlane(dragPlane, intersectionPoint);
+                dragOffset = new window.THREE.Vector3(); // Initialize dragOffset
+                dragOffset.subVectors(selectedModel.position, intersectionPoint);
+
+                console.log('👆 Drag started - Moving model:', selectedModel.name || 'unnamed');
+                console.log('   Multiple models:', viewer.uploadedFiles.length > 1 ? 'Yes ✅' : 'No (single model)');
+
+                // Disable orbit controls while dragging
+                if (viewer.controls) {
+                    viewer.controls.enabled = false;
+                }
+            }
+        }
+
+        function handleCanvasMouseMove(e) {
+            const viewer = window.viewerGeneral || window.viewerMedical;
+            if (!isPanning || !selectedModel || !viewer || !viewer.camera) return;
+            if (!window.THREE) return;
+
+            const canvas = viewer.renderer.domElement;
+            const rect = canvas.getBoundingClientRect();
+            const mouse = new window.THREE.Vector2(
+                ((e.clientX - rect.left) / rect.width) * 2 - 1,
+                -((e.clientY - rect.top) / rect.height) * 2 + 1
+            );
+
+            const raycaster = new window.THREE.Raycaster();
+            raycaster.setFromCamera(mouse, viewer.camera);
+
+            // Find intersection with drag plane
+            const intersectionPoint = new window.THREE.Vector3();
+            if (raycaster.ray.intersectPlane(dragPlane, intersectionPoint)) {
+                // Move model to new position
+                selectedModel.position.copy(intersectionPoint).add(dragOffset);
+
+                // Log occasionally to avoid spam
+                if (!window.panMoveCount) window.panMoveCount = 0;
+                window.panMoveCount++;
+                if (window.panMoveCount % 30 === 0) {
+                    console.log('🔄 Moving model to:',
+                        selectedModel.position.x.toFixed(1),
+                        selectedModel.position.y.toFixed(1),
+                        selectedModel.position.z.toFixed(1)
+                    );
+                }
+            }
+
+            e.preventDefault();
+        }
+
+        function handleCanvasMouseUp(e) {
+            const viewer = window.viewerGeneral || window.viewerMedical;
+            if (isPanning && window.THREE) {
+                // Remove highlight from selected model
+                if (selectedModel && selectedModel.material) {
+                    selectedModel.material.emissive = new window.THREE.Color(originalMaterialEmissive || 0x000000);
+                    selectedModel.material.emissiveIntensity = 0;
+                }
+
+                isPanning = false;
+                selectedModel = null;
+                dragPlane = null;
+                originalMaterialEmissive = null;
+                window.panMoveCount = 0;
+
+                console.log('✋ Drag ended - Model repositioned');
+
+                if (viewer && viewer.renderer) {
+                    viewer.renderer.domElement.style.cursor = panMode ? 'grab' : 'default';
+                }
+
+                // Re-enable orbit controls
+                if (viewer && viewer.controls) {
+                    viewer.controls.enabled = true;
+                }
+            }
+        }
+
+        // Repair & Fill functionality is now integrated into Save & Calculate button
+
+        // Save & Calculate button - Now includes auto-repair and solid volume calculation
+        const saveBtn = document.getElementById('saveCalculationsBtnMain');
+        if (saveBtn) {
+            saveBtn.addEventListener('click', function() {
                 const viewer = window.viewerGeneral || window.viewerMedical;
                 if (!viewer) {
                     console.log('⚠️ No viewer available');
                     return;
                 }
-                
-                console.log('🔧 Repairing and filling holes...');
-                this.classList.add('active');
-                const origHTML = this.innerHTML;
+
+                console.log('💾 Save & Calculate clicked - Starting auto-repair...');
+                const originalBtn = this.innerHTML;
                 this.innerHTML = '<svg width="16" height="16" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="7" stroke="currentColor" stroke-width="1.5" class="spinning"/></svg><span>Processing...</span>';
-
-                setTimeout(() => {
-                    // First repair the model
-                    console.log('🔧 Step 1: Repairing model...');
-                    const repairSuccess = viewer.repairModel();
-                    
-                    if (repairSuccess) {
-                        modelRepaired = true;
-                        console.log('✅ Repair successful!');
-                        
-                        // Then fill holes
-                        setTimeout(() => {
-                            console.log('🔧 Step 2: Filling holes...');
-                            const fillSuccess = viewer.fillHoles();
-                            
-                            if (fillSuccess) {
-                                holesFilled = true;
-                                this.innerHTML = '<svg width="16" height="16" viewBox="0 0 18 18" fill="none"><path d="M5 9L8 12L13 6" stroke="currentColor" stroke-width="2"/></svg><span>Completed ✓</span>';
-                                console.log('✅ Model repaired and filled successfully!');
-                                
-                                // Update model dimensions with final accurate volume
-                                setTimeout(updateModelDimensions, 500);
-                            } else {
-                                this.innerHTML = '<svg width="16" height="16" viewBox="0 0 18 18" fill="none"><path d="M5 9L8 12L13 6" stroke="currentColor" stroke-width="2"/></svg><span>Repaired ✓</span>';
-                                console.log('⚠️ Fill holes failed, but repair successful');
-                                setTimeout(updateModelDimensions, 500);
-                            }
-                        }, 300);
-                    } else {
-                        this.innerHTML = origHTML;
-                        this.classList.remove('active');
-                        console.log('❌ Repair failed');
-                    }
-                }, 300);
-            });
-        }
-
-        // Save button
-        const saveBtn = document.getElementById('saveCalculationsBtnMain');
-        if (saveBtn) {
-            saveBtn.addEventListener('click', function() {
-                console.log('💾 Saving...');
-                const original = this.innerHTML;
-                this.innerHTML = '<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M5 9L8 12L13 6" stroke="currentColor" stroke-width="2"/></svg><span>Saved! ✓</span>';
                 this.style.pointerEvents = 'none';
 
+                // Step 1: Repair model if not already done
                 setTimeout(() => {
-                    this.innerHTML = original;
-                    this.style.pointerEvents = '';
-                }, 2000);
+                    if (!modelRepaired) {
+                        console.log('🔧 Step 1: Repairing model...');
+                        const repairSuccess = viewer.repairModel();
+                        if (repairSuccess) {
+                            modelRepaired = true;
+                            console.log('✅ Model repaired');
+                        } else {
+                            console.log('⚠️ Repair failed, continuing with original mesh');
+                        }
+                    } else {
+                        console.log('✅ Model already repaired');
+                    }
 
-                // Trigger pricing update
-                if (window.fileManagerGeneral) {
-                    window.fileManagerGeneral.updateQuote();
-                }
+                    // Step 2: Fill holes if not already done
+                    setTimeout(() => {
+                        if (!holesFilled) {
+                            console.log('🔧 Step 2: Filling holes...');
+                            const fillSuccess = viewer.fillHoles();
+                            if (fillSuccess) {
+                                holesFilled = true;
+                                console.log('✅ Holes filled - mesh is now solid');
+                            } else {
+                                console.log('⚠️ Fill holes failed, using repaired mesh');
+                            }
+                        } else {
+                            console.log('✅ Holes already filled');
+                        }
+
+                        // Step 3: Update dimensions with solid volume
+                        setTimeout(() => {
+                            console.log('📐 Step 3: Calculating solid volume...');
+                            updateModelDimensions();
+
+                            // Step 4: Calculate pricing based on solid volume
+                            setTimeout(() => {
+                                console.log('💰 Step 4: Calculating price...');
+                                if (window.fileManagerGeneral) {
+                                    window.fileManagerGeneral.updateQuote();
+                                }
+
+                                // Show success message
+                                this.innerHTML = '<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M5 9L8 12L13 6" stroke="currentColor" stroke-width="2"/></svg><span>Saved! ✓</span>';
+
+                                setTimeout(() => {
+                                    this.innerHTML = originalBtn;
+                                    this.style.pointerEvents = '';
+                                    console.log('✅ Save & Calculate complete - price updated with solid volume');
+                                }, 2000);
+                            }, 300);
+                        }, 300);
+                    }, 300);
+                }, 300);
             });
         }
 
@@ -1265,7 +1593,7 @@
 
         console.log('✅✅✅ Control bar initialized for THREE.JS!');
     }
-    
+
     // Update model dimensions in info panel
     function updateModelDimensions() {
         const viewer = window.viewerGeneral || window.viewerMedical;
@@ -1273,26 +1601,26 @@
             console.log('⚠️ No files uploaded yet');
             return;
         }
-        
+
         const file = viewer.uploadedFiles[0];
         console.log('📏 Updating model dimensions from file:', file);
-        
+
         // Calculate bounding box from geometry if not already calculated
         let sizeX = 0, sizeY = 0, sizeZ = 0;
-        
+
         if (file.geometry) {
             if (!file.geometry.boundingBox) {
                 file.geometry.computeBoundingBox();
             }
-            
+
             const box = file.geometry.boundingBox;
             const size = new THREE.Vector3();
             box.getSize(size);
-            
+
             sizeX = size.x;
             sizeY = size.y;
             sizeZ = size.z;
-            
+
             console.log('📦 Calculated from geometry:', { x: sizeX, y: sizeY, z: sizeZ });
         } else {
             // Fallback to stored values
@@ -1300,7 +1628,7 @@
             sizeY = file.boundingBox?.y || file.size?.y || 0;
             sizeZ = file.boundingBox?.z || file.size?.z || 0;
         }
-        
+
         // Handle volume - it can be an object {mm3, cm3} or a number
         let volumeCM3 = 0;
         if (file.volume) {
@@ -1310,26 +1638,26 @@
                 volumeCM3 = file.volume / 1000; // Convert mm³ to cm³
             }
         }
-        
+
         // Update measurement panel dimensions
         const modelWidth = document.getElementById('modelWidth');
         const modelHeight = document.getElementById('modelHeight');
         const modelDepth = document.getElementById('modelDepth');
-        
+
         if (modelWidth) modelWidth.textContent = sizeX.toFixed(2) + ' mm';
         if (modelHeight) modelHeight.textContent = sizeY.toFixed(2) + ' mm';
         if (modelDepth) modelDepth.textContent = sizeZ.toFixed(2) + ' mm';
-        
+
         console.log('✅ Model dimensions updated:', { width: sizeX, height: sizeY, depth: sizeZ, volume: volumeCM3 });
     }
 
     // Set default camera rotation to 180 degrees when model loads
     let isRestoredSession = false; // Track if this is a restored session
-    
+
     window.addEventListener('modelLoaded', function(event) {
         console.log('🎨 Model loaded event triggered');
         const viewer = window.viewerGeneral || window.viewerMedical;
-        
+
         // Enable auto-rotate button now that a file is uploaded
         const rotateBtn = document.getElementById('autoRotateBtnMain');
         if (rotateBtn) {
@@ -1339,12 +1667,12 @@
             rotateBtn.title = 'Auto-rotate model';
             console.log('✅ Auto-rotate button enabled');
         }
-        
+
         if (viewer && viewer.camera && viewer.controls) {
             // Only rotate for NEW uploads (not restored sessions)
             if (!isRestoredSession) {
                 console.log('🆕 New file upload detected - applying default view');
-                
+
                 // Rotate camera 180 degrees around Y axis
                 const camera = viewer.camera;
                 const controls = viewer.controls;
@@ -1366,14 +1694,14 @@
                 isRestoredSession = false;
             }
         }
-        
+
         // Update model dimensions when model loads
         setTimeout(updateModelDimensions, 500);
-        
+
         // Setup measurement click handler
         setupMeasurementClickHandler();
     });
-    
+
     // Listen for pricing updates (when measurements change)
     window.addEventListener('pricingUpdateNeeded', function(event) {
         console.log('💰 Pricing update needed, refreshing model dimensions');
@@ -1383,17 +1711,17 @@
     // ============================================
     // FILE STORAGE & SHARE SYSTEM INTEGRATION
     // ============================================
-    
+
     // Initialize IndexedDB on page load
     window.addEventListener('load', async function() {
         console.log('💾 Initializing File Storage Manager...');
         try {
             await window.fileStorageManager.init();
             console.log('✅ File Storage Manager initialized');
-            
+
             // Check for shared file in URL
             const fileId = window.fileStorageManager.getFileIdFromURL();
-            
+
             // Validate file ID - must be non-null and start with 'file_'
             if (fileId && fileId !== 'null' && fileId !== 'undefined' && fileId.startsWith('file_')) {
                 console.log('🔗 Loading shared file from URL:', fileId);
@@ -1406,7 +1734,7 @@
                     url.searchParams.delete('file');
                     window.history.replaceState({}, '', url.toString());
                 }
-                
+
                 // No valid URL parameter - check for last uploaded file
                 console.log('🔍 Checking for last uploaded file...');
                 await loadLastUploadedFile();
@@ -1439,10 +1767,10 @@
 
             console.log('💾 Preparing to save file:', uploadedFile.file.name);
             console.log('   File size:', (uploadedFile.file.size / 1024 / 1024).toFixed(2), 'MB');
-            
+
             // Show saving notification
             showNotification('💾 Saving file to browser storage...', 'info');
-            
+
             // Convert File to ArrayBuffer for IndexedDB storage
             const arrayBuffer = await uploadedFile.file.arrayBuffer();
             console.log('   Converted to ArrayBuffer');
@@ -1463,13 +1791,13 @@
 
             console.log('✅ File saved to browser storage:', fileId);
             console.log('   Storage ID set as currentFileId');
-            
+
             // Show success notification
             showNotification('✅ File saved successfully!', 'success');
-            
+
             // Auto-save camera state every 30 seconds
             startAutoSave(fileId);
-            
+
         } catch (error) {
             console.error('❌ Failed to save file:', error);
             showNotification('❌ Failed to save file: ' + error.message, 'error');
@@ -1485,10 +1813,10 @@
                 const viewer = window.viewerGeneral || window.viewerMedical;
                 const hasUploadedFile = viewer && viewer.uploadedFiles && viewer.uploadedFiles.length > 0;
                 let fileId = window.fileStorageManager?.currentFileId;
-                
+
                 console.log('🔍 Share button clicked - Current file ID:', fileId);
                 console.log('   Has uploaded file:', hasUploadedFile);
-                
+
                 if (!fileId && !hasUploadedFile) {
                     showNotification('⚠️ Please upload a 3D model first', 'warning');
                     return;
@@ -1497,7 +1825,7 @@
                 // If file is uploaded but not saved yet, trigger save and wait
                 if (hasUploadedFile && !fileId) {
                     showNotification('💾 Preparing file for sharing...', 'info');
-                    
+
                     // Get the uploaded file from viewer
                     const uploadedFile = viewer.uploadedFiles[0];
                     if (!uploadedFile || !uploadedFile.file) {
@@ -1508,7 +1836,7 @@
                     try {
                         // Convert File to ArrayBuffer
                         const arrayBuffer = await uploadedFile.file.arrayBuffer();
-                        
+
                         // Save file to IndexedDB
                         fileId = await window.fileStorageManager.saveFile(
                             arrayBuffer,
@@ -1541,7 +1869,7 @@
 
                 // Save current camera state before sharing
                 await saveCameraState();
-                
+
                 // Open share modal with validated file ID
                 if (window.shareModal && typeof window.shareModal.open === 'function') {
                     await window.shareModal.open(fileId);
@@ -1603,7 +1931,7 @@
         try {
             console.log('🔍 Loading shared file:', fileId);
             const fileRecord = await window.fileStorageManager.loadFile(fileId);
-            
+
             if (!fileRecord) {
                 showNotification('⚠️ File not found or expired', 'error');
                 console.error('❌ File record not found in storage');
@@ -1647,14 +1975,14 @@
             // Trigger file upload
             console.log('📤 Loading file into viewer...');
             await viewer.loadFile(file, fileRecord.fileName);
-            
+
             // Wait for model to be fully loaded
             await new Promise(resolve => setTimeout(resolve, 1000));
-            
+
             // Setup measurement handler for loaded file
             console.log('🎯 Setting up measurement handlers for shared file...');
             setupMeasurementClickHandler();
-            
+
             // Restore camera state
             if (fileRecord.edits && fileRecord.edits.camera) {
                 console.log('📷 Restoring camera state...');
@@ -1669,14 +1997,14 @@
             showNotification('✅ Shared model loaded successfully!', 'success');
             console.log('✅ Shared file loaded successfully');
             console.log('   Current file ID set to:', fileId);
-            
+
             // Restart auto-save
             startAutoSave(fileId);
         } catch (error) {
             console.error('❌ Failed to load shared file:', error);
             showNotification('❌ Failed to load shared file: ' + error.message, 'error');
             isRestoredSession = false; // Reset on error
-            
+
             // Clear invalid URL parameter
             const url = new URL(window.location.href);
             url.searchParams.delete('file');
@@ -1730,7 +2058,9 @@
             }
 
             viewer.controls.update();
-            viewer.render();
+            if (viewer.renderer && viewer.scene) {
+                viewer.renderer.render(viewer.scene, viewer.camera);
+            }
             console.log('✅ Camera state restored successfully');
         } catch (error) {
             console.error('❌ Failed to restore camera state:', error);
@@ -1741,7 +2071,7 @@
     async function loadLastUploadedFile() {
         try {
             const allFiles = await window.fileStorageManager.getAllFiles();
-            
+
             if (!allFiles || allFiles.length === 0) {
                 console.log('📭 No files found in storage');
                 return;
@@ -1754,10 +2084,10 @@
             console.log('📂 Found last uploaded file:', lastFile.fileName);
             console.log('   File ID:', lastFile.id);
             console.log('   Upload time:', new Date(lastFile.uploadTime).toLocaleString());
-            
+
             // Mark as restored session to prevent auto-rotate
             isRestoredSession = true;
-            
+
             // Show loading notification
             showNotification('📥 Restoring your last session...', 'info');
 
@@ -1785,10 +2115,10 @@
             // Trigger file upload
             console.log('📤 Loading file into viewer...');
             await viewer.loadFile(file, lastFile.fileName);
-            
+
             // Wait for model to be fully loaded
             await new Promise(resolve => setTimeout(resolve, 1000));
-            
+
             // Restore camera state
             if (lastFile.edits && lastFile.edits.camera) {
                 console.log('📷 Restoring camera state...');
@@ -1804,7 +2134,7 @@
             showNotification('✅ Session restored successfully!', 'success');
             console.log('✅ Last file loaded successfully');
             console.log('   Current file ID set to:', window.fileStorageManager.currentFileId);
-            
+
             // Restart auto-save
             startAutoSave(lastFile.id);
         } catch (error) {
@@ -1829,34 +2159,49 @@
     function showNotification(message, type = 'info') {
         const toast = document.createElement('div');
         toast.className = 'notification-toast';
-        toast.textContent = message;
-        
+
         const colors = {
-            success: '#27ae60',
-            error: '#e74c3c',
-            warning: '#f39c12',
-            info: '#3498db'
+            success: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)',
+            error: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+            warning: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+            info: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
         };
+
+        const icons = {
+            success: '✓',
+            error: '⚠️',
+            warning: '⚠️',
+            info: 'ℹ️'
+        };
+
+        toast.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <span style="font-size: 20px; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; background: rgba(255,255,255,0.2); border-radius: 50%;">${icons[type]}</span>
+                <span>${message.replace(/^[✅✓]\s*/, '')}</span>
+            </div>
+        `;
 
         toast.style.cssText = `
             position: fixed;
-            bottom: 32px;
-            right: 32px;
-            padding: 16px 24px;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100%);
+            padding: 16px 28px;
             background: ${colors[type] || colors.info};
             color: white;
-            border-radius: 10px;
+            border-radius: 12px;
             font-size: 15px;
             font-weight: 500;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
             z-index: 9999;
-            animation: notifSlideIn 0.3s ease;
+            animation: notifSlideInTop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+            backdrop-filter: blur(10px);
         `;
 
         document.body.appendChild(toast);
 
         setTimeout(() => {
-            toast.style.animation = 'notifSlideOut 0.3s ease';
+            toast.style.animation = 'notifSlideOutTop 0.3s ease forwards';
             setTimeout(() => toast.remove(), 300);
         }, 3000);
     }
@@ -1864,23 +2209,23 @@
     // Add notification animations
     const notifStyles = document.createElement('style');
     notifStyles.textContent = `
-        @keyframes notifSlideIn {
+        @keyframes notifSlideInTop {
             from {
-                transform: translateX(400px);
+                transform: translateX(-50%) translateY(-100%);
                 opacity: 0;
             }
             to {
-                transform: translateX(0);
+                transform: translateX(-50%) translateY(0);
                 opacity: 1;
             }
         }
-        @keyframes notifSlideOut {
+        @keyframes notifSlideOutTop {
             from {
-                transform: translateX(0);
+                transform: translateX(-50%) translateY(0);
                 opacity: 1;
             }
             to {
-                transform: translateX(400px);
+                transform: translateX(-50%) translateY(-150%);
                 opacity: 0;
             }
         }

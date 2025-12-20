@@ -14,6 +14,7 @@ class FileStorageManager {
         this.storeName = 'files';
         this.db = null;
         this.currentFileId = null;
+        this.currentFileIds = []; // Array to store multiple file IDs
         this.EXPIRY_HOURS = 72;
     }
 
@@ -90,17 +91,52 @@ class FileStorageManager {
 
             return new Promise((resolve, reject) => {
                 request.onsuccess = () => {
-                    this.currentFileId = fileId;
                     console.log('✅ File saved to IndexedDB:', fileId);
                     console.log('⏰ Expires in 72 hours:', new Date(expiryTime));
-                    this.updateURL(fileId);
-                    
-                    // Also save to server for global sharing
-                    this.saveToServer(fileRecord).catch(err => {
-                        console.warn('⚠️ Could not save to server, sharing will be local only:', err.message);
+                    console.log('📤 Uploading to server...');
+
+                    // CRITICAL: Upload to server FIRST, then update URL with server ID
+                    this.saveToServer(fileRecord).then(result => {
+                        console.log('✅ File successfully uploaded to server for global sharing');
+                        console.log('   Server File ID:', result.fileId);
+                        console.log('   🔗 This file can now be shared across browsers and devices!');
+
+                        // ALWAYS use server's file ID (even if same as local)
+                        this.currentFileId = result.fileId;
+                        this.updateURL(result.fileId);
+                        console.log('✅ URL updated with server file ID:', result.fileId);
+
+                        // Update IndexedDB record with server file ID if different
+                        if (result.fileId !== fileId) {
+                            console.log('🔄 Syncing IndexedDB: local ID', fileId, '→ server ID', result.fileId);
+                            const updateTransaction = this.db.transaction([this.storeName], 'readwrite');
+                            const updateStore = updateTransaction.objectStore(this.storeName);
+                            updateStore.delete(fileId).onsuccess = () => {
+                                fileRecord.id = result.fileId; // Update the 'id' field (keyPath)
+                                updateStore.add(fileRecord).onsuccess = () => {
+                                    console.log('✅ IndexedDB synced with server file ID');
+                                };
+                            };
+                        }
+
+                        resolve(result.fileId); // Return SERVER file ID
+                    }).catch(err => {
+                        console.error('❌ Server upload failed:', err);
+                        console.error('   Error message:', err.message);
+                        console.warn('⚠️ Falling back to local-only storage');
+                        console.warn('⚠️ File CANNOT be shared with other browsers');
+
+                        // Fallback: use local ID if server fails
+                        this.currentFileId = fileId;
+                        this.updateURL(fileId);
+
+                        // Show user-visible warning
+                        if (typeof showNotification === 'function') {
+                            showNotification('⚠️ File saved locally only. Server upload failed - sharing may not work.', 'warning');
+                        }
+
+                        resolve(fileId); // Return local file ID as fallback
                     });
-                    
-                    resolve(fileId);
                 };
                 request.onerror = () => reject(request.error);
             });
@@ -115,35 +151,52 @@ class FileStorageManager {
      */
     async saveToServer(fileRecord) {
         try {
+            console.log('📤 Uploading file to server...');
+            console.log('   File name:', fileRecord.fileName);
+            console.log('   File size:', (fileRecord.fileData.byteLength / 1024 / 1024).toFixed(2), 'MB');
+
             // Convert ArrayBuffer to base64
             const base64Data = this.arrayBufferToBase64(fileRecord.fileData);
-            
+            console.log('   Base64 length:', base64Data.length);
+
+            console.log('   Making POST request to: /api/3d-files/store');
+
             const response = await fetch('/api/3d-files/store', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+                    'Accept': 'application/json'
                 },
                 body: JSON.stringify({
                     file: base64Data,
                     fileName: fileRecord.fileName,
-                    cameraState: JSON.stringify(fileRecord.edits?.camera),
-                    metadata: JSON.stringify(fileRecord.metadata)
+                    cameraState: fileRecord.edits?.camera ? JSON.stringify(fileRecord.edits.camera) : null,
+                    metadata: fileRecord.metadata ? JSON.stringify(fileRecord.metadata) : null
                 })
             });
 
+            console.log('   Response status:', response.status, response.statusText);
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('❌ Server response error:', response.status, errorText);
+                throw new Error(`Server error: ${response.status} - ${errorText}`);
+            }
+
             const result = await response.json();
-            
+
             if (result.success) {
-                console.log('✅ File also saved to server for global sharing');
+                console.log('☁️ File uploaded to server:', result.fileId);
+                console.log('   Expires:', new Date(result.expiryTime));
                 // Store server file ID mapping
                 this.serverFileId = result.fileId;
                 return result;
             } else {
-                throw new Error(result.message);
+                throw new Error(result.message || 'Upload failed');
             }
         } catch (error) {
             console.error('❌ Failed to save to server:', error);
+            console.error('   Error details:', error.message);
             throw error;
         }
     }
@@ -304,12 +357,12 @@ class FileStorageManager {
             return new Promise((resolve, reject) => {
                 request.onsuccess = async () => {
                     console.log('✅ Edits saved locally:', editType);
-                    
+
                     // If it's a camera edit, also sync to server
                     if (editType === 'camera' && this.serverFileId) {
                         await this.syncCameraToServer(fileId, editData);
                     }
-                    
+
                     resolve(true);
                 };
                 request.onerror = () => reject(request.error);
@@ -436,33 +489,79 @@ class FileStorageManager {
             return;
         }
 
+        // Add to currentFileIds array if not already there
+        if (!this.currentFileIds.includes(fileId)) {
+            this.currentFileIds.push(fileId);
+        }
+
         const url = new URL(window.location.href);
-        url.searchParams.set('file', fileId);
-        window.history.pushState({ fileId }, '', url.toString());
+
+        // Support both single file and multiple files
+        if (this.currentFileIds.length === 1) {
+            // Single file: use ?file=xxx (backward compatible)
+            url.searchParams.set('file', fileId);
+            url.searchParams.delete('files'); // Remove multi-file param if exists
+        } else {
+            // Multiple files: use ?files=xxx,yyy,zzz
+            url.searchParams.set('files', this.currentFileIds.join(','));
+            url.searchParams.delete('file'); // Remove single file param
+        }
+
+        window.history.pushState({ fileIds: this.currentFileIds }, '', url.toString());
+        console.log('🔗 URL updated:', this.currentFileIds.length === 1 ? '1 file' : `${this.currentFileIds.length} files`);
     }
 
     /**
-     * Get file ID from URL
+     * Get file ID(s) from URL
      */
     getFileIdFromURL() {
         const url = new URL(window.location.href);
-        return url.searchParams.get('file');
+
+        // Check for multiple files first
+        const filesParam = url.searchParams.get('files');
+        if (filesParam) {
+            const fileIds = filesParam.split(',').filter(id => id.trim());
+            this.currentFileIds = fileIds;
+            return fileIds; // Return array
+        }
+
+        // Fallback to single file (backward compatible)
+        const fileParam = url.searchParams.get('file');
+        if (fileParam) {
+            this.currentFileIds = [fileParam];
+            return fileParam; // Return string for backward compatibility
+        }
+
+        return null;
     }
 
     /**
      * Generate shareable link
      */
     getShareableLink(fileId) {
-        const validFileId = fileId || this.currentFileId;
+        // Use current session's files if no specific fileId provided
+        const fileIds = this.currentFileIds.length > 0 ? this.currentFileIds : (fileId ? [fileId] : [this.currentFileId]);
 
-        // Validate file ID before generating link
-        if (!validFileId || validFileId === 'null' || validFileId === 'undefined') {
-            console.error('❌ Cannot generate shareable link: Invalid file ID');
+        // Validate file IDs
+        const validFileIds = fileIds.filter(id => id && id !== 'null' && id !== 'undefined');
+
+        if (validFileIds.length === 0) {
+            console.error('❌ Cannot generate shareable link: No valid file IDs');
             return window.location.origin + window.location.pathname;
         }
 
-        const url = new URL(window.location.href);
-        url.searchParams.set('file', validFileId);
+        const url = new URL(window.location.origin + window.location.pathname);
+
+        if (validFileIds.length === 1) {
+            // Single file: use ?file=xxx
+            url.searchParams.set('file', validFileIds[0]);
+            console.log('📋 Generated share link for 1 file');
+        } else {
+            // Multiple files: use ?files=xxx,yyy,zzz
+            url.searchParams.set('files', validFileIds.join(','));
+            console.log(`📋 Generated share link for ${validFileIds.length} files`);
+        }
+
         return url.toString();
     }
 

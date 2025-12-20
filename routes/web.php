@@ -78,14 +78,6 @@ Route::post('/set-currency', function (Request $request) {
     return redirect()->back();
 })->name('set.currency');
 
-// 3D File Sharing API Routes
-Route::prefix('api/3d-files')->name('3d-files.')->group(function () {
-    Route::post('/store', [App\Http\Controllers\ThreeDFileController::class, 'store'])->name('store');
-    Route::get('/{fileId}', [App\Http\Controllers\ThreeDFileController::class, 'show'])->name('show');
-    Route::post('/{fileId}/camera', [App\Http\Controllers\ThreeDFileController::class, 'updateCamera'])->name('updateCamera');
-    Route::post('/cleanup-expired', [App\Http\Controllers\ThreeDFileController::class, 'cleanupExpired'])->name('cleanup');
-});
-
 // Maintenance mode route
 Route::get('/maintenance', fn()=> cache()->get('setting')?->maintenance_status == 0  ? redirect()->route('home') : view('frontend.pages.maintenance'))->name('maintenance');
 
