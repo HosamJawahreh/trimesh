@@ -3,7 +3,6 @@
      Professional & Optimized Layout
      ============================================ --}}
 
-<link rel="stylesheet" href="{{ asset('frontend/assets/css/bootstrap.css') }}">
 <section class="dgm-3d-quote-area pb-100">
     <div class="container">
         {{-- General 3D Printing Form --}}
@@ -27,54 +26,29 @@
                                         <div class="btn-group w-100 mb-3" role="group">
                                             <button type="button" class="btn btn-sm category-tab-btn active" data-category="general" style="border-radius: 8px 0 0 8px; padding: 10px; font-size: 0.85rem; font-weight: 600;">
                                                 General
-                                            <script type="module">
-                                            import * as THREE from 'three';
-                                            import { repairAndRecalculateAll } from '/frontend/assets/js/3d-file-manager.js';
-                                            document.addEventListener('DOMContentLoaded', function() {
-                                                const priceSummaryGeneral = document.getElementById('priceSummaryGeneral');
-                                                if (priceSummaryGeneral) priceSummaryGeneral.style.display = 'none';
-                                                function hidePriceSummary() {
-                                                    if (priceSummaryGeneral) priceSummaryGeneral.style.display = 'none';
-                                                    const priceSidebar = document.querySelector('.total-price, #quoteTotalPriceGeneral');
-                                                    if (priceSidebar) priceSidebar.textContent = '';
-                                                    const volumeSidebar = document.getElementById('quoteTotalVolumeGeneral');
-                                                    if (volumeSidebar) volumeSidebar.textContent = '';
-                                                }
-                                                const fileInput = document.getElementById('fileInput3d');
-                                                if (fileInput) fileInput.addEventListener('change', hidePriceSummary);
-                                                document.addEventListener('fileRemoved', hidePriceSummary);
-                                                const saveBtn = document.getElementById('saveCalculationsBtn');
-                                                if (saveBtn) {
-                                                    saveBtn.addEventListener('click', async function() {
-                                                        await repairAndRecalculateAll(window.viewerGeneral, THREE, () => window.showAllFilePrices && window.showAllFilePrices('General'), 'priceSummaryGeneral');
-                                                    });
-                                                }
-                                            });
-                                            </script>
-<script type="module">
-import * as THREE from 'three';
-import { repairAndRecalculateAll } from '/frontend/assets/js/3d-file-manager.js';
-document.addEventListener('DOMContentLoaded', function() {
-    const priceSummaryMedical = document.getElementById('priceSummaryMedical');
-    if (priceSummaryMedical) priceSummaryMedical.style.display = 'none';
-    function hidePriceSummaryMedical() {
-        if (priceSummaryMedical) priceSummaryMedical.style.display = 'none';
-        const priceSidebar = document.querySelector('.total-price, #quoteTotalPriceMedical');
-        if (priceSidebar) priceSidebar.textContent = '';
-        const volumeSidebar = document.getElementById('quoteTotalVolumeMedical');
-        if (volumeSidebar) volumeSidebar.textContent = '';
-    }
-    const fileInput = document.getElementById('fileInput3dMedical');
-    if (fileInput) fileInput.addEventListener('change', hidePriceSummaryMedical);
-    document.addEventListener('fileRemoved', hidePriceSummaryMedical);
-    const saveBtn = document.getElementById('saveCalculationsBtn');
-    if (saveBtn) {
-        saveBtn.addEventListener('click', async function() {
-            await repairAndRecalculateAll(window.viewerMedical, THREE, () => window.showAllFilePrices && window.showAllFilePrices('Medical'), 'priceSummaryMedical');
-        });
-    }
-});
-</script>
+                                            </button>
+                                            <button type="button" class="btn btn-sm category-tab-btn" data-category="medical" style="border-radius: 0 8px 8px 0; padding: 10px; font-size: 0.85rem; font-weight: 600;">
+                                                Medical
+                                            </button>
+                                        </div>
+
+                                        <!-- Upload Area -->
+                                        <div class="upload-drop-zone-3d text-center p-3 mb-3" style="border: 2px dashed #cbd5e0; border-radius: 10px; background: white; cursor: pointer; transition: all 0.3s;">
+                                            <input type="file" id="fileInput3d" style="display: none;" accept=".stl,.obj,.ply" multiple>
+                                            <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" class="mb-2">
+                                                <circle cx="20" cy="20" r="20" fill="#e8f4f8"/>
+                                                <path d="M20 10L26 16L20 22L14 16L20 10Z" stroke="#4a90e2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                <path d="M14 22L20 28L26 22" stroke="#4a90e2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/>
+                                            </svg>
+                                            <p class="mb-1" style="font-size: 0.9rem; font-weight: 600; color: #2c3e50;">Drop files or click</p>
+                                            <small class="text-muted" style="font-size: 0.8rem;">STL, OBJ, PLY (Max 100MB each) • Multiple files supported</small>
+                                        </div>
+
+                                        <!-- Uploaded Files List -->
+                                        <div id="uploadedFilesList" class="mb-3" style="display: none;">
+                                            <label class="form-label mb-2" style="font-size: 0.85rem; font-weight: 600; color: #495057;">Uploaded Files (<span id="fileCount">0</span>)</label>
+                                            <div id="filesContainer" style="max-height: 200px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 8px; background: #f8f9fa;"></div>
+                                        </div>
 
                                         <!-- Technology -->
                                         <div class="mb-3">
