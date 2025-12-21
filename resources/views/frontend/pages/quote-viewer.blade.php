@@ -42,27 +42,42 @@
             }
         }
         
-        const volumeCm3 = Math.abs(signedVolume) / 6;
+        // FIX: Positions are in MM, volume is in MM³, convert to CM³
+        const volumeMm3 = Math.abs(signedVolume) / 6;
+        const volumeCm3 = volumeMm3 / 1000;  // MM³ to CM³
         const price = volumeCm3 * 0.5;
         
-        console.log('VOLUME:', volumeCm3);
-        console.log('PRICE:', price);
+        console.log('📐 Volume (mm³):', volumeMm3);
+        console.log('📐 Volume (cm³):', volumeCm3);
+        console.log('💰 Price:', price);
         
-        document.querySelectorAll('#quoteTotalVolumeGeneral').forEach(el => {
+        // Try to find and log ALL elements first
+        const volEls = document.querySelectorAll('#quoteTotalVolumeGeneral');
+        const priceEls = document.querySelectorAll('#quoteTotalPriceGeneral');
+        console.log('Found', volEls.length, 'volume elements');
+        console.log('Found', priceEls.length, 'price elements');
+        
+        // Update with EXTREME styling
+        volEls.forEach((el, i) => {
+            console.log('Updating volume el', i, el);
             el.textContent = volumeCm3.toFixed(2) + ' cm³';
-            el.style.display = 'block';
-            el.style.color = 'red';
-            el.style.fontSize = '24px';
+            el.style.cssText = 'display: block !important; visibility: visible !important; color: #ff0000 !important; font-size: 28px !important; font-weight: bold !important; background: yellow !important; padding: 5px !important;';
         });
         
-        document.querySelectorAll('#quoteTotalPriceGeneral').forEach(el => {
+        priceEls.forEach((el, i) => {
+            console.log('Updating price el', i, el);
             el.textContent = '$' + price.toFixed(2);
-            el.style.display = 'block';
-            el.style.color = 'red';
-            el.style.fontSize = '24px';
+            el.style.cssText = 'display: block !important; visibility: visible !important; color: #ff0000 !important; font-size: 28px !important; font-weight: bold !important; background: yellow !important; padding: 5px !important;';
         });
         
-        alert('DONE! Volume: ' + volumeCm3.toFixed(2) + ' cm³\\nPrice: $' + price.toFixed(2) + '\\n\\nLOOK FOR RED TEXT!');
+        // Also show the summary containers
+        const summary = document.getElementById('priceSummaryGeneral');
+        if (summary) {
+            summary.style.display = 'block';
+            summary.style.visibility = 'visible';
+        }
+        
+        alert('✅ DONE!\\n\\nVolume: ' + volumeCm3.toFixed(2) + ' cm³\\nPrice: $' + price.toFixed(2) + '\\n\\nLOOK FOR RED TEXT ON YELLOW BACKGROUND!');
     " style="background: #ff0000; color: white; padding: 20px 40px; font-size: 24px; font-weight: bold; border: 5px solid yellow; cursor: pointer; box-shadow: 0 4px 20px rgba(0,0,0,0.3); border-radius: 10px;">
         🚨 CLICK ME 🚨
     </button>
