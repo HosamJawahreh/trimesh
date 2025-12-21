@@ -182,12 +182,21 @@ document.addEventListener('DOMContentLoaded', function() {
                                             
                                             {{-- Tools Group --}}
                                             <div class="toolbar-group" style="display: flex !important; gap: 4px !important; visibility: visible !important; opacity: 1 !important;">
-                                                <button type="button" class="toolbar-btn" id="measurementToolBtn" title="Measurement Tools" data-tool="measurement" onclick="window.toolbarHandler.toggleMeasurement('General')">
+                                                
+                                                {{-- SIMPLE TEST BUTTON --}}
+                                                <button type="button" class="toolbar-btn" style="background: #ff0000 !important;" onclick="alert('BUTTON CLICK WORKS!'); console.log('🔴 RED TEST BUTTON CLICKED!');">
+                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                                        <circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="2"/>
+                                                        <text x="10" y="14" text-anchor="middle" fill="currentColor" font-size="12">T</text>
+                                                    </svg>
+                                                </button>
+                                                
+                                                <button type="button" class="toolbar-btn" id="measurementToolBtn" title="Measurement Tools" data-tool="measurement" onclick="console.log('📏 MEASUREMENT BUTTON CLICKED!'); console.log('window:', window); console.log('window.toolbarHandler:', window.toolbarHandler); alert('Measurement clicked - check console!'); if(window.toolbarHandler) { window.toolbarHandler.toggleMeasurement('General'); } else { alert('ERROR: toolbarHandler not found!'); }">
                                                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                                                         <path d="M4 16L16 4M6 16L8 14M10 16L12 14M14 16L16 14M4 14L6 12M4 10L8 6M4 6L6 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
                                                     </svg>
                                                 </button>
-                                                <button type="button" class="toolbar-btn" id="boundingBoxBtn" title="Bounding Box" data-tool="boundingBox" onclick="window.toolbarHandler.toggleBoundingBox('General')">
+                                                <button type="button" class="toolbar-btn" id="boundingBoxBtn" title="Bounding Box" data-tool="boundingBox" onclick="console.log('📦 BOUNDING BOX BUTTON CLICKED!'); console.log('window.toolbarHandler:', window.toolbarHandler); alert('Bounding Box clicked - check console!'); if(window.toolbarHandler) { window.toolbarHandler.toggleBoundingBox('General'); } else { alert('ERROR: toolbarHandler not found!'); }">
                                                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                                                         <rect x="3" y="3" width="14" height="14" stroke="currentColor" stroke-width="1.8" stroke-dasharray="2 2"/>
                                                         <circle cx="3" cy="3" r="1.5" fill="currentColor"/>
@@ -255,7 +264,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                                         <path d="M12 5L15 8L12 11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
                                                     </svg>
                                                 </button>
-                                                <button type="button" class="toolbar-btn" id="screenshotToolBtn" title="Screenshot" data-action="screenshot" onclick="window.toolbarHandler.takeScreenshot('General')">
+                                                <button type="button" class="toolbar-btn" id="screenshotToolBtn" title="Screenshot" data-action="screenshot" style="border: 2px solid #10b981 !important;" onclick="console.log('📸 SCREENSHOT BUTTON CLICKED!'); console.log('window.toolbarHandler:', window.toolbarHandler); console.log('window.viewerGeneral:', window.viewerGeneral); alert('Screenshot clicked - check console!'); if(window.toolbarHandler && window.toolbarHandler.takeScreenshot) { window.toolbarHandler.takeScreenshot('General'); } else { alert('ERROR: takeScreenshot not found!'); }">
                                                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                                                         <rect x="2" y="5" width="16" height="12" rx="2" stroke="currentColor" stroke-width="1.8"/>
                                                         <circle cx="10" cy="11" r="2.5" stroke="currentColor" stroke-width="1.8"/>
@@ -3904,20 +3913,39 @@ loading
 </script>
 
 <script src="{{ asset('frontend/assets/js/3d-viewer-pro.js') }}?v=3"></script>
-<script src="{{ asset('frontend/assets/js/3d-viewer-professional-tools.js') }}?v=1000"></script>
+<script src="{{ asset('frontend/assets/js/3d-viewer-professional-tools.js') }}?v=2001"></script>
 <script>
 // IMMEDIATE verification that toolbar handler exists
 console.log('========================================');
 console.log('🔍 VERIFICATION SCRIPT RUNNING');
 console.log('window.toolbarHandler exists?', typeof window.toolbarHandler !== 'undefined');
 console.log('window.toolbarHandler:', window.toolbarHandler);
+
 if (window.toolbarHandler) {
     console.log('✅ Toolbar handler loaded successfully!');
     console.log('Available methods:', Object.keys(window.toolbarHandler));
+    
+    // Test if takeScreenshot method exists
+    if (window.toolbarHandler.takeScreenshot) {
+        console.log('✅ takeScreenshot method found!');
+        console.log('takeScreenshot function:', window.toolbarHandler.takeScreenshot);
+    } else {
+        console.error('❌ takeScreenshot method NOT FOUND!');
+    }
+    
+    // Make it globally accessible for easy testing
+    window.testScreenshot = function() {
+        console.log('🧪 TEST: Calling takeScreenshot...');
+        window.toolbarHandler.takeScreenshot('General');
+    };
+    console.log('💡 TIP: You can test screenshot by typing: testScreenshot()');
+    
 } else {
     console.error('❌ ERROR: window.toolbarHandler is UNDEFINED!');
     console.error('This means the script did not execute properly');
+    alert('CRITICAL ERROR: Toolbar handler not loaded! Check console.');
 }
+
 console.log('========================================');
 </script>
 <script src="{{ asset('frontend/assets/js/enhanced-save-calculate.js') }}?v=1"></script>
