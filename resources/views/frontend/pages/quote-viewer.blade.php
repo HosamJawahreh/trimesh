@@ -115,16 +115,120 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const saveBtn = document.getElementById('saveCalculationsBtn');
     if (saveBtn) {
-        saveBtn.addEventListener('click', async function() {
-            console.log('💾 Save & Calculate button clicked');
+        saveBtn.addEventListener('click', function() {
+            console.log('� DIRECT CALCULATION START');
             
-            // Use the new simple save & calculate system
-            if (window.SimpleSaveCalculate) {
-                await window.SimpleSaveCalculate.execute('general');
-            } else {
-                console.error('❌ SimpleSaveCalculate not loaded');
-                alert('Calculation system not loaded. Please refresh the page.');
+            // Get viewer and files
+            const viewer = window.viewerGeneral;
+            if (!viewer || !viewer.uploadedFiles || viewer.uploadedFiles.length === 0) {
+                alert('Please upload a 3D model first!');
+                return;
             }
+            
+            console.log('Files:', viewer.uploadedFiles.length);
+            
+            // Calculate total volume DIRECTLY using signed tetrahedron method
+            let totalVolumeCm3 = 0;
+            
+            viewer.uploadedFiles.forEach((fileData, index) => {
+                const mesh = fileData.mesh;
+                if (!mesh || !mesh.geometry) {
+                    console.log(`File ${index}: No mesh/geometry`);
+                    return;
+                }
+                
+                const geometry = mesh.geometry;
+                const positions = geometry.attributes.position.array;
+                const indices = geometry.index ? geometry.index.array : null;
+                
+                let signedVolume = 0;
+                
+                if (indices && indices.length > 0) {
+                    // Indexed geometry
+                    for (let i = 0; i < indices.length; i += 3) {
+                        const i0 = indices[i] * 3;
+                        const i1 = indices[i + 1] * 3;
+                        const i2 = indices[i + 2] * 3;
+                        
+                        const v0x = positions[i0], v0y = positions[i0 + 1], v0z = positions[i0 + 2];
+                        const v1x = positions[i1], v1y = positions[i1 + 1], v1z = positions[i1 + 2];
+                        const v2x = positions[i2], v2y = positions[i2 + 1], v2z = positions[i2 + 2];
+                        
+                        const crossX = v1y * v2z - v1z * v2y;
+                        const crossY = v1z * v2x - v1x * v2z;
+                        const crossZ = v1x * v2y - v1y * v2x;
+                        
+                        signedVolume += (v0x * crossX + v0y * crossY + v0z * crossZ);
+                    }
+                } else {
+                    // Non-indexed geometry
+                    for (let i = 0; i < positions.length; i += 9) {
+                        const v0x = positions[i], v0y = positions[i + 1], v0z = positions[i + 2];
+                        const v1x = positions[i + 3], v1y = positions[i + 4], v1z = positions[i + 5];
+                        const v2x = positions[i + 6], v2y = positions[i + 7], v2z = positions[i + 8];
+                        
+                        const crossX = v1y * v2z - v1z * v2y;
+                        const crossY = v1z * v2x - v1x * v2z;
+                        const crossZ = v1x * v2y - v1y * v2x;
+                        
+                        signedVolume += (v0x * crossX + v0y * crossY + v0z * crossZ);
+                    }
+                }
+                
+                const volumeCm3 = Math.abs(signedVolume) / 6;
+                totalVolumeCm3 += volumeCm3;
+                console.log(`File ${index}: ${volumeCm3.toFixed(2)} cm³`);
+            });
+            
+            console.log(`TOTAL VOLUME: ${totalVolumeCm3.toFixed(2)} cm³`);
+            
+            // Get technology and material
+            const tech = document.getElementById('technologySelectGeneral')?.value || 'fdm';
+            const mat = document.getElementById('materialSelectGeneral')?.value || 'pla';
+            
+            // Calculate price (simple pricing matrix)
+            const prices = {
+                'fdm': { 'pla': 0.50, 'abs': 0.60, 'petg': 0.70, 'tpu': 1.20, 'nylon': 1.50 },
+                'sla': { 'standard': 1.50, 'tough': 2.00, 'flexible': 2.50, 'castable': 3.00 },
+                'sls': { 'pa12': 3.00, 'pa11': 3.50, 'tpu': 4.00, 'alumide': 5.00 },
+                'mjf': { 'pa12': 4.00, 'pa12_gb': 5.00, 'tpu': 6.00 },
+                'dmls': { 'stainless_steel': 10.00, 'titanium': 15.00, 'aluminum': 12.00 },
+                'binder_jetting': { 'stainless_steel': 5.00, 'bronze': 6.00, 'sand': 3.00 }
+            };
+            
+            const pricePerCm3 = prices[tech]?.[mat] || 0.50;
+            const totalPrice = totalVolumeCm3 * pricePerCm3;
+            
+            console.log(`Tech: ${tech}, Material: ${mat}, Price: $${totalPrice.toFixed(2)}`);
+            
+            // UPDATE UI DIRECTLY - FORCE DISPLAY
+            const volumeElements = document.querySelectorAll('#quoteTotalVolumeGeneral');
+            volumeElements.forEach(el => {
+                el.textContent = `${totalVolumeCm3.toFixed(2)} cm³`;
+                el.style.display = 'block';
+                el.style.visibility = 'visible';
+                el.style.color = '#00ff00'; // GREEN so you can SEE it changed!
+                el.style.fontWeight = 'bold';
+            });
+            
+            const priceElements = document.querySelectorAll('#quoteTotalPriceGeneral');
+            priceElements.forEach(el => {
+                el.textContent = `$${totalPrice.toFixed(2)}`;
+                el.style.display = 'block';
+                el.style.visibility = 'visible';
+                el.style.color = '#00ff00'; // GREEN so you can SEE it changed!
+                el.style.fontWeight = 'bold';
+            });
+            
+            // Show summary containers
+            const summary = document.getElementById('priceSummaryGeneral');
+            if (summary) {
+                summary.style.display = 'block';
+                summary.style.visibility = 'visible';
+            }
+            
+            console.log('✅ UI UPDATED!');
+            alert(`Calculated!\n\nVolume: ${totalVolumeCm3.toFixed(2)} cm³\nPrice: $${totalPrice.toFixed(2)}`);
         });
     }
 });
