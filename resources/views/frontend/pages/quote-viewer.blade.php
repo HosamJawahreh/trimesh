@@ -6,19 +6,65 @@
 {{-- EMERGENCY TEST BUTTON - REMOVE AFTER TESTING --}}
 <div style="position: fixed; top: 10px; right: 10px; z-index: 999999;">
     <button id="emergencyTestBtn" onclick="
-        alert('EMERGENCY BUTTON WORKS!');
-        console.log('🚨 EMERGENCY TEST');
+        alert('🔥 STARTING...');
         
-        // Try to calculate
         const viewer = window.viewerGeneral;
-        if (!viewer) {
-            alert('No viewer found!');
+        if (!viewer || !viewer.uploadedFiles || viewer.uploadedFiles.length === 0) {
+            alert('ERROR: No viewer or files!');
             return;
         }
         
-        alert('Viewer found! Files: ' + (viewer.uploadedFiles ? viewer.uploadedFiles.length : 0));
+        const fileData = viewer.uploadedFiles[0];
+        const geometry = fileData.mesh?.geometry;
+        if (!geometry) {
+            alert('ERROR: No geometry!');
+            return;
+        }
+        
+        const positions = geometry.attributes.position.array;
+        const indices = geometry.index ? geometry.index.array : null;
+        let signedVolume = 0;
+        
+        if (indices) {
+            for (let i = 0; i < indices.length; i += 3) {
+                const i0 = indices[i] * 3, i1 = indices[i + 1] * 3, i2 = indices[i + 2] * 3;
+                const v0x = positions[i0], v0y = positions[i0 + 1], v0z = positions[i0 + 2];
+                const v1x = positions[i1], v1y = positions[i1 + 1], v1z = positions[i1 + 2];
+                const v2x = positions[i2], v2y = positions[i2 + 1], v2z = positions[i2 + 2];
+                signedVolume += v0x * (v1y * v2z - v1z * v2y) + v0y * (v1z * v2x - v1x * v2z) + v0z * (v1x * v2y - v1y * v2x);
+            }
+        } else {
+            for (let i = 0; i < positions.length; i += 9) {
+                const v0x = positions[i], v0y = positions[i + 1], v0z = positions[i + 2];
+                const v1x = positions[i + 3], v1y = positions[i + 4], v1z = positions[i + 5];
+                const v2x = positions[i + 6], v2y = positions[i + 7], v2z = positions[i + 8];
+                signedVolume += v0x * (v1y * v2z - v1z * v2y) + v0y * (v1z * v2x - v1x * v2z) + v0z * (v1x * v2y - v1y * v2x);
+            }
+        }
+        
+        const volumeCm3 = Math.abs(signedVolume) / 6;
+        const price = volumeCm3 * 0.5;
+        
+        console.log('VOLUME:', volumeCm3);
+        console.log('PRICE:', price);
+        
+        document.querySelectorAll('#quoteTotalVolumeGeneral').forEach(el => {
+            el.textContent = volumeCm3.toFixed(2) + ' cm³';
+            el.style.display = 'block';
+            el.style.color = 'red';
+            el.style.fontSize = '24px';
+        });
+        
+        document.querySelectorAll('#quoteTotalPriceGeneral').forEach(el => {
+            el.textContent = '$' + price.toFixed(2);
+            el.style.display = 'block';
+            el.style.color = 'red';
+            el.style.fontSize = '24px';
+        });
+        
+        alert('DONE! Volume: ' + volumeCm3.toFixed(2) + ' cm³\\nPrice: $' + price.toFixed(2) + '\\n\\nLOOK FOR RED TEXT!');
     " style="background: #ff0000; color: white; padding: 20px 40px; font-size: 24px; font-weight: bold; border: 5px solid yellow; cursor: pointer; box-shadow: 0 4px 20px rgba(0,0,0,0.3); border-radius: 10px;">
-        🚨 TEST CALCULATE 🚨
+        🚨 CLICK ME 🚨
     </button>
 </div>
 
