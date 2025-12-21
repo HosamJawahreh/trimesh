@@ -934,14 +934,20 @@ if (!window.professionalToolsKeyboardSetup) {
 
 // Initialize when viewer is ready
 window.addEventListener('viewersReady', () => {
-    console.log('🎬 Viewers ready, initializing professional tools...');
+    console.log('🎬 viewersReady EVENT received, initializing professional tools...');
     
     if (window.viewerGeneral) {
+        console.log('   Found viewerGeneral, initializing...');
         initProfessionalTools(window.viewerGeneral);
+    } else {
+        console.warn('   ⚠️ viewerGeneral not found');
     }
     
     if (window.viewerMedical) {
+        console.log('   Found viewerMedical, initializing...');
         initProfessionalTools(window.viewerMedical);
+    } else {
+        console.warn('   ⚠️ viewerMedical not found');
     }
     
     // Ensure toolbars are visible
@@ -956,17 +962,36 @@ window.addEventListener('viewersReady', () => {
     }, 500);
 });
 
-// Also ensure toolbars are visible on page load
+// IMPORTANT: Also check if viewers are ALREADY initialized (in case event already fired)
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('📍 DOMContentLoaded - checking if viewers already exist...');
+    
+    // Wait a bit for viewers to initialize
     setTimeout(() => {
+        console.log('   Checking for existing viewers...');
+        console.log('   window.viewerGeneral:', !!window.viewerGeneral);
+        console.log('   window.viewerMedical:', !!window.viewerMedical);
+        
+        // If viewers exist but tools aren't initialized, do it now
+        if (window.viewerGeneral && !window.viewerGeneral.tools) {
+            console.log('   🔧 viewerGeneral exists but tools not initialized - doing it now!');
+            initProfessionalTools(window.viewerGeneral);
+        }
+        
+        if (window.viewerMedical && !window.viewerMedical.tools) {
+            console.log('   🔧 viewerMedical exists but tools not initialized - doing it now!');
+            initProfessionalTools(window.viewerMedical);
+        }
+        
+        // Ensure toolbars are visible
         const toolbars = document.querySelectorAll('.viewer-professional-toolbar');
         toolbars.forEach(toolbar => {
             toolbar.style.display = 'flex';
             toolbar.style.visibility = 'visible';
             toolbar.style.opacity = '1';
         });
-        console.log('📍 Toolbars visibility ensured on DOM ready:', toolbars.length);
-    }, 1000);
+        console.log('   Toolbars visibility ensured:', toolbars.length);
+    }, 2000); // Wait 2 seconds for viewers to initialize
 });
 
-console.log('✅ Professional 3D Viewer Tools loaded');
+console.log('✅ Professional 3D Viewer Tools script loaded');
