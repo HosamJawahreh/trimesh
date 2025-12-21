@@ -164,7 +164,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                                     {{-- 3D Viewer Canvas --}}
                                     <div id="viewer3dGeneral" style="position: relative !important; display: flex !important; visibility: visible !important; width: 100% !important; height: 100vh !important; background: linear-gradient(to bottom, #b8c5d6 0%, #99a8ba 100%) !important;">
-                                        
+
                                         {{-- Model Info Badge (Top Left - Hidden until file uploaded) --}}
                                         <div class="model-info-badge" style="display: none;">
                                             <div class="model-name">
@@ -179,10 +179,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
                                         {{-- Professional Toolbar - Top Right --}}
                                         <div class="viewer-professional-toolbar" id="professionalToolbar" style="position: absolute !important; top: 20px !important; right: 20px !important; display: flex !important; visibility: visible !important; opacity: 1 !important; z-index: 9999 !important; background: rgba(255, 255, 255, 0.95) !important; padding: 8px !important; border-radius: 12px !important; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important; pointer-events: auto !important; gap: 8px !important;">
-                                            
+
                                             {{-- Tools Group --}}
                                             <div class="toolbar-group" style="display: flex !important; gap: 4px !important; visibility: visible !important; opacity: 1 !important;">
-                                                
+
                                                 <button type="button" class="toolbar-btn" id="measurementToolBtn" title="Measurement Tools" data-tool="measurement" onclick="window.toolbarHandler.toggleMeasurement('General')">
                                                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                                                         <path d="M4 16L16 4M6 16L8 14M10 16L12 14M14 16L16 14M4 14L6 12M4 10L8 6M4 6L6 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
@@ -1607,12 +1607,12 @@ document.addEventListener('DOMContentLoaded', function() {
         padding: 6px;
         gap: 6px;
     }
-    
+
     .toolbar-btn {
         width: 38px;
         height: 38px;
     }
-    
+
     .measurement-submenu {
         right: 10px;
         min-width: 200px;
@@ -3814,7 +3814,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // ============================================
     // END SCREENSHOT TOOL
     // ============================================
-loading 
+loading
     // ============================================
     // SHARE BUTTON HANDLERS
     // ============================================
@@ -3910,7 +3910,7 @@ loading
 <script>
 console.log('🚀 INLINE SCRIPT STARTING...');
 
-// Professional notification system
+// Professional notification system - IMPROVED positioning
 window.showToolbarNotification = function(message, type = 'info', duration = 2500) {
     const notification = document.createElement('div');
     
@@ -3925,14 +3925,14 @@ window.showToolbarNotification = function(message, type = 'info', duration = 250
     
     notification.style.cssText = `
         position: fixed;
-        top: 80px;
+        top: 140px;
         right: 20px;
         background: ${style.bg};
         color: white;
         padding: 14px 20px;
         border-radius: 10px;
         box-shadow: 0 6px 20px rgba(0,0,0,0.25);
-        z-index: 999999;
+        z-index: 9998;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         font-size: 14px;
         font-weight: 500;
@@ -3987,27 +3987,74 @@ window.showToolbarNotification = function(message, type = 'info', duration = 250
     }, duration);
 };
 
+// Button active state manager
+window.toggleToolbarButton = function(buttonId, isActive) {
+    const button = document.getElementById(buttonId);
+    if (!button) return;
+    
+    if (isActive) {
+        button.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+        button.style.color = 'white';
+        button.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.4)';
+    } else {
+        button.style.background = '';
+        button.style.color = '';
+        button.style.boxShadow = '';
+    }
 // Define the handler RIGHT HERE in the HTML
 window.toolbarHandler = {
     toggleMeasurement: function(viewerType) {
         console.log(`📏 Toggle measurement for ${viewerType}`);
         const submenu = document.getElementById('measurementSubmenu' + (viewerType === 'Medical' ? 'Medical' : ''));
         if (submenu) {
-            submenu.style.display = submenu.style.display === 'none' || submenu.style.display === '' ? 'block' : 'none';
+            const isVisible = submenu.style.display === 'block';
+            submenu.style.display = isVisible ? 'none' : 'block';
+            toggleToolbarButton('measurementToolBtn', !isVisible);
+            showToolbarNotification(isVisible ? 'Measurement tools hidden' : 'Measurement tools shown', 'info', 1500);
         }
     },
-    
+
     toggleBoundingBox: function(viewerType) {
         console.log(`📦 Toggle bounding box for ${viewerType}`);
         const viewer = viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral;
-        
+
         if (!viewer || !viewer.scene) {
             showToolbarNotification('Please wait for the 3D model to load', 'warning');
             return;
         }
 
         let existingHelper = viewer.scene.children.find(child => child.userData && child.userData.isBoundingBoxHelper);
-        
+
+        if (existingHelper) {
+            existingHelper.visible = !existingHelper.visible;
+            toggleToolbarButton('boundingBoxBtn', existingHelper.visible);
+            showToolbarNotification(existingHelper.visible ? 'Bounding box shown' : 'Bounding box hidden', 'success', 1500);
+        } else {
+            const box = new THREE.Box3();
+            let hasGeometry = false;
+            
+            viewer.scene.traverse((object) => {
+                if (object.isMesh && object.geometry) {
+                    box.expandByObject(object);
+                    hasGeometry = true;
+                }
+            });
+            
+            if (hasGeometry) {
+                const helper = new THREE.Box3Helper(box, 0xffaa00);
+                helper.userData.isBoundingBoxHelper = true;
+                viewer.scene.add(helper);
+                toggleToolbarButton('boundingBoxBtn', true);
+                showToolbarNotification('Bounding box enabled', 'success', 1500);
+            }
+        }
+
+        if (viewer.render) viewer.render();
+    },
+        }
+
+        let existingHelper = viewer.scene.children.find(child => child.userData && child.userData.isBoundingBoxHelper);
+
         if (existingHelper) {
             existingHelper.visible = !existingHelper.visible;
             console.log('✅ Bounding box toggled:', existingHelper.visible);
@@ -4018,91 +4065,120 @@ window.toolbarHandler = {
             viewer.scene.add(helper);
             console.log('✅ Bounding box created');
         }
-        
+
         if (viewer.render) viewer.render();
     },
-    
+
     toggleAxis: function(viewerType) {
         console.log(`🎯 Toggle axis for ${viewerType}`);
         const viewer = viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral;
-        
+
         if (!viewer || !viewer.scene) {
             showToolbarNotification('Please wait for the 3D model to load', 'warning');
             return;
         }
 
         let existingAxis = viewer.scene.children.find(child => child.userData && child.userData.isAxisHelper);
-        
+
         if (existingAxis) {
             existingAxis.visible = !existingAxis.visible;
-            console.log('✅ Axis toggled:', existingAxis.visible);
+            toggleToolbarButton('axisToggleBtn', existingAxis.visible);
+            showToolbarNotification(existingAxis.visible ? 'Axis shown' : 'Axis hidden', 'success', 1500);
         } else {
-            const axesHelper = new THREE.AxesHelper(100);
+            // Calculate model size to scale axis appropriately
+            const box = new THREE.Box3();
+            viewer.scene.traverse((object) => {
+                if (object.isMesh) box.expandByObject(object);
+            });
+            const size = box.getSize(new THREE.Vector3());
+            const maxDim = Math.max(size.x, size.y, size.z);
+            const axisSize = maxDim * 0.5;
+            
+            const axesHelper = new THREE.AxesHelper(axisSize);
             axesHelper.userData.isAxisHelper = true;
             viewer.scene.add(axesHelper);
-            console.log('✅ Axis created');
+            toggleToolbarButton('axisToggleBtn', true);
+            showToolbarNotification('Axis enabled', 'success', 1500);
         }
-        
+
         if (viewer.render) viewer.render();
     },
-    
+
     toggleGrid: function(viewerType) {
         console.log(`📐 Toggle grid for ${viewerType}`);
         const viewer = viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral;
-        
+
         if (!viewer || !viewer.scene) {
             showToolbarNotification('Please wait for the 3D model to load', 'warning');
             return;
         }
 
         let existingGrid = viewer.scene.children.find(child => child.userData && child.userData.isGridHelper);
-        
+
         if (existingGrid) {
             existingGrid.visible = !existingGrid.visible;
-            console.log('✅ Grid toggled:', existingGrid.visible);
+            toggleToolbarButton('gridToggleBtn', existingGrid.visible);
+            showToolbarNotification(existingGrid.visible ? 'Grid shown' : 'Grid hidden', 'success', 1500);
         } else {
-            const gridHelper = new THREE.GridHelper(200, 20, 0x888888, 0x444444);
+            // Calculate appropriate grid size based on model
+            const box = new THREE.Box3();
+            viewer.scene.traverse((object) => {
+                if (object.isMesh) box.expandByObject(object);
+            });
+            const size = box.getSize(new THREE.Vector3());
+            const maxDim = Math.max(size.x, size.y, size.z);
+            const gridSize = Math.ceil(maxDim * 1.5);
+            const divisions = Math.max(10, Math.ceil(gridSize / 10));
+            
+            const gridHelper = new THREE.GridHelper(gridSize, divisions, 0x888888, 0x444444);
             gridHelper.userData.isGridHelper = true;
+            
+            // Position grid at the bottom of the model
+            const center = box.getCenter(new THREE.Vector3());
+            gridHelper.position.y = box.min.y;
+            
             viewer.scene.add(gridHelper);
-            console.log('✅ Grid created');
+            toggleToolbarButton('gridToggleBtn', true);
+            showToolbarNotification('Measurement grid enabled', 'success', 1500);
         }
-        
+
         if (viewer.render) viewer.render();
     },
-    
+
     toggleShadow: function(viewerType) {
         console.log(`🌓 Toggle shadow for ${viewerType}`);
         const viewer = viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral;
-        
+
         if (!viewer || !viewer.renderer) {
             showToolbarNotification('Please wait for the 3D model to load', 'warning');
             return;
         }
 
         viewer.renderer.shadowMap.enabled = !viewer.renderer.shadowMap.enabled;
-        console.log('✅ Shadows toggled:', viewer.renderer.shadowMap.enabled);
-        
+        toggleToolbarButton('shadowToggleBtn', viewer.renderer.shadowMap.enabled);
+        showToolbarNotification(viewer.renderer.shadowMap.enabled ? 'Shadows enabled' : 'Shadows disabled', 'success', 1500);
+
         if (viewer.render) viewer.render();
     },
-    
+
     toggleTransparency: function(viewerType) {
         console.log(`👁️ Toggle transparency for ${viewerType}`);
         const viewer = viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral;
-        
+
         if (!viewer || !viewer.scene) {
             showToolbarNotification('Please wait for the 3D model to load', 'warning');
             return;
         }
 
         const levels = [1.0, 0.75, 0.5, 0.25];
-        
+
         if (!viewer.currentTransparencyIndex) {
             viewer.currentTransparencyIndex = 0;
         }
-        
+
         viewer.currentTransparencyIndex = (viewer.currentTransparencyIndex + 1) % levels.length;
         const newOpacity = levels[viewer.currentTransparencyIndex];
-        
+
         viewer.scene.traverse((object) => {
             if (object.isMesh && object.material) {
                 object.material.transparent = newOpacity < 1.0;
@@ -4110,16 +4186,17 @@ window.toolbarHandler = {
                 object.material.needsUpdate = true;
             }
         });
-        
-        console.log(`✅ Transparency: ${Math.round(newOpacity * 100)}%`);
-        
+
+        toggleToolbarButton('transparencyBtn', newOpacity < 1.0);
+        showToolbarNotification(`Transparency: ${Math.round(newOpacity * 100)}%`, 'info', 1500);
+
         if (viewer.render) viewer.render();
     },
-    
+
     takeScreenshot: function(viewerType) {
         console.log(`📸 Take screenshot for ${viewerType}`);
         const viewer = viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral;
-        
+
         if (!viewer) {
             showToolbarNotification('Viewer loading, please wait...', 'info');
             return;
@@ -4140,7 +4217,7 @@ window.toolbarHandler = {
 
             const timestamp = new Date().toISOString().replace(/[:.]/g, '-').substring(0, 19);
             const filename = `3d-model-${viewerType.toLowerCase()}-${timestamp}.png`;
-            
+
             const link = document.createElement('a');
             link.href = dataURL;
             link.download = filename;
@@ -4148,29 +4225,26 @@ window.toolbarHandler = {
             link.click();
             document.body.removeChild(link);
 
-            console.log('✅ Screenshot saved:', filename);
-            
-            const notification = document.createElement('div');
-            notification.style.cssText = 'position: fixed; top: 80px; right: 20px; background: #10b981; color: white; padding: 12px 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 999999; font-family: system-ui; font-size: 14px; font-weight: 500;';
-            notification.textContent = '📸 Screenshot saved!';
-            document.body.appendChild(notification);
-            
-            setTimeout(() => {
-                notification.style.transition = 'opacity 0.3s';
-                notification.style.opacity = '0';
-                setTimeout(() => document.body.removeChild(notification), 300);
-            }, 2000);
-            
+            showToolbarNotification('Screenshot saved successfully!', 'success', 2000);
+
         } catch (error) {
             console.error('❌ Screenshot failed:', error);
-            alert('Screenshot failed: ' + error.message);
+            showToolbarNotification('Screenshot failed: ' + error.message, 'error', 3000);
         }
     },
-    
-    undo: function() { alert('Undo feature coming soon!'); },
-    redo: function() { alert('Redo feature coming soon!'); },
-    changeModelColor: function() { alert('Color picker coming soon!'); },
-    changeBackgroundColor: function() { alert('Background color picker coming soon!'); }
+
+    undo: function() { 
+        showToolbarNotification('Undo feature coming in next update', 'info', 2000);
+    },
+    redo: function() { 
+        showToolbarNotification('Redo feature coming in next update', 'info', 2000);
+    },
+    changeModelColor: function() { 
+        showToolbarNotification('Color picker coming in next update', 'info', 2000);
+    },
+    changeBackgroundColor: function() { 
+        showToolbarNotification('Background color picker coming in next update', 'info', 2000);
+    }
 };
 
 console.log('✅ INLINE window.toolbarHandler created!', window.toolbarHandler);
@@ -4188,7 +4262,7 @@ console.log('window.toolbarHandler:', window.toolbarHandler);
 if (window.toolbarHandler) {
     console.log('✅ Toolbar handler loaded successfully!');
     console.log('Available methods:', Object.keys(window.toolbarHandler));
-    
+
     // Test if takeScreenshot method exists
     if (window.toolbarHandler.takeScreenshot) {
         console.log('✅ takeScreenshot method found!');
@@ -4196,14 +4270,14 @@ if (window.toolbarHandler) {
     } else {
         console.error('❌ takeScreenshot method NOT FOUND!');
     }
-    
+
     // Make it globally accessible for easy testing
     window.testScreenshot = function() {
         console.log('🧪 TEST: Calling takeScreenshot...');
         window.toolbarHandler.takeScreenshot('General');
     };
     console.log('💡 TIP: You can test screenshot by typing: testScreenshot()');
-    
+
 } else {
     console.error('❌ ERROR: window.toolbarHandler is UNDEFINED!');
     console.error('This means the script did not execute properly');
@@ -4288,22 +4362,22 @@ console.log('========================================');
 // Force toolbar visibility after page load
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🔧 Forcing toolbar visibility...');
-    
+
     // Find all professional toolbars with correct class name
     const toolbars = document.querySelectorAll('.viewer-professional-toolbar');
-    
+
     console.log(`Found ${toolbars.length} toolbars`);
-    
+
     toolbars.forEach(function(toolbar, index) {
         // Force display
         toolbar.style.display = 'flex';
         toolbar.style.visibility = 'visible';
         toolbar.style.opacity = '1';
         toolbar.style.pointerEvents = 'auto';
-        
+
         console.log(`✅ Toolbar ${index + 1} visibility forced`, toolbar);
     });
-    
+
     // Double-check after a short delay
     setTimeout(function() {
         toolbars.forEach(function(toolbar, index) {
@@ -4314,7 +4388,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         console.log('✅ Toolbar visibility re-confirmed');
     }, 500);
-    
+
     // Triple check after 2 seconds (in case viewer initialization hides it)
     setTimeout(function() {
         toolbars.forEach(function(toolbar) {
