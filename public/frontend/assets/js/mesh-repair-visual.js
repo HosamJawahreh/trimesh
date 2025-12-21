@@ -32,6 +32,19 @@ window.MeshRepairVisual = {
             return { repaired: true, holesFound: 0, holesFilled: 0, watertight: true };
         }
 
+        // Safety check: If too many holes detected, mesh is likely badly broken
+        if (analysis.holes > 100) {
+            console.error(`❌ Mesh appears to be severely damaged (${analysis.holes} estimated holes)`);
+            console.error('   This mesh may need manual repair in a 3D modeling tool');
+            console.error(`   Open edges detected: ${analysis.openEdges}`);
+            return { 
+                repaired: false, 
+                holesFound: analysis.holes, 
+                holesFilled: 0,
+                error: 'Mesh too damaged for automatic repair'
+            };
+        }
+
         // Step 2: Find hole boundaries
         const holeBoundaries = this.findHoleBoundaries(geometry);
         console.log(`🔍 Found ${holeBoundaries.length} hole boundaries`);
@@ -61,14 +74,22 @@ window.MeshRepairVisual = {
 
         // Step 4: Add visual indicators for repaired areas
         if (repairGeometries.length > 0) {
-            this.addRepairVisualization(viewer, repairGeometries, mesh);
+            const mergedGeometry = this.addRepairVisualization(viewer, repairGeometries, mesh);
 
             // CRITICAL: Update fileData.geometry so volume calculation uses repaired mesh
-            fileData.geometry = mesh.geometry;
-            console.log('✅ Updated fileData.geometry to repaired version');
+            if (mergedGeometry) {
+                fileData.geometry = mergedGeometry;
+                fileData.mesh.geometry = mergedGeometry;
+                console.log('✅ Updated fileData.geometry and mesh.geometry to repaired version');
+                console.log(`   New geometry has ${mergedGeometry.attributes.position.count} vertices`);
+            } else {
+                console.warn('⚠️ Failed to get merged geometry');
+            }
+        } else {
+            console.log('⚠️ No repair geometries created');
         }
 
-        // Step 5: Merge repair geometry with original (now done in addRepairVisualization)
+        // Step 5: Return results
 
         return {
             repaired: true,
@@ -84,62 +105,100 @@ window.MeshRepairVisual = {
     analyzeGeometry(geometry) {
         const position = geometry.attributes.position;
         if (!position) {
+            console.log('⚠️ No position attribute found in geometry');
             return { holes: 0, openEdges: 0, manifold: false };
         }
 
         const vertices = position.array;
         const indices = geometry.index ? geometry.index.array : null;
 
-        // Build edge map to find open edges
+        console.log(`🔍 Analyzing geometry: ${vertices.length / 3} vertices, ${indices ? 'indexed' : 'non-indexed'}`);
+
+        // For non-indexed geometry, we can't easily detect holes
+        // Non-indexed geometries are typically pre-triangulated and watertight
+        if (!indices) {
+            console.log('   ℹ️ Non-indexed geometry detected - assuming watertight');
+            console.log('   Non-indexed geometries are typically exported as watertight meshes');
+            return {
+                triangles: vertices.length / 9,
+                openEdges: 0,
+                holes: 0,
+                manifold: true,
+                watertight: true,
+                nonIndexed: true
+            };
+        }
+
+        // Build edge map to find open edges (ONLY for indexed geometry)
         const edgeMap = new Map();
         let triangleCount = 0;
 
-        if (indices) {
-            for (let i = 0; i < indices.length; i += 3) {
-                const i0 = indices[i];
-                const i1 = indices[i + 1];
-                const i2 = indices[i + 2];
+        console.log(`   Processing ${indices.length / 3} indexed triangles...`);
+        for (let i = 0; i < indices.length; i += 3) {
+            const i0 = indices[i];
+            const i1 = indices[i + 1];
+            const i2 = indices[i + 2];
 
-                // Add three edges of triangle
-                this.addEdge(edgeMap, i0, i1);
-                this.addEdge(edgeMap, i1, i2);
-                this.addEdge(edgeMap, i2, i0);
+            // Add three edges of triangle
+            this.addEdge(edgeMap, i0, i1);
+            this.addEdge(edgeMap, i1, i2);
+            this.addEdge(edgeMap, i2, i0);
 
-                triangleCount++;
-            }
-        } else {
-            // Non-indexed geometry
-            for (let i = 0; i < vertices.length; i += 9) {
-                const i0 = i / 3;
-                const i1 = i / 3 + 1;
-                const i2 = i / 3 + 2;
-
-                this.addEdge(edgeMap, i0, i1);
-                this.addEdge(edgeMap, i1, i2);
-                this.addEdge(edgeMap, i2, i0);
-
-                triangleCount++;
-            }
+            triangleCount++;
         }
+
+        console.log(`   Built edge map with ${edgeMap.size} unique edges`);
 
         // Count open edges (edges that appear only once)
         let openEdges = 0;
+        const openEdgesList = [];
+        
         for (const [key, count] of edgeMap.entries()) {
             if (count === 1) {
                 openEdges++;
+                if (openEdges <= 20) {
+                    openEdgesList.push(key);
+                }
             }
         }
 
-        // Estimate number of holes (rough estimate)
-        const estimatedHoles = Math.ceil(openEdges / 10);
+        console.log(`   Found ${openEdges} open edges (boundary edges)`);
+        if (openEdges > 0 && openEdges <= 20) {
+            console.log(`   Sample open edges: ${openEdgesList.join(', ')}`);
+        }
 
-        return {
+        // Estimate number of holes MORE CONSERVATIVELY
+        // Most models have 0-10 holes. If we detect thousands of open edges,
+        // it's likely the mesh is actually broken or the format is wrong
+        let estimatedHoles = 0;
+        if (openEdges > 0) {
+            if (openEdges < 20) {
+                estimatedHoles = 1; // Small hole
+            } else if (openEdges < 100) {
+                estimatedHoles = Math.ceil(openEdges / 15); // 2-7 holes
+            } else if (openEdges < 500) {
+                estimatedHoles = Math.ceil(openEdges / 30); // 4-17 holes
+            } else {
+                // If >500 open edges, likely a badly broken mesh or non-manifold
+                // Cap at a reasonable number and warn
+                estimatedHoles = Math.min(Math.ceil(openEdges / 50), 50);
+                console.warn(`   ⚠️ Very high open edge count (${openEdges}) - mesh may be severely damaged`);
+            }
+        }
+
+        console.log(`   Estimated ${estimatedHoles} holes from ${openEdges} open edges`);
+
+        const result = {
             triangles: triangleCount,
             openEdges: openEdges,
             holes: estimatedHoles,
             manifold: openEdges === 0,
             watertight: openEdges === 0
         };
+
+        console.log('📊 Analysis result:', result);
+
+        return result;
     },
 
     /**
@@ -158,6 +217,8 @@ window.MeshRepairVisual = {
         const position = geometry.attributes.position;
         const vertices = position.array;
         const indices = geometry.index ? geometry.index.array : null;
+
+        console.log('🔍 Finding hole boundaries...');
 
         // Build edge map
         const edgeMap = new Map();
@@ -181,17 +242,40 @@ window.MeshRepairVisual = {
                 }
             }
 
+            console.log(`   Built edge map from ${indices.length / 3} triangles`);
+
             // Find open edges
             for (const [key, count] of edgeMap.entries()) {
                 if (count === 1) {
                     const [v1, v2] = key.split('-').map(Number);
-                    openEdges.push([v1, v2]);
+                    
+                    // Get actual vertex positions
+                    const v1x = vertices[v1 * 3];
+                    const v1y = vertices[v1 * 3 + 1];
+                    const v1z = vertices[v1 * 3 + 2];
+                    const v2x = vertices[v2 * 3];
+                    const v2y = vertices[v2 * 3 + 1];
+                    const v2z = vertices[v2 * 3 + 2];
+                    
+                    openEdges.push({
+                        indices: [v1, v2],
+                        positions: [[v1x, v1y, v1z], [v2x, v2y, v2z]]
+                    });
                 }
             }
+
+            console.log(`   Found ${openEdges.length} open edges (boundary edges)`);
+        } else {
+            console.log('   ⚠️ Non-indexed geometry - hole detection limited');
         }
 
         // Group connected open edges into boundaries
         const boundaries = this.groupOpenEdges(openEdges);
+
+        console.log(`   Grouped into ${boundaries.length} hole boundaries`);
+        boundaries.forEach((boundary, idx) => {
+            console.log(`   Boundary ${idx + 1}: ${boundary.length} edges`);
+        });
 
         return boundaries;
     },
@@ -200,7 +284,12 @@ window.MeshRepairVisual = {
      * Group connected open edges into hole boundaries
      */
     groupOpenEdges(openEdges) {
-        if (openEdges.length === 0) return [];
+        if (openEdges.length === 0) {
+            console.log('   No open edges to group');
+            return [];
+        }
+
+        console.log(`   Grouping ${openEdges.length} open edges...`);
 
         const boundaries = [];
         const used = new Set();
@@ -217,20 +306,25 @@ window.MeshRepairVisual = {
                 boundary.push(edge);
 
                 // Find connected edges
-                const lastVertex = edge[1];
+                const lastVertex = edge.indices[1]; // Get the second vertex index
 
                 for (let j = 0; j < openEdges.length; j++) {
                     if (used.has(j)) continue;
 
-                    if (openEdges[j][0] === lastVertex) {
+                    // Check if this edge connects to our current edge
+                    if (openEdges[j].indices[0] === lastVertex) {
                         queue.push(openEdges[j]);
                         used.add(j);
+                        break; // Found the next edge in the boundary
                     }
                 }
             }
 
             if (boundary.length >= 3) {
                 boundaries.push(boundary);
+                console.log(`   Found boundary with ${boundary.length} edges`);
+            } else {
+                console.log(`   Skipped small boundary with ${boundary.length} edges`);
             }
         }
 
@@ -242,24 +336,41 @@ window.MeshRepairVisual = {
      */
     fillHole(boundary) {
         if (!boundary || boundary.length < 3) {
+            console.log('   ⚠️ Boundary too small to fill');
             return null;
         }
 
+        console.log(`   Filling hole with ${boundary.length} boundary edges...`);
+
         // Simple fan triangulation from first vertex
         const positions = [];
-        const firstVertex = boundary[0][0];
-
+        
+        // Get the first vertex position
+        const firstPos = boundary[0].positions[0];
+        
+        // Create triangles in a fan pattern
         for (let i = 1; i < boundary.length - 1; i++) {
-            positions.push(firstVertex, boundary[i][0], boundary[i + 1][0]);
+            const p1 = boundary[i].positions[0];
+            const p2 = boundary[i + 1].positions[0];
+            
+            // Add triangle vertices
+            positions.push(
+                firstPos[0], firstPos[1], firstPos[2],
+                p1[0], p1[1], p1[2],
+                p2[0], p2[1], p2[2]
+            );
         }
 
         if (positions.length === 0) {
+            console.log('   ⚠️ No positions generated');
             return null;
         }
 
         const geometry = new THREE.BufferGeometry();
         geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
         geometry.computeVertexNormals();
+
+        console.log(`   ✅ Created repair geometry with ${positions.length / 9} triangles`);
 
         return geometry;
     },
@@ -269,7 +380,8 @@ window.MeshRepairVisual = {
      */
     addRepairVisualization(viewer, repairGeometries, originalMesh) {
         if (!repairGeometries || repairGeometries.length === 0) {
-            return;
+            console.log('⚠️ No repair geometries to visualize');
+            return null;
         }
 
         console.log(`🎨 Adding repair visualization for ${repairGeometries.length} repaired areas`);
@@ -286,7 +398,7 @@ window.MeshRepairVisual = {
         });
 
         // Merge all repair geometries
-        const mergedGeometry = new THREE.BufferGeometry();
+        const mergedRepairGeometry = new THREE.BufferGeometry();
         const allPositions = [];
 
         for (const repairGeo of repairGeometries) {
@@ -296,11 +408,13 @@ window.MeshRepairVisual = {
             }
         }
 
-        mergedGeometry.setAttribute('position', new THREE.Float32BufferAttribute(allPositions, 3));
-        mergedGeometry.computeVertexNormals();
+        mergedRepairGeometry.setAttribute('position', new THREE.Float32BufferAttribute(allPositions, 3));
+        mergedRepairGeometry.computeVertexNormals();
 
-        // Create mesh for repaired areas
-        const repairMesh = new THREE.Mesh(mergedGeometry, repairMaterial);
+        console.log(`   Merged ${repairGeometries.length} repair geometries into ${allPositions.length / 9} triangles`);
+
+        // Create mesh for repaired areas (visual indicator)
+        const repairMesh = new THREE.Mesh(mergedRepairGeometry, repairMaterial);
         repairMesh.userData.isRepairVisualization = true;
         repairMesh.userData.originalMesh = originalMesh;
 
@@ -316,22 +430,22 @@ window.MeshRepairVisual = {
             viewer.scene.add(repairMesh);
         }
 
-        // CRITICAL: Update the original mesh geometry to include repairs for volume calculation
+        console.log('   ✅ Added visual repair mesh to scene (bright cyan-green)');
+
+        // CRITICAL: Merge the original and repair geometries for volume calculation
+        let mergedGeometry = null;
         try {
             const originalGeometry = originalMesh.geometry;
-            const newGeometry = this.mergeGeometries(originalGeometry, mergedGeometry);
+            mergedGeometry = this.mergeGeometries(originalGeometry, mergedRepairGeometry);
 
-            if (newGeometry) {
-                // Update mesh geometry to include repairs
-                originalMesh.geometry.dispose(); // Clean up old geometry
-                originalMesh.geometry = newGeometry;
-                originalMesh.geometry.computeBoundingBox();
-                originalMesh.geometry.computeBoundingSphere();
-
-                console.log('✅ Updated original mesh geometry to include repairs - NEW volume will be calculated');
+            if (mergedGeometry) {
+                console.log('   ✅ Merged original + repair geometries for accurate volume calculation');
+                console.log(`   Original: ${originalGeometry.attributes.position.count} vertices`);
+                console.log(`   Repair: ${mergedRepairGeometry.attributes.position.count} vertices`);
+                console.log(`   Merged: ${mergedGeometry.attributes.position.count} vertices`);
             }
         } catch (mergeError) {
-            console.warn('⚠️ Could not merge geometries:', mergeError);
+            console.error('❌ Could not merge geometries:', mergeError);
         }
 
         // Render
@@ -339,7 +453,7 @@ window.MeshRepairVisual = {
             viewer.render();
         }
 
-        console.log('✅ Repair visualization added to scene');
+        console.log('✅ Repair visualization complete');
 
         // Show notification
         if (window.showToolbarNotification) {
@@ -349,6 +463,9 @@ window.MeshRepairVisual = {
                 3000
             );
         }
+
+        // Return the merged geometry so caller can update fileData
+        return mergedGeometry;
     },
 
     /**

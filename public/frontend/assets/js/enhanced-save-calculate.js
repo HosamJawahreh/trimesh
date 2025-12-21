@@ -80,33 +80,70 @@ window.EnhancedSaveCalculate = {
                         const fileData = viewer.uploadedFiles[i];
                         const analysis = analysisResults[i];
 
-                        if (fileData.mesh && analysis && analysis.analysis.holes > 0) {
-                            console.log(`🔧 Repairing: ${fileData.file.name} (${analysis.analysis.holes} holes found)`);
+                        console.log(`🔧 Processing: ${fileData.file.name}`);
+                        console.log(`   Analysis: ${JSON.stringify(analysis.analysis)}`);
 
-                            const result = await window.MeshRepairVisual.repairMeshWithVisualization(
-                                viewer,
-                                fileData
-                            );
+                        if (fileData.mesh && analysis) {
+                            // Always try to repair if there are open edges (even if holes estimate is 0)
+                            if (analysis.analysis.openEdges > 0 || analysis.analysis.holes > 0) {
+                                console.log(`🔧 Repairing: ${fileData.file.name}`);
+                                console.log(`   Holes: ${analysis.analysis.holes}, Open edges: ${analysis.analysis.openEdges}`);
 
-                            repairResults.push({
-                                fileName: fileData.file.name,
-                                ...result
-                            });
+                                const result = await window.MeshRepairVisual.repairMeshWithVisualization(
+                                    viewer,
+                                    fileData
+                                );
 
-                            console.log(`   ✅ Repair result:`, result);
-                        } else if (analysis && analysis.analysis.holes === 0) {
-                            console.log(`   ✓ ${fileData.file.name} is watertight - no repair needed`);
+                                repairResults.push({
+                                    fileName: fileData.file.name,
+                                    ...result
+                                });
+
+                                console.log(`   ✅ Repair result:`, result);
+                            } else {
+                                console.log(`   ✓ ${fileData.file.name} is watertight - no repair needed`);
+                                repairResults.push({
+                                    fileName: fileData.file.name,
+                                    repaired: false,
+                                    holesFound: 0,
+                                    holesFilled: 0,
+                                    watertight: true
+                                });
+                            }
                         }
                     }
 
                     // Show summary notification
-                    if (repairResults.length > 0) {
-                        const totalFilled = repairResults.reduce((sum, r) => sum + (r.holesFilled || 0), 0);
-                        if (window.showToolbarNotification) {
+                    const totalFilled = repairResults.reduce((sum, r) => sum + (r.holesFilled || 0), 0);
+                    const totalFound = repairResults.reduce((sum, r) => sum + (r.holesFound || 0), 0);
+                    const hasErrors = repairResults.some(r => r.error);
+                    
+                    console.log(`📊 Repair summary: Found ${totalFound} holes, filled ${totalFilled}`);
+                    
+                    if (window.showToolbarNotification) {
+                        if (hasErrors) {
+                            showToolbarNotification(
+                                `Mesh appears damaged. Using original geometry for calculation. Consider repairing mesh in 3D software.`,
+                                'warning',
+                                7000
+                            );
+                        } else if (totalFilled > 0) {
                             showToolbarNotification(
                                 `Repaired ${totalFilled} holes across ${repairResults.length} files. Repaired areas shown in green/cyan.`,
                                 'success',
                                 5000
+                            );
+                        } else if (totalFound > 0) {
+                            showToolbarNotification(
+                                `Found ${totalFound} holes but could not repair them automatically. Using original geometry.`,
+                                'warning',
+                                5000
+                            );
+                        } else {
+                            showToolbarNotification(
+                                `All meshes are watertight - no repairs needed.`,
+                                'success',
+                                3000
                             );
                         }
                     }
@@ -115,20 +152,20 @@ window.EnhancedSaveCalculate = {
                     console.error('Stack:', repairError.stack);
                 }
             } else {
-                console.log('   ℹ️ No repair system available or no holes detected');
+                console.log('   ℹ️ No repair system available or no analysis performed');
             }
 
             // Step 3: Calculate volumes (AFTER repair, so includes repaired geometry)
             await this.updateProgress('Calculating volumes...', 60);
             let totalVolume = 0;
 
-            console.log('📐 Starting volume calculation (includes repaired geometry)...');
+            console.log('📐 Starting volume calculation (AFTER repair)...');
 
             for (const fileData of viewer.uploadedFiles) {
                 try {
                     let volume = 0;
 
-                    // Get geometry from either mesh or direct geometry (should be repaired geometry now)
+                    // CRITICAL: Get geometry from fileData.geometry (which was updated by repair)
                     const geometry = fileData.geometry || (fileData.mesh && fileData.mesh.geometry);
 
                     if (!geometry) {
@@ -137,7 +174,8 @@ window.EnhancedSaveCalculate = {
                     }
 
                     console.log(`📐 Calculating volume for: ${fileData.file?.name}`);
-                    console.log(`   Geometry vertices: ${geometry.attributes.position.count}`);
+                    console.log(`   Geometry has ${geometry.attributes.position.count} vertices`);
+                    console.log(`   Indexed: ${!!geometry.index}`);
 
                     // Try using viewer's calculateVolume method (pass GEOMETRY, not mesh!)
                     if (viewer.calculateVolume && typeof viewer.calculateVolume === 'function') {
@@ -155,14 +193,14 @@ window.EnhancedSaveCalculate = {
                         if (volume.cm3) {
                             fileData.volume = volume;
                             totalVolume += volume.cm3;
-                            console.log(`   ✅ Volume: ${volume.cm3.toFixed(2)} cm³`);
+                            console.log(`   ✅ Volume: ${volume.cm3.toFixed(2)} cm³ (${volume.mm3.toFixed(2)} mm³)`);
                         } else {
                             console.warn(`   ⚠️ Invalid volume object:`, volume);
                         }
                     } else if (typeof volume === 'number' && !isNaN(volume)) {
                         fileData.volume = { cm3: volume, mm3: volume * 1000 };
                         totalVolume += volume;
-                        console.log(`   ✅ Volume: ${volume.toFixed(2)} cm³`);
+                        console.log(`   ✅ Volume: ${volume.toFixed(2)} cm³ (${(volume * 1000).toFixed(2)} mm³)`);
                     } else {
                         console.warn(`   ⚠️ Invalid volume value:`, volume);
                     }
@@ -185,42 +223,80 @@ window.EnhancedSaveCalculate = {
             await this.updateProgress('Calculating pricing...', 80);
 
             // Get selected technology and material
-            const technology = document.getElementById(`technologySelect${viewerId === 'general' ? 'General' : 'Medical'}`)?.value || 'fdm';
-            const material = document.getElementById(`materialSelect${viewerId === 'general' ? 'General' : 'Medical'}`)?.value || 'pla';
+            const techSelect = document.getElementById(`technologySelect${viewerId === 'general' ? 'General' : 'Medical'}`);
+            const matSelect = document.getElementById(`materialSelect${viewerId === 'general' ? 'General' : 'Medical'}`);
+            
+            const technology = techSelect?.value || 'fdm';
+            const material = matSelect?.value || 'pla';
 
-            // Calculate price (simplified formula - adjust based on your pricing model)
+            console.log(`💰 Pricing calculation:`);
+            console.log(`   Technology: ${technology}`);
+            console.log(`   Material: ${material}`);
+            console.log(`   Volume: ${totalVolume.toFixed(2)} cm³`);
+
+            // Calculate price based on technology, material, and NEW volume (includes repairs)
             const pricePerCm3 = this.getPricePerCm3(technology, material);
             const totalPrice = totalVolume * pricePerCm3;
             const printTime = this.estimatePrintTime(totalVolume, technology);
 
+            console.log(`   Price per cm³: $${pricePerCm3.toFixed(2)}`);
+            console.log(`   Total price: $${totalPrice.toFixed(2)}`);
+            console.log(`   Print time: ${printTime}`);
+
             // Step 5: Update UI
             await this.updateProgress('Updating interface...', 95);
 
-            // Update volume display
-            const volumeDisplay = document.getElementById(`quoteTotalVolume${viewerId === 'general' ? 'General' : 'Medical'}`);
-            if (volumeDisplay) {
-                volumeDisplay.textContent = `${totalVolume.toFixed(2)} cm³`;
-                volumeDisplay.style.display = 'block';
+            const viewerSuffix = viewerId === 'general' ? 'General' : 'Medical';
+
+            // Update ALL volume displays (there are multiple)
+            const volumeDisplays = document.querySelectorAll(`#quoteTotalVolume${viewerSuffix}`);
+            volumeDisplays.forEach(display => {
+                if (display) {
+                    display.textContent = `${totalVolume.toFixed(2)} cm³`;
+                    display.style.display = 'block';
+                }
+            });
+
+            // Also try the sidebar variant
+            const volumeSidebar = document.getElementById(`quoteTotalVolume${viewerSuffix}`);
+            if (volumeSidebar) {
+                volumeSidebar.textContent = `${totalVolume.toFixed(2)} cm³`;
+                volumeSidebar.style.display = 'block';
             }
 
-            // Update price display
-            const priceDisplay = document.getElementById(`quoteTotalPrice${viewerId === 'general' ? 'General' : 'Medical'}`);
-            if (priceDisplay) {
-                priceDisplay.textContent = `$${totalPrice.toFixed(2)}`;
-                priceDisplay.style.display = 'block';
+            // Update ALL price displays (there are multiple)
+            const priceDisplays = document.querySelectorAll(`#quoteTotalPrice${viewerSuffix}`);
+            priceDisplays.forEach(display => {
+                if (display) {
+                    display.textContent = `$${totalPrice.toFixed(2)}`;
+                    display.style.display = 'block';
+                }
+            });
+
+            // Also try the sidebar variant
+            const priceSidebar = document.getElementById(`quoteTotalPrice${viewerSuffix}`);
+            if (priceSidebar) {
+                priceSidebar.textContent = `$${totalPrice.toFixed(2)}`;
+                priceSidebar.style.display = 'block';
             }
 
             // Update print time
-            const timeDisplay = document.getElementById(`quotePrintTime${viewerId === 'general' ? 'General' : 'Medical'}`);
+            const timeDisplay = document.getElementById(`quotePrintTime${viewerSuffix}`);
             if (timeDisplay) {
                 timeDisplay.textContent = printTime;
             }
 
-            // Show price summary
-            const priceSummary = document.getElementById(`priceSummary${viewerId === 'general' ? 'General' : 'Medical'}`);
+            // Show price summary section
+            const priceSummary = document.getElementById(`priceSummary${viewerSuffix}`);
             if (priceSummary) {
                 priceSummary.style.display = 'block';
             }
+
+            console.log(`✅ UI updated:`);
+            console.log(`   Volume displays updated: ${volumeDisplays.length} elements`);
+            console.log(`   Price displays updated: ${priceDisplays.length} elements`);
+            console.log(`   Volume: ${totalVolume.toFixed(2)} cm³`);
+            console.log(`   Price: $${totalPrice.toFixed(2)}`);
 
             // Step 6: Complete
             await this.updateProgress('Complete!', 100);
