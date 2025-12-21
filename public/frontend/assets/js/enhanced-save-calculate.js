@@ -9,7 +9,7 @@ console.log('💾 Loading Enhanced Save & Calculate System...');
 
 window.EnhancedSaveCalculate = {
     isProcessing: false,
-    
+
     async execute(viewerId = 'general') {
         if (this.isProcessing) {
             console.warn('⚠️ Already processing...');
@@ -18,14 +18,14 @@ window.EnhancedSaveCalculate = {
 
         this.isProcessing = true;
         const viewer = viewerId === 'general' ? window.viewerGeneral : window.viewerMedical;
-        
+
         console.log('🔍 Checking viewer state:', {
             viewer: !!viewer,
             initialized: viewer?.initialized,
             uploadedFiles: viewer?.uploadedFiles,
             filesLength: viewer?.uploadedFiles?.length
         });
-        
+
         // Check if viewer exists and is initialized
         if (!viewer) {
             console.error('❌ Viewer not found');
@@ -33,7 +33,7 @@ window.EnhancedSaveCalculate = {
             this.isProcessing = false;
             return;
         }
-        
+
         // Check if files are uploaded
         const hasFiles = viewer.uploadedFiles && viewer.uploadedFiles.length > 0;
         if (!hasFiles) {
@@ -46,18 +46,18 @@ window.EnhancedSaveCalculate = {
         try {
             console.log('🚀 Starting enhanced save & calculate...');
             this.showProgressModal();
-            
+
             // Step 1: Analyze all meshes (optional - skip if tools not available)
             await this.updateProgress('Analyzing meshes...', 20);
             const analysisResults = [];
-            
+
             if (viewer.tools && viewer.tools.analyzer) {
                 try {
                     for (const fileData of viewer.uploadedFiles) {
                         if (fileData.mesh) {
                             const analysis = await viewer.tools.analyzer.analyzeMesh(fileData.mesh);
                             analysisResults.push({ fileName: fileData.fileName, analysis });
-                            
+
                             // Show analysis
                             viewer.tools.analyzer.showAnalysisPanel(analysis);
                         }
@@ -66,25 +66,25 @@ window.EnhancedSaveCalculate = {
                     console.warn('⚠️ Analysis skipped:', analysisError);
                 }
             }
-            
+
             // Step 2: Repair meshes if needed (optional)
             await this.updateProgress('Optimizing meshes...', 40);
             const repairResults = [];
-            
+
             if (viewer.tools && viewer.tools.analyzer) {
                 try {
                     for (const fileData of viewer.uploadedFiles) {
                         if (fileData.mesh) {
-                            const needsRepair = analysisResults.find(r => 
-                                r.fileName === fileData.fileName && 
+                            const needsRepair = analysisResults.find(r =>
+                                r.fileName === fileData.fileName &&
                                 (!r.analysis.isWatertight || r.analysis.holes > 0)
                             );
-                            
+
                             if (needsRepair) {
                                 console.log(`🔧 Repairing: ${fileData.fileName}`);
                                 await viewer.tools.analyzer.repairMesh(fileData.mesh);
-                                repairResults.push({ 
-                                    fileName: fileData.fileName, 
+                                repairResults.push({
+                                    fileName: fileData.fileName,
                                     repaired: true,
                                     holes: needsRepair.analysis.holes
                                 });
@@ -95,11 +95,11 @@ window.EnhancedSaveCalculate = {
                     console.warn('⚠️ Repair skipped:', repairError);
                 }
             }
-            
+
             // Step 3: Calculate volumes
             await this.updateProgress('Calculating volumes...', 60);
             let totalVolume = 0;
-            
+
             for (const fileData of viewer.uploadedFiles) {
                 if (fileData.mesh && viewer.calculateVolume) {
                     const volume = viewer.calculateVolume(fileData.mesh);
@@ -108,51 +108,51 @@ window.EnhancedSaveCalculate = {
                     console.log(`📐 Volume (${fileData.fileName}): ${volume.toFixed(2)} cm³`);
                 }
             }
-            
+
             // Step 4: Calculate pricing
             await this.updateProgress('Calculating pricing...', 80);
-            
+
             // Get selected technology and material
             const technology = document.getElementById(`technologySelect${viewerId === 'general' ? 'General' : 'Medical'}`)?.value || 'fdm';
             const material = document.getElementById(`materialSelect${viewerId === 'general' ? 'General' : 'Medical'}`)?.value || 'pla';
-            
+
             // Calculate price (simplified formula - adjust based on your pricing model)
             const pricePerCm3 = this.getPricePerCm3(technology, material);
             const totalPrice = totalVolume * pricePerCm3;
             const printTime = this.estimatePrintTime(totalVolume, technology);
-            
+
             // Step 5: Update UI
             await this.updateProgress('Updating interface...', 95);
-            
+
             // Update volume display
             const volumeDisplay = document.getElementById(`quoteTotalVolume${viewerId === 'general' ? 'General' : 'Medical'}`);
             if (volumeDisplay) {
                 volumeDisplay.textContent = `${totalVolume.toFixed(2)} cm³`;
                 volumeDisplay.style.display = 'block';
             }
-            
+
             // Update price display
             const priceDisplay = document.getElementById(`quoteTotalPrice${viewerId === 'general' ? 'General' : 'Medical'}`);
             if (priceDisplay) {
                 priceDisplay.textContent = `$${totalPrice.toFixed(2)}`;
                 priceDisplay.style.display = 'block';
             }
-            
+
             // Update print time
             const timeDisplay = document.getElementById(`quotePrintTime${viewerId === 'general' ? 'General' : 'Medical'}`);
             if (timeDisplay) {
                 timeDisplay.textContent = printTime;
             }
-            
+
             // Show price summary
             const priceSummary = document.getElementById(`priceSummary${viewerId === 'general' ? 'General' : 'Medical'}`);
             if (priceSummary) {
                 priceSummary.style.display = 'block';
             }
-            
+
             // Step 6: Show results
             await this.updateProgress('Complete!', 100);
-            
+
             setTimeout(() => {
                 this.hideProgressModal();
                 this.showResultsModal({
@@ -164,9 +164,9 @@ window.EnhancedSaveCalculate = {
                     repairResults
                 });
             }, 500);
-            
+
             console.log('✅ Enhanced save & calculate complete');
-            
+
         } catch (error) {
             console.error('❌ Error in save & calculate:', error);
             this.hideProgressModal();
@@ -175,7 +175,7 @@ window.EnhancedSaveCalculate = {
             this.isProcessing = false;
         }
     },
-    
+
     getPricePerCm3(technology, material) {
         // Pricing matrix (adjust based on your business model)
         const pricing = {
@@ -185,10 +185,10 @@ window.EnhancedSaveCalculate = {
             dmls: { titanium: 15.0, steel: 12.0 },
             mjf: { nylon: 3.0 }
         };
-        
+
         return pricing[technology]?.[material] || 1.0;
     },
-    
+
     estimatePrintTime(volume, technology) {
         // Simplified print time estimation
         const speedFactors = {
@@ -198,20 +198,20 @@ window.EnhancedSaveCalculate = {
             dmls: 1.0,
             mjf: 0.35
         };
-        
+
         const hours = volume * (speedFactors[technology] || 0.5);
-        
+
         if (hours < 1) {
             return `${Math.ceil(hours * 60)} min`;
         } else {
             return `${hours.toFixed(1)}h`;
         }
     },
-    
+
     showProgressModal() {
         // Remove existing modal
         document.getElementById('progressModal')?.remove();
-        
+
         const modal = document.createElement('div');
         modal.id = 'progressModal';
         modal.innerHTML = `
@@ -288,32 +288,32 @@ window.EnhancedSaveCalculate = {
                 }
             </style>
         `;
-        
+
         document.body.appendChild(modal);
     },
-    
+
     updateProgress(text, percent) {
         return new Promise(resolve => {
             const progressBar = document.getElementById('progressBar');
             const progressText = document.getElementById('progressText');
-            
+
             if (progressBar) progressBar.style.width = `${percent}%`;
             if (progressText) progressText.textContent = text;
-            
+
             setTimeout(resolve, 300);
         });
     },
-    
+
     hideProgressModal() {
         document.getElementById('progressModal')?.remove();
     },
-    
+
     showResultsModal(results) {
         // Remove existing modal
         document.getElementById('resultsModal')?.remove();
-        
+
         const repairedFiles = results.repairResults.filter(r => r.repaired).length;
-        
+
         const modal = document.createElement('div');
         modal.id = 'resultsModal';
         modal.innerHTML = `
@@ -326,7 +326,7 @@ window.EnhancedSaveCalculate = {
                         </svg>
                         <h2>Processing Complete!</h2>
                     </div>
-                    
+
                     <div class="results-grid">
                         <div class="result-card">
                             <div class="result-icon">📦</div>
@@ -349,7 +349,7 @@ window.EnhancedSaveCalculate = {
                             <div class="result-label">Print Time</div>
                         </div>
                     </div>
-                    
+
                     ${repairedFiles > 0 ? `
                     <div class="repair-info">
                         <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
@@ -359,7 +359,7 @@ window.EnhancedSaveCalculate = {
                         <span><strong>${repairedFiles}</strong> file(s) repaired and optimized</span>
                     </div>
                     ` : ''}
-                    
+
                     <div class="results-actions">
                         <button type="button" class="btn-secondary" onclick="document.getElementById('resultsModal').remove()">
                             Close
@@ -508,10 +508,10 @@ window.EnhancedSaveCalculate = {
                 }
             </style>
         `;
-        
+
         document.body.appendChild(modal);
     },
-    
+
     requestQuote() {
         document.getElementById('resultsModal')?.remove();
         // Trigger the quote request form/modal
@@ -520,7 +520,7 @@ window.EnhancedSaveCalculate = {
             quoteBtn.click();
         }
     },
-    
+
     showNotification(message, type = 'info') {
         if (window.Utils && window.Utils.showNotification) {
             window.Utils.showNotification(message, type);
@@ -533,52 +533,52 @@ window.EnhancedSaveCalculate = {
 // Hook into existing Save & Calculate buttons
 document.addEventListener('DOMContentLoaded', () => {
     console.log('🔗 Hooking enhanced save & calculate...');
-    
+
     let handlersAttached = false;
-    
+
     // Override the save button handler
     const setupEnhancedHandler = () => {
         if (handlersAttached) {
             console.log('⏭️ Handlers already attached, skipping...');
             return;
         }
-        
+
         const saveBtns = document.querySelectorAll('#saveCalculationsBtn, #saveCalculationsBtnMain');
-        
+
         if (saveBtns.length === 0) {
             console.log('⚠️ No save buttons found yet');
             return;
         }
-        
+
         saveBtns.forEach(btn => {
             // Remove any existing listeners by cloning the element
             const newBtn = btn.cloneNode(true);
             btn.parentNode.replaceChild(newBtn, btn);
-            
+
             newBtn.addEventListener('click', async (e) => {
                 e.preventDefault();
                 e.stopImmediatePropagation();
-                
+
                 console.log('💾 Save button clicked');
-                
+
                 // Determine which viewer
-                const isGeneralVisible = !document.getElementById('generalForm3d')?.style.display || 
+                const isGeneralVisible = !document.getElementById('generalForm3d')?.style.display ||
                                         document.getElementById('generalForm3d')?.style.display !== 'none';
                 const viewerId = isGeneralVisible ? 'general' : 'medical';
-                
+
                 console.log('📍 Active viewer:', viewerId);
-                
+
                 await window.EnhancedSaveCalculate.execute(viewerId);
             });
         });
-        
+
         handlersAttached = true;
         console.log(`✅ Enhanced handler attached to ${saveBtns.length} button(s)`);
     };
-    
+
     // Setup after a delay to ensure DOM is ready
     setTimeout(setupEnhancedHandler, 1500);
-    
+
     // Also setup after viewers are ready, but only if not already done
     window.addEventListener('viewersReady', () => {
         setTimeout(setupEnhancedHandler, 500);

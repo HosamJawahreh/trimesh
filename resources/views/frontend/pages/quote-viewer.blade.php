@@ -183,20 +183,12 @@ document.addEventListener('DOMContentLoaded', function() {
                                             {{-- Tools Group --}}
                                             <div class="toolbar-group" style="display: flex !important; gap: 4px !important; visibility: visible !important; opacity: 1 !important;">
                                                 
-                                                {{-- SIMPLE TEST BUTTON --}}
-                                                <button type="button" class="toolbar-btn" style="background: #ff0000 !important;" onclick="alert('BUTTON CLICK WORKS!'); console.log('🔴 RED TEST BUTTON CLICKED!');">
-                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                                                        <circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="2"/>
-                                                        <text x="10" y="14" text-anchor="middle" fill="currentColor" font-size="12">T</text>
-                                                    </svg>
-                                                </button>
-                                                
-                                                <button type="button" class="toolbar-btn" id="measurementToolBtn" title="Measurement Tools" data-tool="measurement" onclick="console.log('📏 MEASUREMENT BUTTON CLICKED!'); console.log('window:', window); console.log('window.toolbarHandler:', window.toolbarHandler); alert('Measurement clicked - check console!'); if(window.toolbarHandler) { window.toolbarHandler.toggleMeasurement('General'); } else { alert('ERROR: toolbarHandler not found!'); }">
+                                                <button type="button" class="toolbar-btn" id="measurementToolBtn" title="Measurement Tools" data-tool="measurement" onclick="window.toolbarHandler.toggleMeasurement('General')">
                                                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                                                         <path d="M4 16L16 4M6 16L8 14M10 16L12 14M14 16L16 14M4 14L6 12M4 10L8 6M4 6L6 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
                                                     </svg>
                                                 </button>
-                                                <button type="button" class="toolbar-btn" id="boundingBoxBtn" title="Bounding Box" data-tool="boundingBox" onclick="console.log('📦 BOUNDING BOX BUTTON CLICKED!'); console.log('window.toolbarHandler:', window.toolbarHandler); alert('Bounding Box clicked - check console!'); if(window.toolbarHandler) { window.toolbarHandler.toggleBoundingBox('General'); } else { alert('ERROR: toolbarHandler not found!'); }">
+                                                <button type="button" class="toolbar-btn" id="boundingBoxBtn" title="Bounding Box" data-tool="boundingBox" onclick="window.toolbarHandler.toggleBoundingBox('General')">
                                                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                                                         <rect x="3" y="3" width="14" height="14" stroke="currentColor" stroke-width="1.8" stroke-dasharray="2 2"/>
                                                         <circle cx="3" cy="3" r="1.5" fill="currentColor"/>
@@ -264,7 +256,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                                         <path d="M12 5L15 8L12 11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
                                                     </svg>
                                                 </button>
-                                                <button type="button" class="toolbar-btn" id="screenshotToolBtn" title="Screenshot" data-action="screenshot" style="border: 2px solid #10b981 !important;" onclick="console.log('📸 SCREENSHOT BUTTON CLICKED!'); console.log('window.toolbarHandler:', window.toolbarHandler); console.log('window.viewerGeneral:', window.viewerGeneral); alert('Screenshot clicked - check console!'); if(window.toolbarHandler && window.toolbarHandler.takeScreenshot) { window.toolbarHandler.takeScreenshot('General'); } else { alert('ERROR: takeScreenshot not found!'); }">
+                                                <button type="button" class="toolbar-btn" id="screenshotToolBtn" title="Screenshot" data-action="screenshot" onclick="window.toolbarHandler.takeScreenshot('General')">
                                                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                                                         <rect x="2" y="5" width="16" height="12" rx="2" stroke="currentColor" stroke-width="1.8"/>
                                                         <circle cx="10" cy="11" r="2.5" stroke="currentColor" stroke-width="1.8"/>
@@ -3918,6 +3910,83 @@ loading
 <script>
 console.log('🚀 INLINE SCRIPT STARTING...');
 
+// Professional notification system
+window.showToolbarNotification = function(message, type = 'info', duration = 2500) {
+    const notification = document.createElement('div');
+    
+    const colors = {
+        success: { bg: '#10b981', icon: '✓' },
+        error: { bg: '#ef4444', icon: '✕' },
+        info: { bg: '#3b82f6', icon: 'ℹ' },
+        warning: { bg: '#f59e0b', icon: '⚠' }
+    };
+    
+    const style = colors[type] || colors.info;
+    
+    notification.style.cssText = `
+        position: fixed;
+        top: 80px;
+        right: 20px;
+        background: ${style.bg};
+        color: white;
+        padding: 14px 20px;
+        border-radius: 10px;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+        z-index: 999999;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        font-size: 14px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        animation: slideIn 0.3s ease-out;
+        pointer-events: auto;
+        cursor: pointer;
+    `;
+    
+    notification.innerHTML = `
+        <span style="font-size: 18px; font-weight: bold;">${style.icon}</span>
+        <span>${message}</span>
+    `;
+    
+    // Add animation keyframes if not already added
+    if (!document.getElementById('toolbar-notification-styles')) {
+        const styleSheet = document.createElement('style');
+        styleSheet.id = 'toolbar-notification-styles';
+        styleSheet.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(400px); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideOut {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(400px); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(styleSheet);
+    }
+    
+    document.body.appendChild(notification);
+    
+    // Click to dismiss
+    notification.onclick = function() {
+        notification.style.animation = 'slideOut 0.3s ease-out';
+        setTimeout(() => document.body.removeChild(notification), 300);
+    };
+    
+    // Auto dismiss
+    setTimeout(() => {
+        if (document.body.contains(notification)) {
+            notification.style.animation = 'slideOut 0.3s ease-out';
+            setTimeout(() => {
+                if (document.body.contains(notification)) {
+                    document.body.removeChild(notification);
+                }
+            }, 300);
+        }
+    }, duration);
+};
+
 // Define the handler RIGHT HERE in the HTML
 window.toolbarHandler = {
     toggleMeasurement: function(viewerType) {
@@ -3933,7 +4002,7 @@ window.toolbarHandler = {
         const viewer = viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral;
         
         if (!viewer || !viewer.scene) {
-            alert('Viewer not ready. Please wait for the 3D model to load...');
+            showToolbarNotification('Please wait for the 3D model to load', 'warning');
             return;
         }
 
@@ -3958,7 +4027,7 @@ window.toolbarHandler = {
         const viewer = viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral;
         
         if (!viewer || !viewer.scene) {
-            alert('Viewer not ready. Please wait for the 3D model to load...');
+            showToolbarNotification('Please wait for the 3D model to load', 'warning');
             return;
         }
 
@@ -3982,7 +4051,7 @@ window.toolbarHandler = {
         const viewer = viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral;
         
         if (!viewer || !viewer.scene) {
-            alert('Viewer not ready. Please wait for the 3D model to load...');
+            showToolbarNotification('Please wait for the 3D model to load', 'warning');
             return;
         }
 
@@ -4006,7 +4075,7 @@ window.toolbarHandler = {
         const viewer = viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral;
         
         if (!viewer || !viewer.renderer) {
-            alert('Viewer not ready. Please wait for the 3D model to load...');
+            showToolbarNotification('Please wait for the 3D model to load', 'warning');
             return;
         }
 
@@ -4021,7 +4090,7 @@ window.toolbarHandler = {
         const viewer = viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral;
         
         if (!viewer || !viewer.scene) {
-            alert('Viewer not ready. Please wait for the 3D model to load...');
+            showToolbarNotification('Please wait for the 3D model to load', 'warning');
             return;
         }
 
@@ -4052,12 +4121,12 @@ window.toolbarHandler = {
         const viewer = viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral;
         
         if (!viewer) {
-            alert('Viewer not loaded yet. Please wait...');
+            showToolbarNotification('Viewer loading, please wait...', 'info');
             return;
         }
 
         if (!viewer.renderer) {
-            alert('Renderer not ready. Please wait for the 3D model to load...');
+            showToolbarNotification('Renderer loading, please wait...', 'warning');
             return;
         }
 
