@@ -3913,6 +3913,201 @@ loading
 </script>
 
 <script src="{{ asset('frontend/assets/js/3d-viewer-pro.js') }}?v=3"></script>
+
+{{-- INLINE HANDLER DEFINITION - Put it directly in HTML to bypass loading issues --}}
+<script>
+console.log('🚀 INLINE SCRIPT STARTING...');
+
+// Define the handler RIGHT HERE in the HTML
+window.toolbarHandler = {
+    toggleMeasurement: function(viewerType) {
+        console.log(`📏 Toggle measurement for ${viewerType}`);
+        const submenu = document.getElementById('measurementSubmenu' + (viewerType === 'Medical' ? 'Medical' : ''));
+        if (submenu) {
+            submenu.style.display = submenu.style.display === 'none' || submenu.style.display === '' ? 'block' : 'none';
+        }
+    },
+    
+    toggleBoundingBox: function(viewerType) {
+        console.log(`📦 Toggle bounding box for ${viewerType}`);
+        const viewer = viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral;
+        
+        if (!viewer || !viewer.scene) {
+            alert('Viewer not ready. Please wait for the 3D model to load...');
+            return;
+        }
+
+        let existingHelper = viewer.scene.children.find(child => child.userData && child.userData.isBoundingBoxHelper);
+        
+        if (existingHelper) {
+            existingHelper.visible = !existingHelper.visible;
+            console.log('✅ Bounding box toggled:', existingHelper.visible);
+        } else {
+            const box = new THREE.Box3().setFromObject(viewer.scene);
+            const helper = new THREE.Box3Helper(box, 0x00ff00);
+            helper.userData.isBoundingBoxHelper = true;
+            viewer.scene.add(helper);
+            console.log('✅ Bounding box created');
+        }
+        
+        if (viewer.render) viewer.render();
+    },
+    
+    toggleAxis: function(viewerType) {
+        console.log(`🎯 Toggle axis for ${viewerType}`);
+        const viewer = viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral;
+        
+        if (!viewer || !viewer.scene) {
+            alert('Viewer not ready. Please wait for the 3D model to load...');
+            return;
+        }
+
+        let existingAxis = viewer.scene.children.find(child => child.userData && child.userData.isAxisHelper);
+        
+        if (existingAxis) {
+            existingAxis.visible = !existingAxis.visible;
+            console.log('✅ Axis toggled:', existingAxis.visible);
+        } else {
+            const axesHelper = new THREE.AxesHelper(100);
+            axesHelper.userData.isAxisHelper = true;
+            viewer.scene.add(axesHelper);
+            console.log('✅ Axis created');
+        }
+        
+        if (viewer.render) viewer.render();
+    },
+    
+    toggleGrid: function(viewerType) {
+        console.log(`📐 Toggle grid for ${viewerType}`);
+        const viewer = viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral;
+        
+        if (!viewer || !viewer.scene) {
+            alert('Viewer not ready. Please wait for the 3D model to load...');
+            return;
+        }
+
+        let existingGrid = viewer.scene.children.find(child => child.userData && child.userData.isGridHelper);
+        
+        if (existingGrid) {
+            existingGrid.visible = !existingGrid.visible;
+            console.log('✅ Grid toggled:', existingGrid.visible);
+        } else {
+            const gridHelper = new THREE.GridHelper(200, 20, 0x888888, 0x444444);
+            gridHelper.userData.isGridHelper = true;
+            viewer.scene.add(gridHelper);
+            console.log('✅ Grid created');
+        }
+        
+        if (viewer.render) viewer.render();
+    },
+    
+    toggleShadow: function(viewerType) {
+        console.log(`🌓 Toggle shadow for ${viewerType}`);
+        const viewer = viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral;
+        
+        if (!viewer || !viewer.renderer) {
+            alert('Viewer not ready. Please wait for the 3D model to load...');
+            return;
+        }
+
+        viewer.renderer.shadowMap.enabled = !viewer.renderer.shadowMap.enabled;
+        console.log('✅ Shadows toggled:', viewer.renderer.shadowMap.enabled);
+        
+        if (viewer.render) viewer.render();
+    },
+    
+    toggleTransparency: function(viewerType) {
+        console.log(`👁️ Toggle transparency for ${viewerType}`);
+        const viewer = viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral;
+        
+        if (!viewer || !viewer.scene) {
+            alert('Viewer not ready. Please wait for the 3D model to load...');
+            return;
+        }
+
+        const levels = [1.0, 0.75, 0.5, 0.25];
+        
+        if (!viewer.currentTransparencyIndex) {
+            viewer.currentTransparencyIndex = 0;
+        }
+        
+        viewer.currentTransparencyIndex = (viewer.currentTransparencyIndex + 1) % levels.length;
+        const newOpacity = levels[viewer.currentTransparencyIndex];
+        
+        viewer.scene.traverse((object) => {
+            if (object.isMesh && object.material) {
+                object.material.transparent = newOpacity < 1.0;
+                object.material.opacity = newOpacity;
+                object.material.needsUpdate = true;
+            }
+        });
+        
+        console.log(`✅ Transparency: ${Math.round(newOpacity * 100)}%`);
+        
+        if (viewer.render) viewer.render();
+    },
+    
+    takeScreenshot: function(viewerType) {
+        console.log(`📸 Take screenshot for ${viewerType}`);
+        const viewer = viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral;
+        
+        if (!viewer) {
+            alert('Viewer not loaded yet. Please wait...');
+            return;
+        }
+
+        if (!viewer.renderer) {
+            alert('Renderer not ready. Please wait for the 3D model to load...');
+            return;
+        }
+
+        try {
+            if (viewer.render && typeof viewer.render === 'function') {
+                viewer.render();
+            }
+
+            const canvas = viewer.renderer.domElement;
+            const dataURL = canvas.toDataURL('image/png');
+
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').substring(0, 19);
+            const filename = `3d-model-${viewerType.toLowerCase()}-${timestamp}.png`;
+            
+            const link = document.createElement('a');
+            link.href = dataURL;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            console.log('✅ Screenshot saved:', filename);
+            
+            const notification = document.createElement('div');
+            notification.style.cssText = 'position: fixed; top: 80px; right: 20px; background: #10b981; color: white; padding: 12px 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 999999; font-family: system-ui; font-size: 14px; font-weight: 500;';
+            notification.textContent = '📸 Screenshot saved!';
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.transition = 'opacity 0.3s';
+                notification.style.opacity = '0';
+                setTimeout(() => document.body.removeChild(notification), 300);
+            }, 2000);
+            
+        } catch (error) {
+            console.error('❌ Screenshot failed:', error);
+            alert('Screenshot failed: ' + error.message);
+        }
+    },
+    
+    undo: function() { alert('Undo feature coming soon!'); },
+    redo: function() { alert('Redo feature coming soon!'); },
+    changeModelColor: function() { alert('Color picker coming soon!'); },
+    changeBackgroundColor: function() { alert('Background color picker coming soon!'); }
+};
+
+console.log('✅ INLINE window.toolbarHandler created!', window.toolbarHandler);
+console.log('Available methods:', Object.keys(window.toolbarHandler));
+</script>
+
 <script src="{{ asset('frontend/assets/js/3d-viewer-professional-tools.js') }}?v=2001"></script>
 <script>
 // IMMEDIATE verification that toolbar handler exists
