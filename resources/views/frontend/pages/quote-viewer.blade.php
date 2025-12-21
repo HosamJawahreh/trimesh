@@ -116,26 +116,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const saveBtn = document.getElementById('saveCalculationsBtn');
     if (saveBtn) {
         saveBtn.addEventListener('click', async function() {
-            // Repair all uploaded models before calculating price
-            if (window.viewerGeneral && window.viewerGeneral.uploadedFiles) {
-                for (const fileData of window.viewerGeneral.uploadedFiles) {
-                    if (fileData.mesh && window.viewerGeneral.repairMesh) {
-                        await window.viewerGeneral.repairMesh(fileData.mesh, { fillHoles: true });
-                    }
-                }
+            console.log('💾 Save & Calculate button clicked');
+            
+            // Use the new simple save & calculate system
+            if (window.SimpleSaveCalculate) {
+                await window.SimpleSaveCalculate.execute('general');
+            } else {
+                console.error('❌ SimpleSaveCalculate not loaded');
+                alert('Calculation system not loaded. Please refresh the page.');
             }
-            // After repair, recalculate volume and price
-            if (window.viewerGeneral && window.viewerGeneral.uploadedFiles) {
-                window.viewerGeneral.uploadedFiles.forEach(fileData => {
-                    if (window.viewerGeneral.calculateVolume) {
-                        fileData.volume = window.viewerGeneral.calculateVolume(fileData.mesh);
-                    }
-                });
-            }
-            // Show price summary
-            if (priceSummaryGeneral) priceSummaryGeneral.style.display = 'block';
-            // Calculate and show all file prices
-            if (window.showAllFilePrices) window.showAllFilePrices('General');
         });
     }
 });
@@ -3905,6 +3894,9 @@ loading
 </script>
 
 <script src="{{ asset('frontend/assets/js/3d-viewer-pro.js') }}?v=5"></script>
+<script src="{{ asset('frontend/assets/js/volume-calculator.js') }}?v=1"></script>
+<script src="{{ asset('frontend/assets/js/pricing-calculator.js') }}?v=1"></script>
+<script src="{{ asset('frontend/assets/js/simple-save-calculate.js') }}?v=1"></script>
 
 {{-- INLINE HANDLER DEFINITION - Put it directly in HTML to bypass loading issues --}}
 <script>
