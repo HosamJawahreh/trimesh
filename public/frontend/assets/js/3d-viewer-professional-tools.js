@@ -755,99 +755,174 @@ function initProfessionalTools(viewer) {
 }
 
 function setupToolbarEvents(viewer) {
+    console.log(`🔧 Setting up toolbar events for viewer: ${viewer.containerId}`);
+    
+    // Get the container to scope button selection
+    const container = viewer.container;
+    if (!container) {
+        console.error('❌ Viewer container not found');
+        return;
+    }
+    
+    // Determine if this is General or Medical viewer
+    const viewerType = viewer.containerId.includes('Medical') ? 'Medical' : '';
+    const btnSuffix = viewerType; // '' for General, 'Medical' for Medical
+    
+    console.log(`   Viewer type: ${viewerType || 'General'}, Button suffix: '${btnSuffix}'`);
+    
     // Measurement tool
-    document.getElementById('measurementToolBtn')?.addEventListener('click', () => {
-        const submenu = document.getElementById('measurementSubmenu');
-        if (submenu) {
-            submenu.style.display = submenu.style.display === 'none' ? 'block' : 'none';
-        }
-    });
-
-    // Submenu close
-    document.querySelector('.submenu-close')?.addEventListener('click', () => {
-        document.getElementById('measurementSubmenu').style.display = 'none';
-    });
-
-    // Measurement types
-    document.querySelectorAll('.submenu-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const measureType = this.getAttribute('data-measure');
-            
-            if (measureType === 'clear') {
-                viewer.tools.measurement.clearMeasurements();
-            } else {
-                window.ViewerToolsState.activeTool = measureType;
-                document.querySelectorAll('.submenu-btn').forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-                console.log(`📏 Active measurement: ${measureType}`);
+    const measurementBtn = document.getElementById(`measurementToolBtn${btnSuffix}`);
+    if (measurementBtn) {
+        measurementBtn.addEventListener('click', () => {
+            const submenu = document.getElementById(`measurementSubmenu${btnSuffix === 'Medical' ? 'Medical' : ''}`);
+            if (submenu) {
+                submenu.style.display = submenu.style.display === 'none' ? 'block' : 'none';
             }
-            
-            document.getElementById('measurementSubmenu').style.display = 'none';
         });
-    });
+        console.log(`   ✓ Measurement button attached`);
+    } else {
+        console.warn(`   ⚠️ measurementToolBtn${btnSuffix} not found`);
+    }
+
+    // Submenu close button
+    const submenuClose = container.querySelector('.submenu-close');
+    if (submenuClose) {
+        submenuClose.addEventListener('click', () => {
+            const submenu = document.getElementById(`measurementSubmenu${btnSuffix === 'Medical' ? 'Medical' : ''}`);
+            if (submenu) submenu.style.display = 'none';
+        });
+    }
+
+    // Measurement types (within submenu)
+    const submenu = document.getElementById(`measurementSubmenu${btnSuffix === 'Medical' ? 'Medical' : ''}`);
+    if (submenu) {
+        submenu.querySelectorAll('.submenu-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const measureType = this.getAttribute('data-measure');
+                
+                if (measureType === 'clear') {
+                    viewer.tools.measurement.clearMeasurements();
+                    console.log('   ✓ Cleared measurements');
+                } else {
+                    if (!window.ViewerToolsState) window.ViewerToolsState = {};
+                    window.ViewerToolsState.activeTool = measureType;
+                    submenu.querySelectorAll('.submenu-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    console.log(`   ✓ Active measurement: ${measureType}`);
+                }
+                
+                submenu.style.display = 'none';
+            });
+        });
+    }
 
     // Bounding Box
-    document.getElementById('boundingBoxBtn')?.addEventListener('click', () => {
-        viewer.tools.boundingBox.toggle();
-    });
+    const boundingBoxBtn = document.getElementById(`boundingBoxBtn${btnSuffix}`);
+    if (boundingBoxBtn) {
+        boundingBoxBtn.addEventListener('click', () => {
+            viewer.tools.boundingBox.toggle();
+            console.log('   ✓ Bounding box toggled');
+        });
+    }
 
     // Axis
-    document.getElementById('axisToggleBtn')?.addEventListener('click', () => {
-        viewer.tools.axis.toggle();
-    });
+    const axisBtn = document.getElementById(`axisToggleBtn${btnSuffix}`);
+    if (axisBtn) {
+        axisBtn.addEventListener('click', () => {
+            viewer.tools.axis.toggle();
+            console.log('   ✓ Axis toggled');
+        });
+    }
 
     // Grid
-    document.getElementById('gridToggleBtn')?.addEventListener('click', () => {
-        viewer.tools.grid.toggle();
-    });
-
-    // Unit toggle
-    document.querySelectorAll('.unit-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const unit = this.getAttribute('data-unit');
-            document.querySelectorAll('.unit-btn').forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-            viewer.tools.grid.setUnit(unit);
+    const gridBtn = document.getElementById(`gridToggleBtn${btnSuffix}`);
+    if (gridBtn) {
+        gridBtn.addEventListener('click', () => {
+            viewer.tools.grid.toggle();
+            console.log('   ✓ Grid toggled');
         });
-    });
+    }
+
+    // Unit toggle (for grid)
+    const unitToggle = document.getElementById(`unitToggle${btnSuffix === 'Medical' ? 'Medical' : ''}`);
+    if (unitToggle) {
+        unitToggle.querySelectorAll('.unit-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const unit = this.getAttribute('data-unit');
+                unitToggle.querySelectorAll('.unit-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                viewer.tools.grid.setUnit(unit);
+                console.log(`   ✓ Grid unit set to: ${unit}`);
+            });
+        });
+    }
 
     // Shadow toggle
-    document.getElementById('shadowToggleBtn')?.addEventListener('click', () => {
-        viewer.tools.shadow.toggle();
-    });
+    const shadowBtn = document.getElementById(`shadowToggleBtn${btnSuffix}`);
+    if (shadowBtn) {
+        shadowBtn.addEventListener('click', () => {
+            viewer.tools.shadow.toggle();
+            console.log('   ✓ Shadow toggled');
+        });
+    }
 
     // Transparency
-    document.getElementById('transparencyBtn')?.addEventListener('click', () => {
-        viewer.tools.transparency.toggle();
-    });
+    const transparencyBtn = document.getElementById(`transparencyBtn${btnSuffix}`);
+    if (transparencyBtn) {
+        transparencyBtn.addEventListener('click', () => {
+            viewer.tools.transparency.toggle();
+            console.log('   ✓ Transparency toggled');
+        });
+    }
 
     // Screenshot
-    document.getElementById('screenshotToolBtn')?.addEventListener('click', () => {
-        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-        viewer.tools.screenshot.capture(`3d-model-${timestamp}.png`);
-    });
+    const screenshotBtn = document.getElementById(`screenshotToolBtn${btnSuffix}`);
+    if (screenshotBtn) {
+        screenshotBtn.addEventListener('click', () => {
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            viewer.tools.screenshot.capture(`3d-model-${viewerType || 'general'}-${timestamp}.png`);
+            console.log('   ✓ Screenshot captured');
+        });
+    }
 
     // Undo/Redo
-    document.getElementById('undoBtn')?.addEventListener('click', () => {
-        window.historyManager.undo();
-    });
+    const undoBtn = document.getElementById(`undoBtn${btnSuffix}`);
+    if (undoBtn) {
+        undoBtn.addEventListener('click', () => {
+            if (!window.historyManager) window.historyManager = new HistoryManager();
+            window.historyManager.undo();
+            console.log('   ✓ Undo');
+        });
+    }
 
-    document.getElementById('redoBtn')?.addEventListener('click', () => {
-        window.historyManager.redo();
-    });
+    const redoBtn = document.getElementById(`redoBtn${btnSuffix}`);
+    if (redoBtn) {
+        redoBtn.addEventListener('click', () => {
+            if (!window.historyManager) window.historyManager = new HistoryManager();
+            window.historyManager.redo();
+            console.log('   ✓ Redo');
+        });
+    }
 
-    // Keyboard shortcuts
+    console.log(`✅ All toolbar event handlers attached for ${viewerType || 'General'} viewer`);
+}
+
+// Keyboard shortcuts (global, only setup once)
+if (!window.professionalToolsKeyboardSetup) {
     document.addEventListener('keydown', (e) => {
         if (e.ctrlKey || e.metaKey) {
             if (e.key === 'z' && !e.shiftKey) {
                 e.preventDefault();
+                if (!window.historyManager) window.historyManager = new HistoryManager();
                 window.historyManager.undo();
             } else if (e.key === 'z' && e.shiftKey || e.key === 'y') {
                 e.preventDefault();
+                if (!window.historyManager) window.historyManager = new HistoryManager();
                 window.historyManager.redo();
             }
         }
     });
+    window.professionalToolsKeyboardSetup = true;
 }
 
 // Initialize when viewer is ready

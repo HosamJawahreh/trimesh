@@ -165,11 +165,6 @@ document.addEventListener('DOMContentLoaded', function() {
                                     {{-- 3D Viewer Canvas --}}
                                     <div id="viewer3dGeneral" style="position: relative !important; display: flex !important; visibility: visible !important; width: 100% !important; height: 100vh !important; background: linear-gradient(to bottom, #b8c5d6 0%, #99a8ba 100%) !important;">
                                         
-                                        {{-- TEST DIV - Should be visible --}}
-                                        <div style="position: absolute; top: 10px; left: 10px; background: yellow; color: black; padding: 10px; z-index: 99999; font-weight: bold; border: 3px solid red;">
-                                            TEST DIV - Can you see this?
-                                        </div>
-
                                         {{-- Model Info Badge (Top Left - Hidden until file uploaded) --}}
                                         <div class="model-info-badge" style="display: none;">
                                             <div class="model-name">
@@ -183,16 +178,16 @@ document.addEventListener('DOMContentLoaded', function() {
                                         </div>
 
                                         {{-- Professional Toolbar - Top Right --}}
-                                        <div class="viewer-professional-toolbar" id="professionalToolbar" style="position: absolute !important; top: 20px !important; right: 20px !important; display: flex !important; visibility: visible !important; opacity: 1 !important; z-index: 9999 !important; background: rgba(255, 255, 255, 0.95) !important; padding: 8px !important; border-radius: 12px !important; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important; pointer-events: auto !important; border: 5px solid red !important; gap: 8px !important;">
+                                        <div class="viewer-professional-toolbar" id="professionalToolbar" style="position: absolute !important; top: 20px !important; right: 20px !important; display: flex !important; visibility: visible !important; opacity: 1 !important; z-index: 9999 !important; background: rgba(255, 255, 255, 0.95) !important; padding: 8px !important; border-radius: 12px !important; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important; pointer-events: auto !important; gap: 8px !important;">
                                             {{-- Tools Group --}}
                                             <div class="toolbar-group" style="display: flex !important; gap: 4px !important; visibility: visible !important; opacity: 1 !important;">
-                                                <button type="button" class="toolbar-btn" id="measurementToolBtn" title="Measurement Tools" data-tool="measurement" style="display: flex !important; width: 42px !important; height: 42px !important; background: white !important; border: 2px solid blue !important; border-radius: 8px !important; visibility: visible !important; opacity: 1 !important;">
-                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style="display: block !important;">
+                                                <button type="button" class="toolbar-btn" id="measurementToolBtn" title="Measurement Tools" data-tool="measurement">
+                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                                                         <path d="M4 16L16 4M6 16L8 14M10 16L12 14M14 16L16 14M4 14L6 12M4 10L8 6M4 6L6 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
                                                     </svg>
                                                 </button>
-                                                <button type="button" class="toolbar-btn" id="boundingBoxBtn" title="Bounding Box" data-tool="boundingBox" style="display: flex !important; width: 42px !important; height: 42px !important; background: white !important; border: 2px solid green !important; border-radius: 8px !important; visibility: visible !important; opacity: 1 !important;">
-                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style="display: block !important;">
+                                                <button type="button" class="toolbar-btn" id="boundingBoxBtn" title="Bounding Box" data-tool="boundingBox">
+                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                                                         <rect x="3" y="3" width="14" height="14" stroke="currentColor" stroke-width="1.8" stroke-dasharray="2 2"/>
                                                         <circle cx="3" cy="3" r="1.5" fill="currentColor"/>
                                                         <circle cx="17" cy="3" r="1.5" fill="currentColor"/>
