@@ -995,3 +995,92 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 console.log('✅ Professional 3D Viewer Tools script loaded');
+
+// Create global toolbar handler for inline onclick events
+window.toolbarHandler = {
+    toggleMeasurement: function(viewerType) {
+        console.log(`📏 Toggle measurement for ${viewerType}`);
+        const submenu = document.getElementById('measurementSubmenu' + (viewerType === 'Medical' ? 'Medical' : ''));
+        if (submenu) {
+            submenu.style.display = submenu.style.display === 'none' || submenu.style.display === '' ? 'block' : 'none';
+            console.log('   Submenu toggled to:', submenu.style.display);
+        } else {
+            console.warn('   Submenu not found');
+        }
+    },
+    
+    toggleBoundingBox: function(viewerType) {
+        console.log(`📦 Toggle bounding box for ${viewerType}`);
+        const viewer = viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral;
+        if (viewer && viewer.tools && viewer.tools.boundingBox) {
+            viewer.tools.boundingBox.toggle();
+            console.log('   ✓ Bounding box toggled');
+        } else {
+            console.warn('   ⚠️ Viewer tools not initialized yet');
+            alert('Please wait for viewer to finish loading');
+        }
+    },
+    
+    toggleAxis: function(viewerType) {
+        console.log(`🎯 Toggle axis for ${viewerType}`);
+        const viewer = viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral;
+        if (viewer && viewer.tools && viewer.tools.axis) {
+            viewer.tools.axis.toggle();
+            console.log('   ✓ Axis toggled');
+        } else {
+            console.warn('   ⚠️ Viewer tools not initialized yet');
+            alert('Please wait for viewer to finish loading');
+        }
+    },
+    
+    toggleGrid: function(viewerType) {
+        console.log(`🔲 Toggle grid for ${viewerType}`);
+        const viewer = viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral;
+        if (viewer && viewer.tools && viewer.tools.grid) {
+            viewer.tools.grid.toggle();
+            console.log('   ✓ Grid toggled');
+        } else {
+            console.warn('   ⚠️ Viewer tools not initialized yet');
+            alert('Please wait for viewer to finish loading');
+        }
+    },
+    
+    toggleShadow: function(viewerType) {
+        console.log(`🌓 Toggle shadow for ${viewerType}`);
+        const viewer = viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral;
+        if (viewer && viewer.tools && viewer.tools.shadow) {
+            viewer.tools.shadow.toggle();
+            console.log('   ✓ Shadow toggled');
+        } else {
+            console.warn('   ⚠️ Viewer tools not initialized yet');
+            alert('Please wait for viewer to finish loading');
+        }
+    },
+    
+    toggleTransparency: function(viewerType) {
+        console.log(`👁️ Toggle transparency for ${viewerType}`);
+        const viewer = viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral;
+        if (viewer && viewer.tools && viewer.tools.transparency) {
+            viewer.tools.transparency.toggle();
+            console.log('   ✓ Transparency toggled');
+        } else {
+            console.warn('   ⚠️ Viewer tools not initialized yet');
+            alert('Please wait for viewer to finish loading');
+        }
+    },
+    
+    takeScreenshot: function(viewerType) {
+        console.log(`📸 Take screenshot for ${viewerType}`);
+        const viewer = viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral;
+        if (viewer && viewer.tools && viewer.tools.screenshot) {
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            viewer.tools.screenshot.capture(`3d-model-${viewerType.toLowerCase()}-${timestamp}.png`);
+            console.log('   ✓ Screenshot captured');
+        } else {
+            console.warn('   ⚠️ Viewer tools not initialized yet');
+            alert('Please wait for viewer to finish loading');
+        }
+    }
+};
+
+console.log('✅ Global toolbar handler created:', window.toolbarHandler);
