@@ -861,6 +861,30 @@ window.addEventListener('viewersReady', () => {
     if (window.viewerMedical) {
         initProfessionalTools(window.viewerMedical);
     }
+    
+    // Ensure toolbars are visible
+    setTimeout(() => {
+        const toolbars = document.querySelectorAll('.viewer-professional-toolbar');
+        toolbars.forEach(toolbar => {
+            toolbar.style.display = 'flex';
+            toolbar.style.visibility = 'visible';
+            toolbar.style.opacity = '1';
+        });
+        console.log('✅ Toolbars made visible:', toolbars.length);
+    }, 500);
+});
+
+// Also ensure toolbars are visible on page load
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+        const toolbars = document.querySelectorAll('.viewer-professional-toolbar');
+        toolbars.forEach(toolbar => {
+            toolbar.style.display = 'flex';
+            toolbar.style.visibility = 'visible';
+            toolbar.style.opacity = '1';
+        });
+        console.log('📍 Toolbars visibility ensured on DOM ready:', toolbars.length);
+    }, 1000);
 });
 
 console.log('✅ Professional 3D Viewer Tools loaded');

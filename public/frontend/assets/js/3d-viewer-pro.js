@@ -223,7 +223,7 @@ class Professional3DViewer {
         this.controls.screenSpacePanning = false;
         this.controls.minDistance = 10;
         this.controls.maxDistance = 2000;
-        this.controls.autoRotate = true;  // Enable auto-rotation by default
+        this.controls.autoRotate = false;  // Disable auto-rotation by default
         this.controls.autoRotateSpeed = 1.0;  // Smooth rotation speed
 
         // Setup lighting

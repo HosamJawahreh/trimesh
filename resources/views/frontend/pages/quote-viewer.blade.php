@@ -163,7 +163,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <div class="col-12 col-lg-9 position-relative d-flex flex-column" style="display: flex !important; visibility: visible !important; opacity: 1 !important; flex: 1 !important; min-width: 0 !important; background: linear-gradient(to bottom, #b8c5d6 0%, #99a8ba 100%) !important;">
 
                                     {{-- 3D Viewer Canvas --}}
-                                    <div id="viewer3dGeneral" style="display: flex !important; visibility: visible !important; width: 100% !important; height: 100vh !important; background: linear-gradient(to bottom, #b8c5d6 0%, #99a8ba 100%) !important;">
+                                    <div id="viewer3dGeneral" style="position: relative !important; display: flex !important; visibility: visible !important; width: 100% !important; height: 100vh !important; background: linear-gradient(to bottom, #b8c5d6 0%, #99a8ba 100%) !important;">
                                         {{-- Model Info Badge (Top Left - Hidden until file uploaded) --}}
                                         <div class="model-info-badge" style="display: none;">
                                             <div class="model-name">
@@ -177,7 +177,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                         </div>
 
                                         {{-- Professional Toolbar - Top Right --}}
-                                        <div class="viewer-professional-toolbar" id="professionalToolbar">
+                                        <div class="viewer-professional-toolbar" id="professionalToolbar" style="display: flex !important; visibility: visible !important; opacity: 1 !important; z-index: 2000 !important;">
                                             {{-- Tools Group --}}
                                             <div class="toolbar-group">
                                                 <button type="button" class="toolbar-btn" id="measurementToolBtn" title="Measurement Tools" data-tool="measurement">
@@ -612,7 +612,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                                 <!-- Right Side: 3D Viewer -->
                                 <div class="col-12 col-lg-9 position-relative d-flex flex-column" style="display: flex !important; visibility: visible !important; opacity: 1 !important; flex: 1 !important; min-width: 0 !important; background: linear-gradient(to bottom, #b8c5d6 0%, #99a8ba 100%) !important;">
-                                    <div id="viewer3dMedical" style="display: flex !important; visibility: visible !important; width: 100% !important; height: 100vh !important; background: linear-gradient(to bottom, #b8c5d6 0%, #99a8ba 100%) !important;">
+                                    <div id="viewer3dMedical" style="position: relative !important; display: flex !important; visibility: visible !important; width: 100% !important; height: 100vh !important; background: linear-gradient(to bottom, #b8c5d6 0%, #99a8ba 100%) !important;">
                                         {{-- Model Info Badge (Top Left - Hidden until file uploaded) --}}
                                         <div class="model-info-badge" style="display: none;">
                                             <div class="model-name">
@@ -623,6 +623,93 @@ document.addEventListener('DOMContentLoaded', function() {
                                                 <span id="modelNameDisplayMedical">model.stl</span>
                                             </div>
                                             <div class="model-subtitle" id="modelDimensionsDisplayMedical">0 × 0 × 0 mm</div>
+                                        </div>
+
+                                        {{-- Professional Toolbar - Top Right --}}
+                                        <div class="viewer-professional-toolbar" id="professionalToolbarMedical" style="display: flex !important; visibility: visible !important; opacity: 1 !important; z-index: 2000 !important;">
+                                            {{-- Tools Group --}}
+                                            <div class="toolbar-group">
+                                                <button type="button" class="toolbar-btn" id="measurementToolBtnMedical" title="Measurement Tools" data-tool="measurement">
+                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                                        <path d="M4 16L16 4M6 16L8 14M10 16L12 14M14 16L16 14M4 14L6 12M4 10L8 6M4 6L6 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                                                    </svg>
+                                                </button>
+                                                <button type="button" class="toolbar-btn" id="boundingBoxBtnMedical" title="Bounding Box" data-tool="boundingBox">
+                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                                        <rect x="3" y="3" width="14" height="14" stroke="currentColor" stroke-width="1.8" stroke-dasharray="2 2"/>
+                                                        <circle cx="3" cy="3" r="1.5" fill="currentColor"/>
+                                                        <circle cx="17" cy="3" r="1.5" fill="currentColor"/>
+                                                        <circle cx="3" cy="17" r="1.5" fill="currentColor"/>
+                                                        <circle cx="17" cy="17" r="1.5" fill="currentColor"/>
+                                                    </svg>
+                                                </button>
+                                                <button type="button" class="toolbar-btn" id="axisToggleBtnMedical" title="Toggle Axis" data-tool="axis">
+                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                                        <path d="M10 2V18M2 10H18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                                                        <path d="M10 2L8 4M10 2L12 4M18 10L16 8M18 10L16 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                                                    </svg>
+                                                </button>
+                                                <button type="button" class="toolbar-btn" id="gridToggleBtnMedical" title="Measurement Grid" data-tool="grid">
+                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                                        <path d="M2 6H18M2 10H18M2 14H18M6 2V18M10 2V18M14 2V18" stroke="currentColor" stroke-width="1.5" opacity="0.6"/>
+                                                    </svg>
+                                                </button>
+                                            </div>
+
+                                            <div class="toolbar-divider"></div>
+
+                                            {{-- View Options --}}
+                                            <div class="toolbar-group">
+                                                <button type="button" class="toolbar-btn" id="shadowToggleBtnMedical" title="Toggle Shadows" data-tool="shadow">
+                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                                        <circle cx="10" cy="8" r="3" stroke="currentColor" stroke-width="1.8"/>
+                                                        <ellipse cx="10" cy="16" rx="5" ry="1.5" fill="currentColor" opacity="0.3"/>
+                                                    </svg>
+                                                </button>
+                                                <button type="button" class="toolbar-btn" id="transparencyBtnMedical" title="Transparency" data-tool="transparency">
+                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                                        <circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.8" opacity="0.5"/>
+                                                        <path d="M10 3C6 3 3 6 3 10C3 14 6 17 10 17" stroke="currentColor" stroke-width="1.8"/>
+                                                    </svg>
+                                                </button>
+                                                <button type="button" class="toolbar-btn" id="modelColorBtnMedical" title="Model Color" data-tool="modelColor">
+                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                                        <circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.8"/>
+                                                        <circle cx="10" cy="10" r="4" fill="currentColor" opacity="0.3"/>
+                                                    </svg>
+                                                </button>
+                                                <button type="button" class="toolbar-btn" id="backgroundColorBtnMedical" title="Background Color" data-tool="bgColor">
+                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                                        <rect x="2" y="2" width="16" height="16" rx="2" stroke="currentColor" stroke-width="1.8"/>
+                                                        <path d="M2 10H18" stroke="currentColor" stroke-width="1.8"/>
+                                                    </svg>
+                                                </button>
+                                            </div>
+
+                                            <div class="toolbar-divider"></div>
+
+                                            {{-- Actions --}}
+                                            <div class="toolbar-group">
+                                                <button type="button" class="toolbar-btn" id="undoBtnMedical" title="Undo" data-action="undo">
+                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                                        <path d="M5 8H15C16.6569 8 18 9.34315 18 11C18 12.6569 16.6569 14 15 14H8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                                                        <path d="M8 5L5 8L8 11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                                                    </svg>
+                                                </button>
+                                                <button type="button" class="toolbar-btn" id="redoBtnMedical" title="Redo" data-action="redo">
+                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                                        <path d="M15 8H5C3.34315 8 2 9.34315 2 11C2 12.6569 3.34315 14 5 14H12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                                                        <path d="M12 5L15 8L12 11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                                                    </svg>
+                                                </button>
+                                                <button type="button" class="toolbar-btn" id="screenshotToolBtnMedical" title="Screenshot" data-action="screenshot">
+                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                                        <rect x="2" y="5" width="16" height="12" rx="2" stroke="currentColor" stroke-width="1.8"/>
+                                                        <circle cx="10" cy="11" r="2.5" stroke="currentColor" stroke-width="1.8"/>
+                                                        <path d="M6 5L7 3H13L14 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                                                    </svg>
+                                                </button>
+                                            </div>
                                         </div>
 
                                         {{-- Bottom Control Bar - Professional --}}
@@ -1204,6 +1291,7 @@ document.addEventListener('DOMContentLoaded', function() {
     #viewer3dMedical {
         border-radius: 0 0 8px 8px !important;
         min-height: 300px !important;
+        position: relative !important;
     }
 
     .quote-form-container-3d .card {
@@ -1326,22 +1414,29 @@ document.addEventListener('DOMContentLoaded', function() {
     background: #2d2d2d;
 }
 
+/* Viewer containers need position relative for absolute positioned children */
+#viewer3dGeneral,
+#viewer3dMedical {
+    position: relative !important;
+}
+
 /* ========================================
    PROFESSIONAL TOOLBAR STYLES
    ======================================== */
 .viewer-professional-toolbar {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    display: flex;
+    position: absolute !important;
+    top: 20px !important;
+    right: 20px !important;
+    display: flex !important;
     gap: 8px;
     background: rgba(255, 255, 255, 0.95);
     padding: 8px;
     border-radius: 12px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
     backdrop-filter: blur(10px);
-    z-index: 1000;
+    z-index: 2000 !important;
     transition: all 0.3s ease;
+    pointer-events: auto !important;
 }
 
 .toolbar-group {
@@ -3770,7 +3865,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // ============================================
     // END SCREENSHOT TOOL
     // ============================================
-
+loading 
     // ============================================
     // SHARE BUTTON HANDLERS
     // ============================================

@@ -19,7 +19,25 @@ window.EnhancedSaveCalculate = {
         this.isProcessing = true;
         const viewer = viewerId === 'general' ? window.viewerGeneral : window.viewerMedical;
         
-        if (!viewer || !viewer.uploadedFiles || viewer.uploadedFiles.length === 0) {
+        console.log('🔍 Checking viewer state:', {
+            viewer: !!viewer,
+            initialized: viewer?.initialized,
+            uploadedFiles: viewer?.uploadedFiles,
+            filesLength: viewer?.uploadedFiles?.length
+        });
+        
+        // Check if viewer exists and is initialized
+        if (!viewer) {
+            console.error('❌ Viewer not found');
+            this.showNotification('Viewer not initialized. Please refresh the page.', 'error');
+            this.isProcessing = false;
+            return;
+        }
+        
+        // Check if files are uploaded
+        const hasFiles = viewer.uploadedFiles && viewer.uploadedFiles.length > 0;
+        if (!hasFiles) {
+            console.warn('⚠️ No files uploaded');
             this.showNotification('Please upload a 3D model first', 'warning');
             this.isProcessing = false;
             return;
@@ -29,44 +47,56 @@ window.EnhancedSaveCalculate = {
             console.log('🚀 Starting enhanced save & calculate...');
             this.showProgressModal();
             
-            // Step 1: Analyze all meshes
+            // Step 1: Analyze all meshes (optional - skip if tools not available)
             await this.updateProgress('Analyzing meshes...', 20);
             const analysisResults = [];
             
-            for (const fileData of viewer.uploadedFiles) {
-                if (fileData.mesh && viewer.tools && viewer.tools.analyzer) {
-                    const analysis = await viewer.tools.analyzer.analyzeMesh(fileData.mesh);
-                    analysisResults.push({ fileName: fileData.fileName, analysis });
-                    
-                    // Show analysis
-                    viewer.tools.analyzer.showAnalysisPanel(analysis);
+            if (viewer.tools && viewer.tools.analyzer) {
+                try {
+                    for (const fileData of viewer.uploadedFiles) {
+                        if (fileData.mesh) {
+                            const analysis = await viewer.tools.analyzer.analyzeMesh(fileData.mesh);
+                            analysisResults.push({ fileName: fileData.fileName, analysis });
+                            
+                            // Show analysis
+                            viewer.tools.analyzer.showAnalysisPanel(analysis);
+                        }
+                    }
+                } catch (analysisError) {
+                    console.warn('⚠️ Analysis skipped:', analysisError);
                 }
             }
             
-            // Step 2: Repair meshes if needed
-            await this.updateProgress('Repairing meshes...', 40);
+            // Step 2: Repair meshes if needed (optional)
+            await this.updateProgress('Optimizing meshes...', 40);
             const repairResults = [];
             
-            for (const fileData of viewer.uploadedFiles) {
-                if (fileData.mesh) {
-                    const needsRepair = analysisResults.find(r => 
-                        r.fileName === fileData.fileName && 
-                        (!r.analysis.isWatertight || r.analysis.holes > 0)
-                    );
-                    
-                    if (needsRepair && viewer.tools && viewer.tools.analyzer) {
-                        console.log(`🔧 Repairing: ${fileData.fileName}`);
-                        await viewer.tools.analyzer.repairMesh(fileData.mesh);
-                        repairResults.push({ 
-                            fileName: fileData.fileName, 
-                            repaired: true,
-                            holes: needsRepair.analysis.holes
-                        });
+            if (viewer.tools && viewer.tools.analyzer) {
+                try {
+                    for (const fileData of viewer.uploadedFiles) {
+                        if (fileData.mesh) {
+                            const needsRepair = analysisResults.find(r => 
+                                r.fileName === fileData.fileName && 
+                                (!r.analysis.isWatertight || r.analysis.holes > 0)
+                            );
+                            
+                            if (needsRepair) {
+                                console.log(`🔧 Repairing: ${fileData.fileName}`);
+                                await viewer.tools.analyzer.repairMesh(fileData.mesh);
+                                repairResults.push({ 
+                                    fileName: fileData.fileName, 
+                                    repaired: true,
+                                    holes: needsRepair.analysis.holes
+                                });
+                            }
+                        }
                     }
+                } catch (repairError) {
+                    console.warn('⚠️ Repair skipped:', repairError);
                 }
             }
             
-            // Step 3: Recalculate volumes
+            // Step 3: Calculate volumes
             await this.updateProgress('Calculating volumes...', 60);
             let totalVolume = 0;
             
@@ -504,30 +534,55 @@ window.EnhancedSaveCalculate = {
 document.addEventListener('DOMContentLoaded', () => {
     console.log('🔗 Hooking enhanced save & calculate...');
     
+    let handlersAttached = false;
+    
     // Override the save button handler
     const setupEnhancedHandler = () => {
+        if (handlersAttached) {
+            console.log('⏭️ Handlers already attached, skipping...');
+            return;
+        }
+        
         const saveBtns = document.querySelectorAll('#saveCalculationsBtn, #saveCalculationsBtnMain');
         
+        if (saveBtns.length === 0) {
+            console.log('⚠️ No save buttons found yet');
+            return;
+        }
+        
         saveBtns.forEach(btn => {
-            btn.addEventListener('click', async (e) => {
+            // Remove any existing listeners by cloning the element
+            const newBtn = btn.cloneNode(true);
+            btn.parentNode.replaceChild(newBtn, btn);
+            
+            newBtn.addEventListener('click', async (e) => {
                 e.preventDefault();
-                e.stopPropagation();
+                e.stopImmediatePropagation();
+                
+                console.log('💾 Save button clicked');
                 
                 // Determine which viewer
-                const viewerId = btn.closest('[id*="General"]') || btn.closest('.quote-form-container-3d:not([style*="display: none"])') 
-                    ? 'general' 
-                    : 'medical';
+                const isGeneralVisible = !document.getElementById('generalForm3d')?.style.display || 
+                                        document.getElementById('generalForm3d')?.style.display !== 'none';
+                const viewerId = isGeneralVisible ? 'general' : 'medical';
+                
+                console.log('📍 Active viewer:', viewerId);
                 
                 await window.EnhancedSaveCalculate.execute(viewerId);
-            }, true); // Use capture phase to override other handlers
+            });
         });
         
+        handlersAttached = true;
         console.log(`✅ Enhanced handler attached to ${saveBtns.length} button(s)`);
     };
     
-    // Setup immediately and after viewer ready
-    setTimeout(setupEnhancedHandler, 1000);
-    window.addEventListener('viewersReady', setupEnhancedHandler);
+    // Setup after a delay to ensure DOM is ready
+    setTimeout(setupEnhancedHandler, 1500);
+    
+    // Also setup after viewers are ready, but only if not already done
+    window.addEventListener('viewersReady', () => {
+        setTimeout(setupEnhancedHandler, 500);
+    });
 });
 
 console.log('✅ Enhanced Save & Calculate System loaded');
