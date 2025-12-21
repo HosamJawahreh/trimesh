@@ -201,7 +201,7 @@ class Professional3DViewer {
         if (existingCanvas) {
             existingCanvas.remove();
         }
-        
+
         // Remove loading message if it exists
         const loadingDiv = this.container.querySelector('.viewer-loading');
         if (loadingDiv) {

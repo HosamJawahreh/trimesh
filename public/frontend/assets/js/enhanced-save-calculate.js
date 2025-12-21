@@ -58,9 +58,9 @@ window.EnhancedSaveCalculate = {
                         if (fileData.mesh && fileData.mesh.geometry) {
                             console.log(`🔍 Analyzing: ${fileData.file.name}`);
                             const analysis = window.MeshRepairVisual.analyzeGeometry(fileData.mesh.geometry);
-                            analysisResults.push({ 
-                                file: fileData.file.name, 
-                                analysis: analysis 
+                            analysisResults.push({
+                                file: fileData.file.name,
+                                analysis: analysis
                             });
                             console.log(`   📊 Analysis result:`, analysis);
                         }
@@ -79,26 +79,26 @@ window.EnhancedSaveCalculate = {
                     for (let i = 0; i < viewer.uploadedFiles.length; i++) {
                         const fileData = viewer.uploadedFiles[i];
                         const analysis = analysisResults[i];
-                        
+
                         if (fileData.mesh && analysis && analysis.analysis.holes > 0) {
                             console.log(`🔧 Repairing: ${fileData.file.name} (${analysis.analysis.holes} holes found)`);
-                            
+
                             const result = await window.MeshRepairVisual.repairMeshWithVisualization(
-                                viewer, 
+                                viewer,
                                 fileData
                             );
-                            
+
                             repairResults.push({
                                 fileName: fileData.file.name,
                                 ...result
                             });
-                            
+
                             console.log(`   ✅ Repair result:`, result);
                         } else if (analysis && analysis.analysis.holes === 0) {
                             console.log(`   ✓ ${fileData.file.name} is watertight - no repair needed`);
                         }
                     }
-                    
+
                     // Show summary notification
                     if (repairResults.length > 0) {
                         const totalFilled = repairResults.reduce((sum, r) => sum + (r.holesFilled || 0), 0);
@@ -121,35 +121,35 @@ window.EnhancedSaveCalculate = {
             // Step 3: Calculate volumes (AFTER repair, so includes repaired geometry)
             await this.updateProgress('Calculating volumes...', 60);
             let totalVolume = 0;
-            
+
             console.log('📐 Starting volume calculation (includes repaired geometry)...');
 
             for (const fileData of viewer.uploadedFiles) {
                 try {
                     let volume = 0;
-                    
+
                     // Get geometry from either mesh or direct geometry (should be repaired geometry now)
                     const geometry = fileData.geometry || (fileData.mesh && fileData.mesh.geometry);
-                    
+
                     if (!geometry) {
                         console.warn(`⚠️ No geometry found for ${fileData.file?.name || 'unknown file'}`);
                         continue;
                     }
-                    
+
                     console.log(`📐 Calculating volume for: ${fileData.file?.name}`);
                     console.log(`   Geometry vertices: ${geometry.attributes.position.count}`);
-                    
+
                     // Try using viewer's calculateVolume method (pass GEOMETRY, not mesh!)
                     if (viewer.calculateVolume && typeof viewer.calculateVolume === 'function') {
                         console.log(`   Using viewer.calculateVolume method`);
                         volume = viewer.calculateVolume(geometry);
-                    } 
+                    }
                     // Fallback: Calculate volume directly from geometry
                     else {
                         console.log(`   Using fallback volume calculation method`);
                         volume = this.calculateMeshVolume(geometry);
                     }
-                    
+
                     // Handle return value - could be object {cm3, mm3} or just number
                     if (typeof volume === 'object' && volume !== null) {
                         if (volume.cm3) {
@@ -166,16 +166,16 @@ window.EnhancedSaveCalculate = {
                     } else {
                         console.warn(`   ⚠️ Invalid volume value:`, volume);
                     }
-                    
+
                 } catch (volumeError) {
                     console.error(`❌ Error calculating volume for ${fileData.file?.name}:`, volumeError);
                     console.error('Error stack:', volumeError.stack);
                     // Continue with other files
                 }
             }
-            
+
             console.log(`📊 Total volume calculated: ${totalVolume.toFixed(2)} cm³`);
-            
+
             // If no volume calculated, show error
             if (totalVolume === 0) {
                 throw new Error('Could not calculate model volume. The geometry may be invalid or files may not be loaded properly.');
@@ -243,7 +243,7 @@ window.EnhancedSaveCalculate = {
                 files: viewer?.uploadedFiles?.length
             });
             this.hideProgressModal();
-            
+
             // More helpful error message
             let errorMsg = 'Error processing model. ';
             if (!viewer) {
@@ -253,13 +253,13 @@ window.EnhancedSaveCalculate = {
             } else {
                 errorMsg += 'Please check console for details.';
             }
-            
+
             this.showNotification(errorMsg, 'error');
         } finally {
             this.isProcessing = false;
         }
     },
-    
+
     /**
      * Calculate volume from mesh geometry (fallback method)
      */
@@ -268,28 +268,28 @@ window.EnhancedSaveCalculate = {
             console.warn('Invalid geometry for volume calculation');
             return 0;
         }
-        
+
         const position = geometry.attributes.position;
         const vertices = position.array;
         let volume = 0;
-        
+
         // Calculate volume using signed volume of triangles
         for (let i = 0; i < vertices.length; i += 9) {
             const v1 = [vertices[i], vertices[i + 1], vertices[i + 2]];
             const v2 = [vertices[i + 3], vertices[i + 4], vertices[i + 5]];
             const v3 = [vertices[i + 6], vertices[i + 7], vertices[i + 8]];
-            
+
             // Signed volume of tetrahedron formed by origin and triangle
             volume += this.signedVolumeOfTriangle(v1, v2, v3);
         }
-        
+
         // Convert to cm³ (assuming units are mm)
         const volumeCm3 = Math.abs(volume) / 1000;
-        
+
         console.log(`Calculated volume: ${volumeCm3.toFixed(2)} cm³`);
         return volumeCm3;
     },
-    
+
     /**
      * Calculate signed volume of triangle
      */
