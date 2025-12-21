@@ -1064,7 +1064,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             <h5 class="mb-0" style="font-weight: 600;">👁️ 3D Preview</h5>
                         </div>
                         <div class="card-body p-0">
-                            <div id="viewer3dGeneral" style="width: 100%; height: 400px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 0 0 16px 16px; display: flex; align-items: center; justify-content: center; color: white;">
+                            <div id="viewer3dGeneral-old-duplicate" style="width: 100%; height: 400px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 0 0 16px 16px; display: flex; align-items: center; justify-content: center; color: white;">
                                 <div class="text-center">
                                     <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" style="opacity: 0.5;">
                                         <path d="M40 10L70 25L40 40L10 25L40 10Z" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
@@ -1187,7 +1187,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             <h5 class="mb-0" style="font-weight: 600;">👁️ 3D Preview</h5>
                         </div>
                         <div class="card-body p-0">
-                            <div id="viewer3dMedical" style="width: 100%; height: 400px; background: linear-gradient(135deg, #ff9800 0%, #ff5722 100%); border-radius: 0 0 16px 16px; display: flex; align-items: center; justify-content: center; color: white;">
+                            <div id="viewer3dMedical-old-duplicate" style="width: 100%; height: 400px; background: linear-gradient(135deg, #ff9800 0%, #ff5722 100%); border-radius: 0 0 16px 16px; display: flex; align-items: center; justify-content: center; color: white;">
                                 <div class="text-center">
                                     <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" style="opacity: 0.5;">
                                         <path d="M40 10L70 25L40 40L10 25L40 10Z" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
@@ -4028,3 +4028,33 @@ loading
     }
 })();
 </script>
+
+<script>
+// Force toolbar visibility after page load
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🔧 Forcing toolbar visibility...');
+    
+    // Find all professional toolbars
+    const toolbars = document.querySelectorAll('.professional-toolbar');
+    
+    toolbars.forEach(function(toolbar, index) {
+        // Force display
+        toolbar.style.display = 'flex';
+        toolbar.style.visibility = 'visible';
+        toolbar.style.opacity = '1';
+        
+        console.log(`✅ Toolbar ${index + 1} visibility forced`);
+    });
+    
+    // Double-check after a short delay
+    setTimeout(function() {
+        toolbars.forEach(function(toolbar, index) {
+            toolbar.style.display = 'flex';
+            toolbar.style.visibility = 'visible';
+            toolbar.style.opacity = '1';
+        });
+        console.log('✅ Toolbar visibility re-confirmed');
+    }, 500);
+});
+</script>
+
