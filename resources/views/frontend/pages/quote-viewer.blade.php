@@ -3904,7 +3904,7 @@ loading
 });
 </script>
 
-<script src="{{ asset('frontend/assets/js/3d-viewer-pro.js') }}?v=3"></script>
+<script src="{{ asset('frontend/assets/js/3d-viewer-pro.js') }}?v=5"></script>
 
 {{-- INLINE HANDLER DEFINITION - Put it directly in HTML to bypass loading issues --}}
 <script>
@@ -4001,6 +4001,8 @@ window.toggleToolbarButton = function(buttonId, isActive) {
         button.style.color = '';
         button.style.boxShadow = '';
     }
+};
+
 // Define the handler RIGHT HERE in the HTML
 window.toolbarHandler = {
     toggleMeasurement: function(viewerType) {
@@ -4011,7 +4013,202 @@ window.toolbarHandler = {
             submenu.style.display = isVisible ? 'none' : 'block';
             toggleToolbarButton('measurementToolBtn', !isVisible);
             showToolbarNotification(isVisible ? 'Measurement tools hidden' : 'Measurement tools shown', 'info', 1500);
+            
+            // Initialize measurement tool handlers if not already done
+            if (!submenu.dataset.initialized) {
+                this.initMeasurementTools(viewerType, submenu);
+                submenu.dataset.initialized = 'true';
+            }
         }
+    },
+    
+    initMeasurementTools: function(viewerType, submenu) {
+        const viewer = viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral;
+        
+        if (!viewer) {
+            console.warn('Viewer not found for measurement tools');
+            return;
+        }
+        
+        // Initialize measurement state
+        if (!viewer.measurementState) {
+            viewer.measurementState = {
+                mode: null,
+                points: [],
+                lines: [],
+                labels: []
+            };
+        }
+        
+        // Close button
+        const closeBtn = submenu.querySelector('.submenu-close');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
+                submenu.style.display = 'none';
+                toggleToolbarButton('measurementToolBtn', false);
+            });
+        }
+        
+        // Measurement tool buttons
+        submenu.querySelectorAll('.submenu-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const measureType = btn.getAttribute('data-measure');
+                this.handleMeasurementTool(viewer, measureType, viewerType);
+            });
+        });
+    },
+    
+    handleMeasurementTool: function(viewer, measureType, viewerType) {
+        console.log(`📐 Measurement tool: ${measureType}`);
+        
+        switch(measureType) {
+            case 'distance':
+                this.startDistanceMeasurement(viewer, viewerType);
+                break;
+            case 'point-to-line':
+                showToolbarNotification('Click two points on the model to define a line, then click a third point', 'info', 3000);
+                this.startPointToLineMeasurement(viewer, viewerType);
+                break;
+            case 'point-to-surface':
+                showToolbarNotification('Click a point, then click on the surface to measure distance', 'info', 3000);
+                this.startPointToSurfaceMeasurement(viewer, viewerType);
+                break;
+            case 'angle':
+                showToolbarNotification('Click three points to measure the angle between them', 'info', 3000);
+                this.startAngleMeasurement(viewer, viewerType);
+                break;
+            case 'clear':
+                this.clearAllMeasurements(viewer);
+                break;
+        }
+    },
+    
+    startDistanceMeasurement: function(viewer, viewerType) {
+        viewer.measurementState.mode = 'distance';
+        viewer.measurementState.points = [];
+        
+        showToolbarNotification('Click two points on the model to measure distance', 'info', 3000);
+        
+        // Add click handler for measurement
+        const onMeasurementClick = (event) => {
+            const raycaster = new THREE.Raycaster();
+            const mouse = new THREE.Vector2();
+            
+            const rect = viewer.renderer.domElement.getBoundingClientRect();
+            mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+            mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+            
+            raycaster.setFromCamera(mouse, viewer.camera);
+            
+            const meshes = [];
+            viewer.scene.traverse((obj) => {
+                if (obj.isMesh) meshes.push(obj);
+            });
+            
+            const intersects = raycaster.intersectObjects(meshes);
+            
+            if (intersects.length > 0) {
+                const point = intersects[0].point.clone();
+                viewer.measurementState.points.push(point);
+                
+                // Create point marker
+                const geometry = new THREE.SphereGeometry(0.5, 16, 16);
+                const material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+                const sphere = new THREE.Mesh(geometry, material);
+                sphere.position.copy(point);
+                sphere.userData.isMeasurementPoint = true;
+                viewer.scene.add(sphere);
+                viewer.measurementState.lines.push(sphere);
+                
+                if (viewer.measurementState.points.length === 2) {
+                    // Draw line between points
+                    const lineGeometry = new THREE.BufferGeometry().setFromPoints(viewer.measurementState.points);
+                    const lineMaterial = new THREE.LineBasicMaterial({ color: 0xff0000, linewidth: 2 });
+                    const line = new THREE.Line(lineGeometry, lineMaterial);
+                    line.userData.isMeasurementLine = true;
+                    viewer.scene.add(line);
+                    viewer.measurementState.lines.push(line);
+                    
+                    // Calculate and display distance
+                    const distance = viewer.measurementState.points[0].distanceTo(viewer.measurementState.points[1]);
+                    const midPoint = new THREE.Vector3().addVectors(viewer.measurementState.points[0], viewer.measurementState.points[1]).multiplyScalar(0.5);
+                    
+                    // Create label
+                    const canvas = document.createElement('canvas');
+                    const context = canvas.getContext('2d');
+                    canvas.width = 256;
+                    canvas.height = 64;
+                    context.fillStyle = '#ffffff';
+                    context.fillRect(0, 0, 256, 64);
+                    context.fillStyle = '#000000';
+                    context.font = 'Bold 20px Arial';
+                    context.textAlign = 'center';
+                    context.textBaseline = 'middle';
+                    context.fillText(`${distance.toFixed(2)} mm`, 128, 32);
+                    
+                    const texture = new THREE.CanvasTexture(canvas);
+                    const spriteMaterial = new THREE.SpriteMaterial({ map: texture });
+                    const sprite = new THREE.Sprite(spriteMaterial);
+                    sprite.scale.set(20, 5, 1);
+                    sprite.position.copy(midPoint);
+                    sprite.userData.isMeasurementLabel = true;
+                    viewer.scene.add(sprite);
+                    viewer.measurementState.labels.push(sprite);
+                    
+                    showToolbarNotification(`Distance: ${distance.toFixed(2)} mm`, 'success', 3000);
+                    
+                    // Reset for next measurement
+                    viewer.measurementState.mode = null;
+                    viewer.measurementState.points = [];
+                    viewer.renderer.domElement.removeEventListener('click', onMeasurementClick);
+                }
+                
+                if (viewer.render) viewer.render();
+            }
+        };
+        
+        viewer.renderer.domElement.addEventListener('click', onMeasurementClick);
+    },
+    
+    startPointToLineMeasurement: function(viewer, viewerType) {
+        showToolbarNotification('Point-to-line measurement: Coming in next update', 'info', 2000);
+    },
+    
+    startPointToSurfaceMeasurement: function(viewer, viewerType) {
+        showToolbarNotification('Point-to-surface measurement: Coming in next update', 'info', 2000);
+    },
+    
+    startAngleMeasurement: function(viewer, viewerType) {
+        showToolbarNotification('Angle measurement: Coming in next update', 'info', 2000);
+    },
+    
+    clearAllMeasurements: function(viewer) {
+        if (!viewer || !viewer.scene) return;
+        
+        // Remove all measurement objects
+        const toRemove = [];
+        viewer.scene.traverse((obj) => {
+            if (obj.userData.isMeasurementPoint || obj.userData.isMeasurementLine || obj.userData.isMeasurementLabel) {
+                toRemove.push(obj);
+            }
+        });
+        
+        toRemove.forEach(obj => {
+            viewer.scene.remove(obj);
+            if (obj.geometry) obj.geometry.dispose();
+            if (obj.material) obj.material.dispose();
+        });
+        
+        // Reset measurement state
+        if (viewer.measurementState) {
+            viewer.measurementState.points = [];
+            viewer.measurementState.lines = [];
+            viewer.measurementState.labels = [];
+            viewer.measurementState.mode = null;
+        }
+        
+        if (viewer.render) viewer.render();
+        showToolbarNotification('All measurements cleared', 'success', 1500);
     },
 
     toggleBoundingBox: function(viewerType) {
@@ -4022,11 +4219,19 @@ window.toolbarHandler = {
             showToolbarNotification('Please wait for the 3D model to load', 'warning');
             return;
         }
+        
+        // Save state before making changes
+        this.saveState(viewer);
 
         let existingHelper = viewer.scene.children.find(child => child.userData && child.userData.isBoundingBoxHelper);
 
         if (existingHelper) {
             existingHelper.visible = !existingHelper.visible;
+            
+            // Toggle dimension labels
+            const labels = viewer.scene.children.filter(child => child.userData && child.userData.isDimensionLabel);
+            labels.forEach(label => label.visible = existingHelper.visible);
+            
             toggleToolbarButton('boundingBoxBtn', existingHelper.visible);
             showToolbarNotification(existingHelper.visible ? 'Bounding box shown' : 'Bounding box hidden', 'success', 1500);
         } else {
@@ -4044,26 +4249,57 @@ window.toolbarHandler = {
                 const helper = new THREE.Box3Helper(box, 0xffaa00);
                 helper.userData.isBoundingBoxHelper = true;
                 viewer.scene.add(helper);
+                
+                // Add dimension labels
+                const size = box.getSize(new THREE.Vector3());
+                const center = box.getCenter(new THREE.Vector3());
+                
+                // Create text sprites for dimensions
+                const createTextSprite = (text, position) => {
+                    const canvas = document.createElement('canvas');
+                    const context = canvas.getContext('2d');
+                    canvas.width = 256;
+                    canvas.height = 64;
+                    
+                    context.fillStyle = '#000000';
+                    context.font = 'Bold 24px Arial';
+                    context.textAlign = 'center';
+                    context.textBaseline = 'middle';
+                    context.fillText(text, 128, 32);
+                    
+                    const texture = new THREE.CanvasTexture(canvas);
+                    const material = new THREE.SpriteMaterial({ map: texture, transparent: true });
+                    const sprite = new THREE.Sprite(material);
+                    sprite.scale.set(size.x * 0.3, size.x * 0.075, 1);
+                    sprite.position.copy(position);
+                    sprite.userData.isDimensionLabel = true;
+                    return sprite;
+                };
+                
+                // X dimension (Width)
+                const xLabel = createTextSprite(
+                    `X: ${size.x.toFixed(1)} mm`,
+                    new THREE.Vector3(center.x, box.min.y - size.y * 0.1, center.z)
+                );
+                viewer.scene.add(xLabel);
+                
+                // Y dimension (Height)
+                const yLabel = createTextSprite(
+                    `Y: ${size.y.toFixed(1)} mm`,
+                    new THREE.Vector3(box.max.x + size.x * 0.15, center.y, center.z)
+                );
+                viewer.scene.add(yLabel);
+                
+                // Z dimension (Depth)
+                const zLabel = createTextSprite(
+                    `Z: ${size.z.toFixed(1)} mm`,
+                    new THREE.Vector3(center.x, center.y, box.max.z + size.z * 0.1)
+                );
+                viewer.scene.add(zLabel);
+                
                 toggleToolbarButton('boundingBoxBtn', true);
-                showToolbarNotification('Bounding box enabled', 'success', 1500);
+                showToolbarNotification('Bounding box enabled with dimensions', 'success', 2000);
             }
-        }
-
-        if (viewer.render) viewer.render();
-    },
-        }
-
-        let existingHelper = viewer.scene.children.find(child => child.userData && child.userData.isBoundingBoxHelper);
-
-        if (existingHelper) {
-            existingHelper.visible = !existingHelper.visible;
-            console.log('✅ Bounding box toggled:', existingHelper.visible);
-        } else {
-            const box = new THREE.Box3().setFromObject(viewer.scene);
-            const helper = new THREE.Box3Helper(box, 0x00ff00);
-            helper.userData.isBoundingBoxHelper = true;
-            viewer.scene.add(helper);
-            console.log('✅ Bounding box created');
         }
 
         if (viewer.render) viewer.render();
@@ -4077,11 +4313,19 @@ window.toolbarHandler = {
             showToolbarNotification('Please wait for the 3D model to load', 'warning');
             return;
         }
+        
+        // Save state before making changes
+        this.saveState(viewer);
 
         let existingAxis = viewer.scene.children.find(child => child.userData && child.userData.isAxisHelper);
 
         if (existingAxis) {
             existingAxis.visible = !existingAxis.visible;
+            
+            // Toggle axis labels
+            const labels = viewer.scene.children.filter(child => child.userData && child.userData.isAxisLabel);
+            labels.forEach(label => label.visible = existingAxis.visible);
+            
             toggleToolbarButton('axisToggleBtn', existingAxis.visible);
             showToolbarNotification(existingAxis.visible ? 'Axis shown' : 'Axis hidden', 'success', 1500);
         } else {
@@ -4092,13 +4336,48 @@ window.toolbarHandler = {
             });
             const size = box.getSize(new THREE.Vector3());
             const maxDim = Math.max(size.x, size.y, size.z);
-            const axisSize = maxDim * 0.5;
+            const axisSize = maxDim * 0.6;
             
             const axesHelper = new THREE.AxesHelper(axisSize);
             axesHelper.userData.isAxisHelper = true;
             viewer.scene.add(axesHelper);
+            
+            // Add axis labels (X, Y, Z)
+            const createAxisLabel = (text, position, color) => {
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                canvas.width = 128;
+                canvas.height = 128;
+                
+                context.fillStyle = color;
+                context.font = 'Bold 64px Arial';
+                context.textAlign = 'center';
+                context.textBaseline = 'middle';
+                context.fillText(text, 64, 64);
+                
+                const texture = new THREE.CanvasTexture(canvas);
+                const material = new THREE.SpriteMaterial({ map: texture, transparent: true });
+                const sprite = new THREE.Sprite(material);
+                sprite.scale.set(axisSize * 0.15, axisSize * 0.15, 1);
+                sprite.position.copy(position);
+                sprite.userData.isAxisLabel = true;
+                return sprite;
+            };
+            
+            // X axis (Red)
+            const xLabel = createAxisLabel('X', new THREE.Vector3(axisSize * 1.1, 0, 0), '#ff0000');
+            viewer.scene.add(xLabel);
+            
+            // Y axis (Green)
+            const yLabel = createAxisLabel('Y', new THREE.Vector3(0, axisSize * 1.1, 0), '#00ff00');
+            viewer.scene.add(yLabel);
+            
+            // Z axis (Blue)
+            const zLabel = createAxisLabel('Z', new THREE.Vector3(0, 0, axisSize * 1.1), '#0000ff');
+            viewer.scene.add(zLabel);
+            
             toggleToolbarButton('axisToggleBtn', true);
-            showToolbarNotification('Axis enabled', 'success', 1500);
+            showToolbarNotification('Axis enabled with labels', 'success', 2000);
         }
 
         if (viewer.render) viewer.render();
@@ -4112,6 +4391,9 @@ window.toolbarHandler = {
             showToolbarNotification('Please wait for the 3D model to load', 'warning');
             return;
         }
+        
+        // Save state before making changes
+        this.saveState(viewer);
 
         let existingGrid = viewer.scene.children.find(child => child.userData && child.userData.isGridHelper);
 
@@ -4153,6 +4435,9 @@ window.toolbarHandler = {
             showToolbarNotification('Please wait for the 3D model to load', 'warning');
             return;
         }
+        
+        // Save state before making changes
+        this.saveState(viewer);
 
         viewer.renderer.shadowMap.enabled = !viewer.renderer.shadowMap.enabled;
         toggleToolbarButton('shadowToggleBtn', viewer.renderer.shadowMap.enabled);
@@ -4169,6 +4454,9 @@ window.toolbarHandler = {
             showToolbarNotification('Please wait for the 3D model to load', 'warning');
             return;
         }
+        
+        // Save state before making changes
+        this.saveState(viewer);
 
         const levels = [1.0, 0.75, 0.5, 0.25];
 
@@ -4234,16 +4522,207 @@ window.toolbarHandler = {
     },
 
     undo: function() { 
-        showToolbarNotification('Undo feature coming in next update', 'info', 2000);
+        console.log('⏪ Undo action');
+        const viewer = window.viewerGeneral || window.viewerMedical;
+        
+        if (!viewer || !viewer.stateHistory) {
+            viewer.stateHistory = [];
+            viewer.stateHistoryIndex = -1;
+        }
+        
+        if (viewer.stateHistoryIndex > 0) {
+            viewer.stateHistoryIndex--;
+            const state = viewer.stateHistory[viewer.stateHistoryIndex];
+            this.restoreState(viewer, state);
+            showToolbarNotification('Undone', 'success', 1000);
+        } else {
+            showToolbarNotification('Nothing to undo', 'info', 1500);
+        }
     },
+    
     redo: function() { 
-        showToolbarNotification('Redo feature coming in next update', 'info', 2000);
+        console.log('⏩ Redo action');
+        const viewer = window.viewerGeneral || window.viewerMedical;
+        
+        if (!viewer || !viewer.stateHistory) {
+            viewer.stateHistory = [];
+            viewer.stateHistoryIndex = -1;
+        }
+        
+        if (viewer.stateHistoryIndex < viewer.stateHistory.length - 1) {
+            viewer.stateHistoryIndex++;
+            const state = viewer.stateHistory[viewer.stateHistoryIndex];
+            this.restoreState(viewer, state);
+            showToolbarNotification('Redone', 'success', 1000);
+        } else {
+            showToolbarNotification('Nothing to redo', 'info', 1500);
+        }
     },
-    changeModelColor: function() { 
-        showToolbarNotification('Color picker coming in next update', 'info', 2000);
+    
+    saveState: function(viewer) {
+        if (!viewer.stateHistory) {
+            viewer.stateHistory = [];
+            viewer.stateHistoryIndex = -1;
+        }
+        
+        // Capture current state
+        const state = {
+            cameraPosition: viewer.camera.position.clone(),
+            cameraRotation: viewer.camera.rotation.clone(),
+            transparency: viewer.currentTransparencyIndex || 0,
+            shadows: viewer.renderer.shadowMap.enabled,
+            toolsVisible: {
+                boundingBox: !!viewer.scene.children.find(child => child.userData && child.userData.isBoundingBoxHelper && child.visible),
+                axis: !!viewer.scene.children.find(child => child.userData && child.userData.isAxisHelper && child.visible),
+                grid: !!viewer.scene.children.find(child => child.userData && child.userData.isGridHelper && child.visible)
+            }
+        };
+        
+        // Remove future states if we're not at the end
+        if (viewer.stateHistoryIndex < viewer.stateHistory.length - 1) {
+            viewer.stateHistory = viewer.stateHistory.slice(0, viewer.stateHistoryIndex + 1);
+        }
+        
+        viewer.stateHistory.push(state);
+        viewer.stateHistoryIndex++;
+        
+        // Limit history to 50 states
+        if (viewer.stateHistory.length > 50) {
+            viewer.stateHistory.shift();
+            viewer.stateHistoryIndex--;
+        }
     },
-    changeBackgroundColor: function() { 
-        showToolbarNotification('Background color picker coming in next update', 'info', 2000);
+    
+    restoreState: function(viewer, state) {
+        if (!state) return;
+        
+        viewer.camera.position.copy(state.cameraPosition);
+        viewer.camera.rotation.copy(state.cameraRotation);
+        
+        // Restore transparency
+        viewer.currentTransparencyIndex = state.transparency;
+        
+        // Restore shadows
+        viewer.renderer.shadowMap.enabled = state.shadows;
+        
+        // Restore tools visibility
+        const boundingBox = viewer.scene.children.find(child => child.userData && child.userData.isBoundingBoxHelper);
+        if (boundingBox) boundingBox.visible = state.toolsVisible.boundingBox;
+        
+        const axis = viewer.scene.children.find(child => child.userData && child.userData.isAxisHelper);
+        if (axis) axis.visible = state.toolsVisible.axis;
+        
+        const grid = viewer.scene.children.find(child => child.userData && child.userData.isGridHelper);
+        if (grid) grid.visible = state.toolsVisible.grid;
+        
+        if (viewer.render) viewer.render();
+    },
+    
+    changeModelColor: function(viewerType) { 
+        console.log('🎨 Change model color');
+        const viewer = viewerType ? (viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral) 
+                                  : (window.viewerGeneral || window.viewerMedical);
+        
+        if (!viewer || !viewer.scene) {
+            showToolbarNotification('Please wait for the 3D model to load', 'warning');
+            return;
+        }
+        
+        // Create color picker dialog
+        const colors = ['#0047AD', '#ffffff', '#2c3e50', '#3498db', '#e74c3c', '#2ecc71', '#f39c12', '#9b59b6', '#1abc9c', '#34495e'];
+        
+        const existingPicker = document.getElementById('modelColorPicker');
+        if (existingPicker) {
+            existingPicker.remove();
+            return;
+        }
+        
+        const picker = document.createElement('div');
+        picker.id = 'modelColorPicker';
+        picker.style.cssText = 'position: fixed; top: 140px; right: 20px; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); z-index: 9998;';
+        picker.innerHTML = `
+            <div style="font-weight: 600; margin-bottom: 10px; color: #2c3e50;">Select Model Color</div>
+            <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px;">
+                ${colors.map(color => `
+                    <button class="model-color-option" data-color="${color}" 
+                            style="width: 36px; height: 36px; border: 2px solid #ddd; border-radius: 6px; background: ${color}; cursor: pointer; transition: all 0.2s;"
+                            onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+                    </button>
+                `).join('')}
+            </div>
+            <button onclick="document.getElementById('modelColorPicker').remove()" 
+                    style="margin-top: 10px; width: 100%; padding: 8px; border: none; background: #f1f3f5; border-radius: 6px; cursor: pointer; font-size: 0.85rem;">
+                Close
+            </button>
+        `;
+        document.body.appendChild(picker);
+        
+        // Add click handlers
+        picker.querySelectorAll('.model-color-option').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const color = this.getAttribute('data-color');
+                viewer.scene.traverse((object) => {
+                    if (object.isMesh && object.material) {
+                        object.material.color.set(color);
+                        object.material.needsUpdate = true;
+                    }
+                });
+                if (viewer.render) viewer.render();
+                showToolbarNotification('Model color changed', 'success', 1500);
+                picker.remove();
+            });
+        });
+    },
+    
+    changeBackgroundColor: function(viewerType) { 
+        console.log('🌈 Change background color');
+        const viewer = viewerType ? (viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral) 
+                                  : (window.viewerGeneral || window.viewerMedical);
+        
+        if (!viewer || !viewer.scene) {
+            showToolbarNotification('Please wait for the 3D viewer to load', 'warning');
+            return;
+        }
+        
+        // Create color picker dialog
+        const colors = ['#ffffff', '#f8f9fa', '#e9ecef', '#dee2e6', '#2c3e50', '#34495e', '#1a1a1a', '#000000', '#e3f2fd', '#fce4ec'];
+        
+        const existingPicker = document.getElementById('bgColorPicker');
+        if (existingPicker) {
+            existingPicker.remove();
+            return;
+        }
+        
+        const picker = document.createElement('div');
+        picker.id = 'bgColorPicker';
+        picker.style.cssText = 'position: fixed; top: 140px; right: 20px; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); z-index: 9998;';
+        picker.innerHTML = `
+            <div style="font-weight: 600; margin-bottom: 10px; color: #2c3e50;">Select Background Color</div>
+            <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px;">
+                ${colors.map(color => `
+                    <button class="bg-color-option" data-color="${color}" 
+                            style="width: 36px; height: 36px; border: 2px solid #ddd; border-radius: 6px; background: ${color}; cursor: pointer; transition: all 0.2s;"
+                            onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+                    </button>
+                `).join('')}
+            </div>
+            <button onclick="document.getElementById('bgColorPicker').remove()" 
+                    style="margin-top: 10px; width: 100%; padding: 8px; border: none; background: #f1f3f5; border-radius: 6px; cursor: pointer; font-size: 0.85rem;">
+                Close
+            </button>
+        `;
+        document.body.appendChild(picker);
+        
+        // Add click handlers
+        picker.querySelectorAll('.bg-color-option').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const color = this.getAttribute('data-color');
+                viewer.scene.background = new THREE.Color(color);
+                if (viewer.render) viewer.render();
+                showToolbarNotification('Background color changed', 'success', 1500);
+                picker.remove();
+            });
+        });
     }
 };
 
@@ -4251,7 +4730,7 @@ console.log('✅ INLINE window.toolbarHandler created!', window.toolbarHandler);
 console.log('Available methods:', Object.keys(window.toolbarHandler));
 </script>
 
-<script src="{{ asset('frontend/assets/js/3d-viewer-professional-tools.js') }}?v=2001"></script>
+<script src="{{ asset('frontend/assets/js/3d-viewer-professional-tools.js') }}?v=3000"></script>
 <script>
 // IMMEDIATE verification that toolbar handler exists
 console.log('========================================');
@@ -4286,7 +4765,11 @@ if (window.toolbarHandler) {
 
 console.log('========================================');
 </script>
-<script src="{{ asset('frontend/assets/js/enhanced-save-calculate.js') }}?v=1"></script>
+
+{{-- Mesh Repair with Visual Feedback --}}
+<script src="{{ asset('frontend/assets/js/mesh-repair-visual.js') }}?v=1"></script>
+
+<script src="{{ asset('frontend/assets/js/enhanced-save-calculate.js') }}?v=2"></script>
 <script src="{{ asset('frontend/assets/js/3d-file-manager.js') }}?v=3"></script>
 
 <!-- QR Code Library for Share Modal -->
@@ -4467,4 +4950,241 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
+
+{{-- Viewer Health Check & Auto-Repair System --}}
+<script>
+/**
+ * ========================================
+ * VIEWER HEALTH CHECK & AUTO-REPAIR
+ * Ensures viewer is 100% functional
+ * ========================================
+ */
+(function() {
+    console.log('🏥 Starting Viewer Health Check System...');
+    
+    const healthCheck = {
+        checkInterval: null,
+        repairAttempts: 0,
+        maxRepairAttempts: 3,
+        
+        /**
+         * Start monitoring viewer health
+         */
+        start() {
+            // Initial check after 2 seconds
+            setTimeout(() => this.performHealthCheck(), 2000);
+            
+            // Periodic check every 10 seconds
+            this.checkInterval = setInterval(() => {
+                this.performHealthCheck();
+            }, 10000);
+            
+            console.log('✅ Health check system started');
+        },
+        
+        /**
+         * Perform comprehensive health check
+         */
+        performHealthCheck() {
+            const results = {
+                viewerGeneral: this.checkViewer(window.viewerGeneral, 'General'),
+                viewerMedical: this.checkViewer(window.viewerMedical, 'Medical'),
+                toolbarHandler: this.checkToolbarHandler(),
+                saveCalculate: this.checkSaveCalculate()
+            };
+            
+            const allHealthy = Object.values(results).every(r => r === true);
+            
+            if (allHealthy) {
+                console.log('✅ All systems healthy');
+                this.repairAttempts = 0;
+            } else {
+                console.warn('⚠️ Health check failed:', results);
+                this.attemptRepair(results);
+            }
+            
+            return results;
+        },
+        
+        /**
+         * Check individual viewer health
+         */
+        checkViewer(viewer, name) {
+            if (!viewer) {
+                console.warn(`❌ ${name} viewer not found`);
+                return false;
+            }
+            
+            const checks = {
+                initialized: !!viewer.initialized,
+                scene: !!viewer.scene,
+                camera: !!viewer.camera,
+                renderer: !!viewer.renderer,
+                controls: !!viewer.controls,
+                render: typeof viewer.render === 'function',
+                calculateVolume: typeof viewer.calculateVolume === 'function'
+            };
+            
+            const healthy = Object.values(checks).every(c => c === true);
+            
+            if (!healthy) {
+                console.warn(`❌ ${name} viewer unhealthy:`, checks);
+            }
+            
+            return healthy;
+        },
+        
+        /**
+         * Check toolbar handler
+         */
+        checkToolbarHandler() {
+            if (!window.toolbarHandler) {
+                console.warn('❌ toolbarHandler not found');
+                return false;
+            }
+            
+            const requiredMethods = [
+                'toggleBoundingBox',
+                'toggleAxis',
+                'toggleGrid',
+                'toggleShadow',
+                'toggleTransparency',
+                'takeScreenshot',
+                'toggleMeasurement',
+                'undo',
+                'redo',
+                'changeModelColor',
+                'changeBackgroundColor'
+            ];
+            
+            const missing = requiredMethods.filter(method => 
+                typeof window.toolbarHandler[method] !== 'function'
+            );
+            
+            if (missing.length > 0) {
+                console.warn('❌ Toolbar handler missing methods:', missing);
+                return false;
+            }
+            
+            return true;
+        },
+        
+        /**
+         * Check save & calculate system
+         */
+        checkSaveCalculate() {
+            if (!window.EnhancedSaveCalculate) {
+                console.warn('❌ EnhancedSaveCalculate not found');
+                return false;
+            }
+            
+            if (typeof window.EnhancedSaveCalculate.execute !== 'function') {
+                console.warn('❌ EnhancedSaveCalculate.execute not a function');
+                return false;
+            }
+            
+            return true;
+        },
+        
+        /**
+         * Attempt to repair issues
+         */
+        attemptRepair(results) {
+            if (this.repairAttempts >= this.maxRepairAttempts) {
+                console.error('❌ Max repair attempts reached. Manual intervention required.');
+                return;
+            }
+            
+            this.repairAttempts++;
+            console.log(`🔧 Attempting repair (attempt ${this.repairAttempts}/${this.maxRepairAttempts})...`);
+            
+            // Repair toolbar handler if missing
+            if (!results.toolbarHandler) {
+                console.log('🔧 Attempting to reload toolbar handler...');
+                // The inline script should have already loaded it, but check again
+                if (typeof window.toolbarHandler === 'undefined') {
+                    console.error('❌ Toolbar handler still not loaded after inline script');
+                    alert('Critical Error: Toolbar not loaded. Please refresh the page.');
+                }
+            }
+            
+            // Ensure viewers have required methods
+            if (window.viewerGeneral && !window.viewerGeneral.calculateVolume) {
+                console.log('🔧 Adding fallback calculateVolume to viewerGeneral...');
+                this.addFallbackVolumeCalculation(window.viewerGeneral);
+            }
+            
+            if (window.viewerMedical && !window.viewerMedical.calculateVolume) {
+                console.log('🔧 Adding fallback calculateVolume to viewerMedical...');
+                this.addFallbackVolumeCalculation(window.viewerMedical);
+            }
+        },
+        
+        /**
+         * Add fallback volume calculation to viewer
+         */
+        addFallbackVolumeCalculation(viewer) {
+            viewer.calculateVolume = function(mesh) {
+                if (!mesh || !mesh.geometry) {
+                    console.warn('Invalid mesh for volume calculation');
+                    return { cm3: 0, mm3: 0 };
+                }
+                
+                const geometry = mesh.geometry;
+                if (!geometry.attributes || !geometry.attributes.position) {
+                    console.warn('Invalid geometry attributes');
+                    return { cm3: 0, mm3: 0 };
+                }
+                
+                const position = geometry.attributes.position;
+                const vertices = position.array;
+                let volume = 0;
+                
+                // Calculate signed volume
+                for (let i = 0; i < vertices.length; i += 9) {
+                    const v1x = vertices[i], v1y = vertices[i + 1], v1z = vertices[i + 2];
+                    const v2x = vertices[i + 3], v2y = vertices[i + 4], v2z = vertices[i + 5];
+                    const v3x = vertices[i + 6], v3y = vertices[i + 7], v3z = vertices[i + 8];
+                    
+                    volume += (v1x * v2y * v3z + v2x * v3y * v1z + v3x * v1y * v2z -
+                              v1x * v3y * v2z - v2x * v1y * v3z - v3x * v2y * v1z) / 6.0;
+                }
+                
+                const volumeMm3 = Math.abs(volume);
+                const volumeCm3 = volumeMm3 / 1000;
+                
+                console.log(`📐 Calculated volume: ${volumeCm3.toFixed(2)} cm³`);
+                
+                return {
+                    cm3: volumeCm3,
+                    mm3: volumeMm3
+                };
+            };
+            
+            console.log('✅ Fallback calculateVolume added to viewer');
+        },
+        
+        /**
+         * Stop health check system
+         */
+        stop() {
+            if (this.checkInterval) {
+                clearInterval(this.checkInterval);
+                this.checkInterval = null;
+                console.log('⏸️ Health check system stopped');
+            }
+        }
+    };
+    
+    // Start health check system
+    healthCheck.start();
+    
+    // Make it globally accessible
+    window.viewerHealthCheck = healthCheck;
+    
+    console.log('✅ Viewer Health Check System initialized');
+    console.log('💡 TIP: Run window.viewerHealthCheck.performHealthCheck() to manually check system health');
+})();
+</script>
+
 

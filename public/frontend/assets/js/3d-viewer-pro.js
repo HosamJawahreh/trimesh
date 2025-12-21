@@ -336,7 +336,7 @@ class Professional3DViewer {
             }
 
             Utils.hideLoading(this.containerId);
-            Utils.showNotification(`✓ Model loaded: ${file.name}`, 'success');
+            // Removed: Utils.showNotification(`✓ Model loaded: ${file.name}`, 'success');
 
             console.log('✓ File loaded successfully:', result);
 
