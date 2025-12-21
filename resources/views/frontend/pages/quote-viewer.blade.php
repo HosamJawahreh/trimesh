@@ -4898,49 +4898,8 @@ document.addEventListener('DOMContentLoaded', function() {
     if (fileInput) fileInput.addEventListener('change', hidePriceSummary);
     document.addEventListener('fileRemoved', hidePriceSummary);
 
-    const saveBtn = document.getElementById('saveCalculationsBtn');
-    if (saveBtn) {
-        saveBtn.addEventListener('click', async function() {
-            let repairImplemented = false;
-            // 1. Repair/fill all uploaded meshes before calculation
-            if (window.viewerGeneral && window.viewerGeneral.uploadedFiles) {
-                for (const fileData of window.viewerGeneral.uploadedFiles) {
-                    if (fileData.mesh && typeof window.viewerGeneral.repairMesh === 'function') {
-                        repairImplemented = true;
-                        await window.viewerGeneral.repairMesh(fileData.mesh, { fillHoles: true });
-                    }
-                }
-            }
-            // 2. Recalculate volume for all files
-            if (window.viewerGeneral && window.viewerGeneral.uploadedFiles) {
-                window.viewerGeneral.uploadedFiles.forEach(fileData => {
-                    if (fileData.mesh && typeof window.viewerGeneral.calculateVolume === 'function') {
-                        fileData.volume = window.viewerGeneral.calculateVolume(fileData.mesh);
-                    }
-                });
-            }
-            // 3. Calculate and show all file prices
-            if (window.showAllFilePrices) window.showAllFilePrices('General');
-            // 4. Show price summary/sidebar
-            if (priceSummaryGeneral) priceSummaryGeneral.style.display = 'block';
-            if (priceSidebar) priceSidebar.style.display = 'block';
-            if (volumeSidebar) volumeSidebar.style.display = 'block';
-            // 5. Show warning if repair/fill is not implemented
-            if (!repairImplemented) {
-                let warn = document.getElementById('meshRepairWarning');
-                if (!warn) {
-                    warn = document.createElement('div');
-                    warn.id = 'meshRepairWarning';
-                    warn.style = 'color: #d84315; font-weight: bold; margin-top: 10px;';
-                    warn.textContent = '⚠️ Mesh repair/fill is not implemented. Please implement repairMesh for watertight models!';
-                    if (priceSummaryGeneral) priceSummaryGeneral.parentNode.insertBefore(warn, priceSummaryGeneral.nextSibling);
-                }
-            } else {
-                const warn = document.getElementById('meshRepairWarning');
-                if (warn) warn.remove();
-            }
-        });
-    }
+    // NOTE: Save button handler is at the TOP of this file (line ~116)
+    // It uses the new SimpleSaveCalculate system
 });
 </script>
 
