@@ -182,12 +182,12 @@ document.addEventListener('DOMContentLoaded', function() {
                                             
                                             {{-- Tools Group --}}
                                             <div class="toolbar-group" style="display: flex !important; gap: 4px !important; visibility: visible !important; opacity: 1 !important;">
-                                                <button type="button" class="toolbar-btn" id="measurementToolBtn" title="Measurement Tools" data-tool="measurement" onclick="console.log('CLICK DETECTED!'); console.log('window.toolbarHandler:', window.toolbarHandler); if(window.toolbarHandler) { window.toolbarHandler.toggleMeasurement('General'); } else { alert('toolbarHandler not found!'); console.error('window.toolbarHandler is undefined'); }">
+                                                <button type="button" class="toolbar-btn" id="measurementToolBtn" title="Measurement Tools" data-tool="measurement" onclick="window.toolbarHandler.toggleMeasurement('General')">
                                                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                                                         <path d="M4 16L16 4M6 16L8 14M10 16L12 14M14 16L16 14M4 14L6 12M4 10L8 6M4 6L6 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
                                                     </svg>
                                                 </button>
-                                                <button type="button" class="toolbar-btn" id="boundingBoxBtn" title="Bounding Box" data-tool="boundingBox" onclick="console.log('BOUNDING BOX CLICK!'); console.log('window:', window); console.log('window.toolbarHandler:', window.toolbarHandler); console.log('window.viewerGeneral:', window.viewerGeneral); if(window.toolbarHandler) { window.toolbarHandler.toggleBoundingBox('General'); } else { alert('toolbarHandler not found! Check console.'); }">
+                                                <button type="button" class="toolbar-btn" id="boundingBoxBtn" title="Bounding Box" data-tool="boundingBox" onclick="window.toolbarHandler.toggleBoundingBox('General')">
                                                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                                                         <rect x="3" y="3" width="14" height="14" stroke="currentColor" stroke-width="1.8" stroke-dasharray="2 2"/>
                                                         <circle cx="3" cy="3" r="1.5" fill="currentColor"/>
@@ -196,13 +196,13 @@ document.addEventListener('DOMContentLoaded', function() {
                                                         <circle cx="17" cy="17" r="1.5" fill="currentColor"/>
                                                     </svg>
                                                 </button>
-                                                <button type="button" class="toolbar-btn" id="axisToggleBtn" title="Toggle Axis" data-tool="axis" onclick="window.toolbarHandler && window.toolbarHandler.toggleAxis('General'); console.log('Axis clicked');">
+                                                <button type="button" class="toolbar-btn" id="axisToggleBtn" title="Toggle Axis" data-tool="axis" onclick="window.toolbarHandler.toggleAxis('General')">
                                                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                                                         <path d="M10 2V18M2 10H18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
                                                         <path d="M10 2L8 4M10 2L12 4M18 10L16 8M18 10L16 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
                                                     </svg>
                                                 </button>
-                                                <button type="button" class="toolbar-btn" id="gridToggleBtn" title="Measurement Grid" data-tool="grid" onclick="window.toolbarHandler && window.toolbarHandler.toggleGrid('General'); console.log('Grid clicked');">
+                                                <button type="button" class="toolbar-btn" id="gridToggleBtn" title="Measurement Grid" data-tool="grid" onclick="window.toolbarHandler.toggleGrid('General')">
                                                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                                                         <path d="M2 6H18M2 10H18M2 14H18M6 2V18M10 2V18M14 2V18" stroke="currentColor" stroke-width="1.5" opacity="0.6"/>
                                                     </svg>
@@ -213,25 +213,25 @@ document.addEventListener('DOMContentLoaded', function() {
 
                                             {{-- View Options --}}
                                             <div class="toolbar-group">
-                                                <button type="button" class="toolbar-btn" id="shadowToggleBtn" title="Toggle Shadows" data-tool="shadow" onclick="window.toolbarHandler && window.toolbarHandler.toggleShadow('General'); console.log('Shadow clicked');">
+                                                <button type="button" class="toolbar-btn" id="shadowToggleBtn" title="Toggle Shadows" data-tool="shadow" onclick="window.toolbarHandler.toggleShadow('General')">
                                                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                                                         <circle cx="10" cy="8" r="3" stroke="currentColor" stroke-width="1.8"/>
                                                         <ellipse cx="10" cy="16" rx="5" ry="1.5" fill="currentColor" opacity="0.3"/>
                                                     </svg>
                                                 </button>
-                                                <button type="button" class="toolbar-btn" id="transparencyBtn" title="Transparency" data-tool="transparency" onclick="window.toolbarHandler && window.toolbarHandler.toggleTransparency('General'); console.log('Transparency clicked');">
+                                                <button type="button" class="toolbar-btn" id="transparencyBtn" title="Transparency" data-tool="transparency" onclick="window.toolbarHandler.toggleTransparency('General')">
                                                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                                                         <circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.8" opacity="0.5"/>
                                                         <path d="M10 3C6 3 3 6 3 10C3 14 6 17 10 17" stroke="currentColor" stroke-width="1.8"/>
                                                     </svg>
                                                 </button>
-                                                <button type="button" class="toolbar-btn" id="modelColorBtn" title="Model Color" data-tool="modelColor" onclick="alert('Model color picker - Coming soon!'); console.log('Model color clicked');">
+                                                <button type="button" class="toolbar-btn" id="modelColorBtn" title="Model Color" data-tool="modelColor" onclick="window.toolbarHandler.changeModelColor()">
                                                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                                                         <circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.8"/>
                                                         <circle cx="10" cy="10" r="4" fill="currentColor" opacity="0.3"/>
                                                     </svg>
                                                 </button>
-                                                <button type="button" class="toolbar-btn" id="backgroundColorBtn" title="Background Color" data-tool="bgColor" onclick="alert('Background color picker - Coming soon!'); console.log('BG color clicked');">
+                                                <button type="button" class="toolbar-btn" id="backgroundColorBtn" title="Background Color" data-tool="bgColor" onclick="window.toolbarHandler.changeBackgroundColor()">
                                                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                                                         <rect x="2" y="2" width="16" height="16" rx="2" stroke="currentColor" stroke-width="1.8"/>
                                                         <path d="M2 10H18" stroke="currentColor" stroke-width="1.8"/>
@@ -243,19 +243,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
                                             {{-- Actions --}}
                                             <div class="toolbar-group">
-                                                <button type="button" class="toolbar-btn" id="undoBtn" title="Undo" data-action="undo" onclick="alert('Undo - Coming soon!'); console.log('Undo clicked');">
+                                                <button type="button" class="toolbar-btn" id="undoBtn" title="Undo" data-action="undo" onclick="window.toolbarHandler.undo()">
                                                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                                                         <path d="M5 8H15C16.6569 8 18 9.34315 18 11C18 12.6569 16.6569 14 15 14H8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
                                                         <path d="M8 5L5 8L8 11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
                                                     </svg>
                                                 </button>
-                                                <button type="button" class="toolbar-btn" id="redoBtn" title="Redo" data-action="redo" onclick="alert('Redo - Coming soon!'); console.log('Redo clicked');">
+                                                <button type="button" class="toolbar-btn" id="redoBtn" title="Redo" data-action="redo" onclick="window.toolbarHandler.redo()">
                                                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                                                         <path d="M15 8H5C3.34315 8 2 9.34315 2 11C2 12.6569 3.34315 14 5 14H12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
                                                         <path d="M12 5L15 8L12 11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
                                                     </svg>
                                                 </button>
-                                                <button type="button" class="toolbar-btn" id="screenshotToolBtn" title="Screenshot" data-action="screenshot" onclick="window.toolbarHandler && window.toolbarHandler.takeScreenshot('General'); console.log('Screenshot clicked');">
+                                                <button type="button" class="toolbar-btn" id="screenshotToolBtn" title="Screenshot" data-action="screenshot" onclick="window.toolbarHandler.takeScreenshot('General')">
                                                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                                                         <rect x="2" y="5" width="16" height="12" rx="2" stroke="currentColor" stroke-width="1.8"/>
                                                         <circle cx="10" cy="11" r="2.5" stroke="currentColor" stroke-width="1.8"/>
@@ -3905,6 +3905,21 @@ loading
 
 <script src="{{ asset('frontend/assets/js/3d-viewer-pro.js') }}?v=3"></script>
 <script src="{{ asset('frontend/assets/js/3d-viewer-professional-tools.js') }}?v=1000"></script>
+<script>
+// IMMEDIATE verification that toolbar handler exists
+console.log('========================================');
+console.log('🔍 VERIFICATION SCRIPT RUNNING');
+console.log('window.toolbarHandler exists?', typeof window.toolbarHandler !== 'undefined');
+console.log('window.toolbarHandler:', window.toolbarHandler);
+if (window.toolbarHandler) {
+    console.log('✅ Toolbar handler loaded successfully!');
+    console.log('Available methods:', Object.keys(window.toolbarHandler));
+} else {
+    console.error('❌ ERROR: window.toolbarHandler is UNDEFINED!');
+    console.error('This means the script did not execute properly');
+}
+console.log('========================================');
+</script>
 <script src="{{ asset('frontend/assets/js/enhanced-save-calculate.js') }}?v=1"></script>
 <script src="{{ asset('frontend/assets/js/3d-file-manager.js') }}?v=3"></script>
 
