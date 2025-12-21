@@ -182,12 +182,12 @@ document.addEventListener('DOMContentLoaded', function() {
                                             
                                             {{-- Tools Group --}}
                                             <div class="toolbar-group" style="display: flex !important; gap: 4px !important; visibility: visible !important; opacity: 1 !important;">
-                                                <button type="button" class="toolbar-btn" id="measurementToolBtn" title="Measurement Tools" data-tool="measurement" onclick="window.toolbarHandler && window.toolbarHandler.toggleMeasurement('General'); console.log('Measurement clicked');">
+                                                <button type="button" class="toolbar-btn" id="measurementToolBtn" title="Measurement Tools" data-tool="measurement" onclick="console.log('CLICK DETECTED!'); console.log('window.toolbarHandler:', window.toolbarHandler); if(window.toolbarHandler) { window.toolbarHandler.toggleMeasurement('General'); } else { alert('toolbarHandler not found!'); console.error('window.toolbarHandler is undefined'); }">
                                                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                                                         <path d="M4 16L16 4M6 16L8 14M10 16L12 14M14 16L16 14M4 14L6 12M4 10L8 6M4 6L6 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
                                                     </svg>
                                                 </button>
-                                                <button type="button" class="toolbar-btn" id="boundingBoxBtn" title="Bounding Box" data-tool="boundingBox" onclick="window.toolbarHandler && window.toolbarHandler.toggleBoundingBox('General'); console.log('Bounding box clicked');">
+                                                <button type="button" class="toolbar-btn" id="boundingBoxBtn" title="Bounding Box" data-tool="boundingBox" onclick="console.log('BOUNDING BOX CLICK!'); console.log('window:', window); console.log('window.toolbarHandler:', window.toolbarHandler); console.log('window.viewerGeneral:', window.viewerGeneral); if(window.toolbarHandler) { window.toolbarHandler.toggleBoundingBox('General'); } else { alert('toolbarHandler not found! Check console.'); }">
                                                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                                                         <rect x="3" y="3" width="14" height="14" stroke="currentColor" stroke-width="1.8" stroke-dasharray="2 2"/>
                                                         <circle cx="3" cy="3" r="1.5" fill="currentColor"/>
@@ -3904,7 +3904,7 @@ loading
 </script>
 
 <script src="{{ asset('frontend/assets/js/3d-viewer-pro.js') }}?v=3"></script>
-<script src="{{ asset('frontend/assets/js/3d-viewer-professional-tools.js') }}?v=1"></script>
+<script src="{{ asset('frontend/assets/js/3d-viewer-professional-tools.js') }}?v=1000"></script>
 <script src="{{ asset('frontend/assets/js/enhanced-save-calculate.js') }}?v=1"></script>
 <script src="{{ asset('frontend/assets/js/3d-file-manager.js') }}?v=3"></script>
 
