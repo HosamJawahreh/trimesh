@@ -195,8 +195,18 @@ class Professional3DViewer {
         // Show initializing message
         Utils.showLoading(this.containerId, 'Initializing viewer...');
 
-        // Clear container
-        this.container.innerHTML = '';
+        // IMPORTANT: Don't clear innerHTML - preserve toolbar and other UI elements
+        // Remove only canvas elements if they exist (for re-initialization)
+        const existingCanvas = this.container.querySelector('canvas');
+        if (existingCanvas) {
+            existingCanvas.remove();
+        }
+        
+        // Remove loading message if it exists
+        const loadingDiv = this.container.querySelector('.viewer-loading');
+        if (loadingDiv) {
+            loadingDiv.remove();
+        }
 
         // Setup scene
         this.scene = new THREE.Scene();
