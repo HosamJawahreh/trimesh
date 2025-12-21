@@ -177,7 +177,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                         </div>
 
                                         {{-- Professional Toolbar - Top Right --}}
-                                        <div class="viewer-professional-toolbar" id="professionalToolbar" style="display: flex !important; visibility: visible !important; opacity: 1 !important; z-index: 2000 !important;">
+                                        <div class="viewer-professional-toolbar" id="professionalToolbar" style="position: absolute !important; top: 20px !important; right: 20px !important; display: flex !important; visibility: visible !important; opacity: 1 !important; z-index: 9999 !important; background: rgba(255, 255, 255, 0.95) !important; padding: 8px !important; border-radius: 12px !important; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important; pointer-events: auto !important;">
                                             {{-- Tools Group --}}
                                             <div class="toolbar-group">
                                                 <button type="button" class="toolbar-btn" id="measurementToolBtn" title="Measurement Tools" data-tool="measurement">
@@ -626,7 +626,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                         </div>
 
                                         {{-- Professional Toolbar - Top Right --}}
-                                        <div class="viewer-professional-toolbar" id="professionalToolbarMedical" style="display: flex !important; visibility: visible !important; opacity: 1 !important; z-index: 2000 !important;">
+                                        <div class="viewer-professional-toolbar" id="professionalToolbarMedical" style="position: absolute !important; top: 20px !important; right: 20px !important; display: flex !important; visibility: visible !important; opacity: 1 !important; z-index: 9999 !important; background: rgba(255, 255, 255, 0.95) !important; padding: 8px !important; border-radius: 12px !important; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important; pointer-events: auto !important;">
                                             {{-- Tools Group --}}
                                             <div class="toolbar-group">
                                                 <button type="button" class="toolbar-btn" id="measurementToolBtnMedical" title="Measurement Tools" data-tool="measurement">
@@ -4034,16 +4034,19 @@ loading
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🔧 Forcing toolbar visibility...');
     
-    // Find all professional toolbars
-    const toolbars = document.querySelectorAll('.professional-toolbar');
+    // Find all professional toolbars with correct class name
+    const toolbars = document.querySelectorAll('.viewer-professional-toolbar');
+    
+    console.log(`Found ${toolbars.length} toolbars`);
     
     toolbars.forEach(function(toolbar, index) {
         // Force display
         toolbar.style.display = 'flex';
         toolbar.style.visibility = 'visible';
         toolbar.style.opacity = '1';
+        toolbar.style.pointerEvents = 'auto';
         
-        console.log(`✅ Toolbar ${index + 1} visibility forced`);
+        console.log(`✅ Toolbar ${index + 1} visibility forced`, toolbar);
     });
     
     // Double-check after a short delay
@@ -4052,9 +4055,21 @@ document.addEventListener('DOMContentLoaded', function() {
             toolbar.style.display = 'flex';
             toolbar.style.visibility = 'visible';
             toolbar.style.opacity = '1';
+            toolbar.style.pointerEvents = 'auto';
         });
         console.log('✅ Toolbar visibility re-confirmed');
     }, 500);
+    
+    // Triple check after 2 seconds (in case viewer initialization hides it)
+    setTimeout(function() {
+        toolbars.forEach(function(toolbar) {
+            toolbar.style.display = 'flex';
+            toolbar.style.visibility = 'visible';
+            toolbar.style.opacity = '1';
+            toolbar.style.pointerEvents = 'auto';
+        });
+        console.log('✅ Toolbar visibility triple-confirmed');
+    }, 2000);
 });
 </script>
 
