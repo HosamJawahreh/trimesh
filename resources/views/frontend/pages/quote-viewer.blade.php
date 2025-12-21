@@ -193,10 +193,13 @@ document.addEventListener('DOMContentLoaded', function() {
     if (fileInput) fileInput.addEventListener('change', hidePriceSummary);
     document.addEventListener('fileRemoved', hidePriceSummary);
 
-    const saveBtn = document.getElementById('saveCalculationsBtn');
-    if (saveBtn) {
+    // Attach to ALL Save & Calculate buttons (there are multiple with same ID - invalid HTML but we'll handle it)
+    const saveBtns = document.querySelectorAll('#saveCalculationsBtn, .save-btn');
+    console.log('🔍 Found', saveBtns.length, 'Save buttons');
+    saveBtns.forEach((saveBtn, index) => {
+        console.log('📌 Attaching handler to button', index);
         saveBtn.addEventListener('click', async function() {
-            alert('🔥 BUTTON CLICKED! Starting calculation...');
+            alert('🔥 BUTTON ' + index + ' CLICKED! Starting calculation...');
             console.log('💾 SAVE & CALCULATE STARTED');
             const viewer = window.viewerGeneral;
             if (!viewer || !viewer.uploadedFiles || viewer.uploadedFiles.length === 0) {
@@ -267,10 +270,9 @@ document.addEventListener('DOMContentLoaded', function() {
             const summary = document.getElementById('priceSummaryGeneral');
             if (summary) summary.style.display = 'block';
             console.log('✅ Volume:', totalVolumeCm3.toFixed(2), 'cm³, Price: $' + totalPrice.toFixed(2));
+            alert('✅ DONE! Volume: ' + totalVolumeCm3.toFixed(2) + ' cm³, Price: $' + totalPrice.toFixed(2));
         });
-    }
-        });
-    }
+    });
 });
 </script>
                                             <div class="d-flex justify-content-between align-items-center mb-2 pb-2" style="border-bottom: 1px solid #f1f3f5;">
