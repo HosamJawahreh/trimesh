@@ -207,24 +207,55 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
-            console.log('📊 RECALCULATING VOLUME for', viewer.uploadedFiles.length, 'file(s)...');
+            console.log('� STEP 1: REPAIRING MESHES...');
             
-            // CRITICAL: Recalculate volume for each file using the viewer's own method
+            // STEP 1: Repair ALL meshes using the MeshRepairVisual system
+            if (window.MeshRepairVisual) {
+                for (let i = 0; i < viewer.uploadedFiles.length; i++) {
+                    const fileData = viewer.uploadedFiles[i];
+                    console.log(`\n🔧 Repairing file ${i + 1}/${viewer.uploadedFiles.length}: ${fileData.file.name}`);
+                    
+                    try {
+                        const result = await window.MeshRepairVisual.repairMeshWithVisualization(viewer, fileData);
+                        console.log('✅ Repair result:', result);
+                        
+                        if (result.holesFilled > 0) {
+                            console.log(`   ✅ Filled ${result.holesFilled} holes!`);
+                        } else if (result.watertight) {
+                            console.log('   ✅ Mesh was already watertight');
+                        } else {
+                            console.log('   ⚠️ No holes filled');
+                        }
+                    } catch (error) {
+                        console.error('❌ Repair failed:', error);
+                    }
+                }
+            } else {
+                console.warn('⚠️ MeshRepairVisual not loaded - skipping repair');
+            }
+            
+            console.log('\n📊 STEP 2: RECALCULATING VOLUMES...');
+            
+            // STEP 2: Recalculate volume for ALL files (AFTER repair)
             viewer.uploadedFiles.forEach((fileData, index) => {
                 if (fileData.geometry && viewer.calculateVolume) {
                     const oldVolume = fileData.volume?.cm3 || 0;
                     const newVolume = viewer.calculateVolume(fileData.geometry);
                     fileData.volume = newVolume;
-                    console.log(`📦 File ${index + 1}: ${fileData.file.name}`);
+                    console.log(`\n📦 File ${index + 1}: ${fileData.file.name}`);
                     console.log(`   OLD Volume: ${oldVolume.toFixed(2)} cm³`);
                     console.log(`   NEW Volume: ${newVolume.cm3.toFixed(2)} cm³`);
-                    console.log(`   CHANGE: ${((newVolume.cm3 - oldVolume) / oldVolume * 100).toFixed(1)}%`);
+                    if (oldVolume > 0) {
+                        const change = ((newVolume.cm3 - oldVolume) / oldVolume * 100);
+                        console.log(`   CHANGE: ${change >= 0 ? '+' : ''}${change.toFixed(2)}%`);
+                    }
                 }
             });
             
-            console.log('✅ Volume recalculation complete!');
+            console.log('\n✅ Volume recalculation complete!');
+            console.log('\n💰 STEP 3: UPDATING PRICING...');
             
-            // Now update the pricing with NEW volumes
+            // STEP 3: Update pricing with NEW volumes
             if (window.fileManagerGeneral) {
                 console.log('✅ Calling fileManagerGeneral.updateQuote() with NEW volumes');
                 window.fileManagerGeneral.updateQuote();
@@ -240,7 +271,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
             
-            alert('✅ Volume RECALCULATED and price updated!\n\nCheck the console (F12) to see the changes.');
+            console.log('\n✅✅✅ ALL DONE! ✅✅✅');
+            alert('✅ Mesh repaired, volume recalculated, and price updated!\n\nCheck the console (F12) to see:\n- Holes filled\n- Volume changes\n- New pricing');
         });
     });
 });
