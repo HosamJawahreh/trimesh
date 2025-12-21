@@ -823,31 +823,8 @@ document.addEventListener('DOMContentLoaded', function() {
                                                             if (fileInput) fileInput.addEventListener('change', hidePriceSummary);
                                                             document.addEventListener('fileRemoved', hidePriceSummary);
 
-                                                            const saveBtn = document.getElementById('saveCalculationsBtn');
-                                                            if (saveBtn) {
-                                                                saveBtn.addEventListener('click', async function() {
-                                                                    // Repair all uploaded models before calculating price
-                                                                    if (window.viewerGeneral && window.viewerGeneral.uploadedFiles) {
-                                                                        for (const fileData of window.viewerGeneral.uploadedFiles) {
-                                                                            if (fileData.mesh && window.viewerGeneral.repairMesh) {
-                                                                                await window.viewerGeneral.repairMesh(fileData.mesh, { fillHoles: true });
-                                                                            }
-                                                                        }
-                                                                    }
-                                                                    // After repair, recalculate volume and price
-                                                                    if (window.viewerGeneral && window.viewerGeneral.uploadedFiles) {
-                                                                        window.viewerGeneral.uploadedFiles.forEach(fileData => {
-                                                                            if (window.viewerGeneral.calculateVolume) {
-                                                                                fileData.volume = window.viewerGeneral.calculateVolume(fileData.mesh);
-                                                                            }
-                                                                        });
-                                                                    }
-                                                                    // Show price summary
-                                                                    if (priceSummaryGeneral) priceSummaryGeneral.style.display = 'block';
-                                                                    // Calculate and show all file prices
-                                                                    if (window.showAllFilePrices) window.showAllFilePrices('General');
-                                                                });
-                                                            }
+                                                            // NOTE: Save button handler is at line ~116 using SimpleSaveCalculate.execute()
+                                                            // Old broken handler was removed from here
                                                         });
                                                         </script>
                                                         <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
