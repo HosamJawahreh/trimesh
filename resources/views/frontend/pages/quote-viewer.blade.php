@@ -176,10 +176,148 @@ document.addEventListener('DOMContentLoaded', function() {
                                             <div class="model-subtitle" id="modelDimensionsDisplay">0 × 0 × 0 mm</div>
                                         </div>
 
+                                        {{-- Professional Toolbar - Top Right --}}
+                                        <div class="viewer-professional-toolbar" id="professionalToolbar">
+                                            {{-- Tools Group --}}
+                                            <div class="toolbar-group">
+                                                <button type="button" class="toolbar-btn" id="measurementToolBtn" title="Measurement Tools" data-tool="measurement">
+                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                                        <path d="M4 16L16 4M6 16L8 14M10 16L12 14M14 16L16 14M4 14L6 12M4 10L8 6M4 6L6 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                                                    </svg>
+                                                </button>
+                                                <button type="button" class="toolbar-btn" id="boundingBoxBtn" title="Bounding Box" data-tool="boundingBox">
+                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                                        <rect x="3" y="3" width="14" height="14" stroke="currentColor" stroke-width="1.8" stroke-dasharray="2 2"/>
+                                                        <circle cx="3" cy="3" r="1.5" fill="currentColor"/>
+                                                        <circle cx="17" cy="3" r="1.5" fill="currentColor"/>
+                                                        <circle cx="3" cy="17" r="1.5" fill="currentColor"/>
+                                                        <circle cx="17" cy="17" r="1.5" fill="currentColor"/>
+                                                    </svg>
+                                                </button>
+                                                <button type="button" class="toolbar-btn" id="axisToggleBtn" title="Toggle Axis" data-tool="axis">
+                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                                        <path d="M10 2V18M2 10H18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                                                        <path d="M10 2L8 4M10 2L12 4M18 10L16 8M18 10L16 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                                                    </svg>
+                                                </button>
+                                                <button type="button" class="toolbar-btn" id="gridToggleBtn" title="Measurement Grid" data-tool="grid">
+                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                                        <path d="M2 6H18M2 10H18M2 14H18M6 2V18M10 2V18M14 2V18" stroke="currentColor" stroke-width="1.5" opacity="0.6"/>
+                                                    </svg>
+                                                </button>
+                                            </div>
+
+                                            <div class="toolbar-divider"></div>
+
+                                            {{-- View Options --}}
+                                            <div class="toolbar-group">
+                                                <button type="button" class="toolbar-btn" id="shadowToggleBtn" title="Toggle Shadows" data-tool="shadow">
+                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                                        <circle cx="10" cy="8" r="3" stroke="currentColor" stroke-width="1.8"/>
+                                                        <ellipse cx="10" cy="16" rx="5" ry="1.5" fill="currentColor" opacity="0.3"/>
+                                                    </svg>
+                                                </button>
+                                                <button type="button" class="toolbar-btn" id="transparencyBtn" title="Transparency" data-tool="transparency">
+                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                                        <circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.8" opacity="0.5"/>
+                                                        <path d="M10 3C6 3 3 6 3 10C3 14 6 17 10 17" stroke="currentColor" stroke-width="1.8"/>
+                                                    </svg>
+                                                </button>
+                                                <button type="button" class="toolbar-btn" id="modelColorBtn" title="Model Color" data-tool="modelColor">
+                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                                        <circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.8"/>
+                                                        <circle cx="10" cy="10" r="4" fill="currentColor" opacity="0.3"/>
+                                                    </svg>
+                                                </button>
+                                                <button type="button" class="toolbar-btn" id="backgroundColorBtn" title="Background Color" data-tool="bgColor">
+                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                                        <rect x="2" y="2" width="16" height="16" rx="2" stroke="currentColor" stroke-width="1.8"/>
+                                                        <path d="M2 10H18" stroke="currentColor" stroke-width="1.8"/>
+                                                    </svg>
+                                                </button>
+                                            </div>
+
+                                            <div class="toolbar-divider"></div>
+
+                                            {{-- Actions --}}
+                                            <div class="toolbar-group">
+                                                <button type="button" class="toolbar-btn" id="undoBtn" title="Undo" data-action="undo">
+                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                                        <path d="M5 8H15C16.6569 8 18 9.34315 18 11C18 12.6569 16.6569 14 15 14H8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                                                        <path d="M8 5L5 8L8 11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                                                    </svg>
+                                                </button>
+                                                <button type="button" class="toolbar-btn" id="redoBtn" title="Redo" data-action="redo">
+                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                                        <path d="M15 8H5C3.34315 8 2 9.34315 2 11C2 12.6569 3.34315 14 5 14H12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                                                        <path d="M12 5L15 8L12 11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                                                    </svg>
+                                                </button>
+                                                <button type="button" class="toolbar-btn" id="screenshotToolBtn" title="Screenshot" data-action="screenshot">
+                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                                        <rect x="2" y="5" width="16" height="12" rx="2" stroke="currentColor" stroke-width="1.8"/>
+                                                        <circle cx="10" cy="11" r="2.5" stroke="currentColor" stroke-width="1.8"/>
+                                                        <path d="M6 5L7 3H13L14 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {{-- Measurement Sub-Menu (Flyout) --}}
+                                        <div class="measurement-submenu" id="measurementSubmenu" style="display: none;">
+                                            <div class="submenu-header">
+                                                <span>Measurement Tools</span>
+                                                <button type="button" class="submenu-close">×</button>
+                                            </div>
+                                            <button type="button" class="submenu-btn" data-measure="distance">
+                                                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                                                    <path d="M2 2L16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                                    <circle cx="2" cy="2" r="2" fill="currentColor"/>
+                                                    <circle cx="16" cy="16" r="2" fill="currentColor"/>
+                                                </svg>
+                                                <span>Distance (Point-to-Point)</span>
+                                            </button>
+                                            <button type="button" class="submenu-btn" data-measure="point-to-line">
+                                                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                                                    <path d="M2 16L16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                                    <path d="M9 2L9 16" stroke="currentColor" stroke-width="1.5" stroke-dasharray="2 2"/>
+                                                    <circle cx="9" cy="2" r="2" fill="currentColor"/>
+                                                </svg>
+                                                <span>Point to Line</span>
+                                            </button>
+                                            <button type="button" class="submenu-btn" data-measure="point-to-surface">
+                                                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                                                    <rect x="2" y="12" width="14" height="4" stroke="currentColor" stroke-width="1.5"/>
+                                                    <path d="M9 2L9 12" stroke="currentColor" stroke-width="1.5" stroke-dasharray="2 2"/>
+                                                    <circle cx="9" cy="2" r="2" fill="currentColor"/>
+                                                </svg>
+                                                <span>Point to Surface</span>
+                                            </button>
+                                            <button type="button" class="submenu-btn" data-measure="angle">
+                                                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                                                    <path d="M2 16L9 9L16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                    <path d="M4 16A6 6 0 0 1 9 11" stroke="currentColor" stroke-width="1.5" stroke-dasharray="2 2"/>
+                                                </svg>
+                                                <span>Angle</span>
+                                            </button>
+                                            <button type="button" class="submenu-btn" data-measure="clear">
+                                                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                                                    <path d="M3 3L15 15M15 3L3 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                                </svg>
+                                                <span>Clear All Measurements</span>
+                                            </button>
+                                        </div>
+
+                                        {{-- Unit Toggle (for Grid) --}}
+                                        <div class="unit-toggle" id="unitToggle" style="display: none;">
+                                            <button type="button" class="unit-btn active" data-unit="mm">mm</button>
+                                            <button type="button" class="unit-btn" data-unit="inch">inch</button>
+                                        </div>
+
                                         {{-- Bottom Control Bar - Professional --}}
                                         <div class="viewer-bottom-controls" id="controlBarGeneral">
                                             <div class="control-section measurements-section">
-                                                <div class="control-label">Measurements</div>
+                                                <div class="control-label">Dimensions</div>
                                                 <div class="measurement-items">
                                                     <div class="measurement-item">
                                                         <span class="axis-label">X:</span>
@@ -1186,6 +1324,349 @@ document.addEventListener('DOMContentLoaded', function() {
 #viewer3dGeneral:-webkit-full-screen,
 #viewer3dMedical:-webkit-full-screen {
     background: #2d2d2d;
+}
+
+/* ========================================
+   PROFESSIONAL TOOLBAR STYLES
+   ======================================== */
+.viewer-professional-toolbar {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 8px;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    backdrop-filter: blur(10px);
+    z-index: 1000;
+    transition: all 0.3s ease;
+}
+
+.toolbar-group {
+    display: flex;
+    gap: 4px;
+}
+
+.toolbar-divider {
+    width: 1px;
+    background: #e0e0e0;
+    margin: 0 4px;
+}
+
+.toolbar-btn {
+    width: 42px;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: #424242;
+    position: relative;
+}
+
+.toolbar-btn:hover {
+    background: #f5f5f5;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.toolbar-btn.active {
+    background: #4a90e2;
+    color: white;
+    border-color: #4a90e2;
+    box-shadow: 0 2px 8px rgba(74, 144, 226, 0.4);
+}
+
+.toolbar-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.toolbar-btn svg {
+    width: 20px;
+    height: 20px;
+}
+
+/* Measurement Submenu */
+.measurement-submenu {
+    position: absolute;
+    top: 60px;
+    right: 20px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    padding: 12px;
+    min-width: 240px;
+    z-index: 1001;
+    animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.submenu-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    border-bottom: 1px solid #e0e0e0;
+    margin-bottom: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    color: #424242;
+}
+
+.submenu-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #757575;
+    cursor: pointer;
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.submenu-close:hover {
+    background: #f5f5f5;
+    color: #424242;
+}
+
+.submenu-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 4px;
+    font-size: 14px;
+    color: #424242;
+    text-align: left;
+}
+
+.submenu-btn:last-child {
+    margin-bottom: 0;
+}
+
+.submenu-btn:hover {
+    background: #f5f5f5;
+    border-color: #4a90e2;
+    transform: translateX(4px);
+}
+
+.submenu-btn.active {
+    background: #e3f2fd;
+    border-color: #4a90e2;
+    color: #4a90e2;
+}
+
+.submenu-btn svg {
+    flex-shrink: 0;
+}
+
+.submenu-btn[data-measure="clear"] {
+    border-color: #ef5350;
+    color: #ef5350;
+}
+
+.submenu-btn[data-measure="clear"]:hover {
+    background: #ffebee;
+}
+
+/* Unit Toggle */
+.unit-toggle {
+    position: absolute;
+    top: 80px;
+    right: 20px;
+    display: flex;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+    z-index: 1001;
+}
+
+.unit-btn {
+    padding: 8px 16px;
+    background: white;
+    border: none;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    color: #757575;
+    transition: all 0.2s;
+}
+
+.unit-btn.active {
+    background: #4a90e2;
+    color: white;
+}
+
+.unit-btn:hover:not(.active) {
+    background: #f5f5f5;
+}
+
+/* Tooltips Enhancement */
+.toolbar-btn::after {
+    content: attr(title);
+    position: absolute;
+    bottom: -32px;
+    left: 50%;
+    transform: translateX(-50%) scale(0.8);
+    background: rgba(0, 0, 0, 0.85);
+    color: white;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.2s ease;
+    z-index: 10000;
+}
+
+.toolbar-btn:hover::after {
+    opacity: 1;
+    transform: translateX(-50%) scale(1);
+}
+
+/* Responsive Toolbar */
+@media (max-width: 768px) {
+    .viewer-professional-toolbar {
+        top: 10px;
+        right: 10px;
+        padding: 6px;
+        gap: 6px;
+    }
+    
+    .toolbar-btn {
+        width: 38px;
+        height: 38px;
+    }
+    
+    .measurement-submenu {
+        right: 10px;
+        min-width: 200px;
+    }
+}
+
+/* Measurement Annotations */
+.measurement-annotation {
+    position: absolute;
+    background: rgba(74, 144, 226, 0.95);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    pointer-events: none;
+    z-index: 999;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Analysis Panel (for mesh repair info) */
+.analysis-panel {
+    position: absolute;
+    bottom: 80px;
+    left: 20px;
+    background: white;
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    max-width: 300px;
+    z-index: 1000;
+    animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.analysis-panel h4 {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: #424242;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.analysis-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 13px;
+}
+
+.analysis-item:last-child {
+    border-bottom: none;
+}
+
+.analysis-label {
+    color: #757575;
+}
+
+.analysis-value {
+    font-weight: 600;
+    color: #424242;
+}
+
+.analysis-value.warning {
+    color: #ff9800;
+}
+
+.analysis-value.error {
+    color: #ef5350;
+}
+
+.analysis-value.success {
+    color: #66bb6a;
 }
 </style>
 
@@ -3380,6 +3861,8 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <script src="{{ asset('frontend/assets/js/3d-viewer-pro.js') }}?v=3"></script>
+<script src="{{ asset('frontend/assets/js/3d-viewer-professional-tools.js') }}?v=1"></script>
+<script src="{{ asset('frontend/assets/js/enhanced-save-calculate.js') }}?v=1"></script>
 <script src="{{ asset('frontend/assets/js/3d-file-manager.js') }}?v=3"></script>
 
 <!-- QR Code Library for Share Modal -->
