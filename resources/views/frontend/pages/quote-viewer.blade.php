@@ -196,12 +196,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const saveBtn = document.getElementById('saveCalculationsBtn');
     if (saveBtn) {
         saveBtn.addEventListener('click', async function() {
+            alert('🔥 BUTTON CLICKED! Starting calculation...');
             console.log('💾 SAVE & CALCULATE STARTED');
             const viewer = window.viewerGeneral;
             if (!viewer || !viewer.uploadedFiles || viewer.uploadedFiles.length === 0) {
                 alert('Please upload a 3D model first!');
                 return;
             }
+            
+            alert('✅ Found ' + viewer.uploadedFiles.length + ' file(s). Starting repair...');
             
             // Step 1: Repair meshes
             if (viewer.repairMesh) {
@@ -213,6 +216,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         } catch (e) { console.warn('Repair skipped'); }
                     }
                 }
+                alert('✅ Repair complete! Now calculating volume...');
+            } else {
+                alert('⚠️ No repair function available. Calculating volume from current mesh...');
             }
             
             // Step 2: Calculate volume (AFTER repair)
