@@ -756,6 +756,9 @@ function initProfessionalTools(viewer) {
 
 function setupToolbarEvents(viewer) {
     console.log(`🔧 Setting up toolbar events for viewer: ${viewer.containerId}`);
+    console.log('   Viewer object:', viewer);
+    console.log('   Viewer container:', viewer.container);
+    console.log('   Viewer tools:', viewer.tools);
     
     // Get the container to scope button selection
     const container = viewer.container;
@@ -772,16 +775,20 @@ function setupToolbarEvents(viewer) {
     
     // Measurement tool
     const measurementBtn = document.getElementById(`measurementToolBtn${btnSuffix}`);
+    console.log(`   Looking for: measurementToolBtn${btnSuffix}`, measurementBtn);
     if (measurementBtn) {
         measurementBtn.addEventListener('click', () => {
+            console.log('🖱️ Measurement button clicked!');
             const submenu = document.getElementById(`measurementSubmenu${btnSuffix === 'Medical' ? 'Medical' : ''}`);
+            console.log('   Submenu:', submenu);
             if (submenu) {
                 submenu.style.display = submenu.style.display === 'none' ? 'block' : 'none';
+                console.log('   Submenu toggled to:', submenu.style.display);
             }
         });
-        console.log(`   ✓ Measurement button attached`);
+        console.log(`   ✓ Measurement button event attached`);
     } else {
-        console.warn(`   ⚠️ measurementToolBtn${btnSuffix} not found`);
+        console.warn(`   ⚠️ measurementToolBtn${btnSuffix} not found in DOM`);
     }
 
     // Submenu close button
