@@ -1000,6 +1000,9 @@ console.log('✅ Professional 3D Viewer Tools script loaded');
 window.toolbarHandler = {
     toggleMeasurement: function(viewerType) {
         console.log(`📏 Toggle measurement for ${viewerType}`);
+        console.log('   window.viewerGeneral:', window.viewerGeneral);
+        console.log('   window.viewerGeneral.tools:', window.viewerGeneral?.tools);
+        
         const submenu = document.getElementById('measurementSubmenu' + (viewerType === 'Medical' ? 'Medical' : ''));
         if (submenu) {
             submenu.style.display = submenu.style.display === 'none' || submenu.style.display === '' ? 'block' : 'none';
@@ -1012,73 +1015,142 @@ window.toolbarHandler = {
     toggleBoundingBox: function(viewerType) {
         console.log(`📦 Toggle bounding box for ${viewerType}`);
         const viewer = viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral;
+        console.log('   Viewer:', viewer);
+        console.log('   Viewer.tools:', viewer?.tools);
+        console.log('   Viewer.tools.boundingBox:', viewer?.tools?.boundingBox);
+        
         if (viewer && viewer.tools && viewer.tools.boundingBox) {
             viewer.tools.boundingBox.toggle();
             console.log('   ✓ Bounding box toggled');
         } else {
             console.warn('   ⚠️ Viewer tools not initialized yet');
-            alert('Please wait for viewer to finish loading');
+            console.warn('   Need to initialize tools first!');
+            
+            // Try to initialize now
+            if (viewer && !viewer.tools) {
+                console.log('   Attempting to initialize tools now...');
+                initProfessionalTools(viewer);
+                // Try again
+                if (viewer.tools && viewer.tools.boundingBox) {
+                    viewer.tools.boundingBox.toggle();
+                    console.log('   ✓ Bounding box toggled after init');
+                }
+            } else {
+                alert('Please wait for viewer to finish loading');
+            }
         }
     },
     
     toggleAxis: function(viewerType) {
         console.log(`🎯 Toggle axis for ${viewerType}`);
         const viewer = viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral;
+        
         if (viewer && viewer.tools && viewer.tools.axis) {
             viewer.tools.axis.toggle();
             console.log('   ✓ Axis toggled');
         } else {
             console.warn('   ⚠️ Viewer tools not initialized yet');
-            alert('Please wait for viewer to finish loading');
+            // Try to initialize now
+            if (viewer && !viewer.tools) {
+                console.log('   Attempting to initialize tools now...');
+                initProfessionalTools(viewer);
+                if (viewer.tools && viewer.tools.axis) {
+                    viewer.tools.axis.toggle();
+                    console.log('   ✓ Axis toggled after init');
+                }
+            } else {
+                alert('Please wait for viewer to finish loading');
+            }
         }
     },
     
     toggleGrid: function(viewerType) {
         console.log(`🔲 Toggle grid for ${viewerType}`);
         const viewer = viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral;
+        
         if (viewer && viewer.tools && viewer.tools.grid) {
             viewer.tools.grid.toggle();
             console.log('   ✓ Grid toggled');
         } else {
             console.warn('   ⚠️ Viewer tools not initialized yet');
-            alert('Please wait for viewer to finish loading');
+            if (viewer && !viewer.tools) {
+                console.log('   Attempting to initialize tools now...');
+                initProfessionalTools(viewer);
+                if (viewer.tools && viewer.tools.grid) {
+                    viewer.tools.grid.toggle();
+                    console.log('   ✓ Grid toggled after init');
+                }
+            } else {
+                alert('Please wait for viewer to finish loading');
+            }
         }
     },
     
     toggleShadow: function(viewerType) {
         console.log(`🌓 Toggle shadow for ${viewerType}`);
         const viewer = viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral;
+        
         if (viewer && viewer.tools && viewer.tools.shadow) {
             viewer.tools.shadow.toggle();
             console.log('   ✓ Shadow toggled');
         } else {
             console.warn('   ⚠️ Viewer tools not initialized yet');
-            alert('Please wait for viewer to finish loading');
+            if (viewer && !viewer.tools) {
+                console.log('   Attempting to initialize tools now...');
+                initProfessionalTools(viewer);
+                if (viewer.tools && viewer.tools.shadow) {
+                    viewer.tools.shadow.toggle();
+                    console.log('   ✓ Shadow toggled after init');
+                }
+            } else {
+                alert('Please wait for viewer to finish loading');
+            }
         }
     },
     
     toggleTransparency: function(viewerType) {
         console.log(`👁️ Toggle transparency for ${viewerType}`);
         const viewer = viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral;
+        
         if (viewer && viewer.tools && viewer.tools.transparency) {
             viewer.tools.transparency.toggle();
             console.log('   ✓ Transparency toggled');
         } else {
             console.warn('   ⚠️ Viewer tools not initialized yet');
-            alert('Please wait for viewer to finish loading');
+            if (viewer && !viewer.tools) {
+                console.log('   Attempting to initialize tools now...');
+                initProfessionalTools(viewer);
+                if (viewer.tools && viewer.tools.transparency) {
+                    viewer.tools.transparency.toggle();
+                    console.log('   ✓ Transparency toggled after init');
+                }
+            } else {
+                alert('Please wait for viewer to finish loading');
+            }
         }
     },
     
     takeScreenshot: function(viewerType) {
         console.log(`📸 Take screenshot for ${viewerType}`);
         const viewer = viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral;
+        
         if (viewer && viewer.tools && viewer.tools.screenshot) {
             const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
             viewer.tools.screenshot.capture(`3d-model-${viewerType.toLowerCase()}-${timestamp}.png`);
             console.log('   ✓ Screenshot captured');
         } else {
             console.warn('   ⚠️ Viewer tools not initialized yet');
-            alert('Please wait for viewer to finish loading');
+            if (viewer && !viewer.tools) {
+                console.log('   Attempting to initialize tools now...');
+                initProfessionalTools(viewer);
+                if (viewer.tools && viewer.tools.screenshot) {
+                    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+                    viewer.tools.screenshot.capture(`3d-model-${viewerType.toLowerCase()}-${timestamp}.png`);
+                    console.log('   ✓ Screenshot captured after init');
+                }
+            } else {
+                alert('Please wait for viewer to finish loading');
+            }
         }
     }
 };

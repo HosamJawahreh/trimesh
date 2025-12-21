@@ -180,11 +180,6 @@ document.addEventListener('DOMContentLoaded', function() {
                                         {{-- Professional Toolbar - Top Right --}}
                                         <div class="viewer-professional-toolbar" id="professionalToolbar" style="position: absolute !important; top: 20px !important; right: 20px !important; display: flex !important; visibility: visible !important; opacity: 1 !important; z-index: 9999 !important; background: rgba(255, 255, 255, 0.95) !important; padding: 8px !important; border-radius: 12px !important; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important; pointer-events: auto !important; gap: 8px !important;">
                                             
-                                            {{-- TEST BUTTON --}}
-                                            <button type="button" onclick="alert('Button click works! ID: professionalToolbar'); console.log('Test button clicked');" style="background: red; color: white; padding: 10px; border: none; cursor: pointer; border-radius: 5px;">
-                                                TEST
-                                            </button>
-                                            
                                             {{-- Tools Group --}}
                                             <div class="toolbar-group" style="display: flex !important; gap: 4px !important; visibility: visible !important; opacity: 1 !important;">
                                                 <button type="button" class="toolbar-btn" id="measurementToolBtn" title="Measurement Tools" data-tool="measurement" onclick="window.toolbarHandler && window.toolbarHandler.toggleMeasurement('General'); console.log('Measurement clicked');">
