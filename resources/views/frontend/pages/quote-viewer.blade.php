@@ -201,26 +201,46 @@ document.addEventListener('DOMContentLoaded', function() {
         saveBtn.addEventListener('click', async function() {
             console.log('💾 SAVE & CALCULATE STARTED - Button', index);
             
-            // IMPORTANT: Instead of duplicating code, call the existing system!
-            // The fileManagerGeneral.updateQuote() already does everything correctly
+            const viewer = window.viewerGeneral;
+            if (!viewer || !viewer.uploadedFiles || viewer.uploadedFiles.length === 0) {
+                alert('❌ Please upload a 3D model first!');
+                return;
+            }
             
+            console.log('📊 RECALCULATING VOLUME for', viewer.uploadedFiles.length, 'file(s)...');
+            
+            // CRITICAL: Recalculate volume for each file using the viewer's own method
+            viewer.uploadedFiles.forEach((fileData, index) => {
+                if (fileData.geometry && viewer.calculateVolume) {
+                    const oldVolume = fileData.volume?.cm3 || 0;
+                    const newVolume = viewer.calculateVolume(fileData.geometry);
+                    fileData.volume = newVolume;
+                    console.log(`📦 File ${index + 1}: ${fileData.file.name}`);
+                    console.log(`   OLD Volume: ${oldVolume.toFixed(2)} cm³`);
+                    console.log(`   NEW Volume: ${newVolume.cm3.toFixed(2)} cm³`);
+                    console.log(`   CHANGE: ${((newVolume.cm3 - oldVolume) / oldVolume * 100).toFixed(1)}%`);
+                }
+            });
+            
+            console.log('✅ Volume recalculation complete!');
+            
+            // Now update the pricing with NEW volumes
             if (window.fileManagerGeneral) {
-                console.log('✅ Calling fileManagerGeneral.updateQuote()');
+                console.log('✅ Calling fileManagerGeneral.updateQuote() with NEW volumes');
                 window.fileManagerGeneral.updateQuote();
-                alert('✅ Price recalculated! Check sidebar for updated values.');
             } else if (window.viewerGeneral) {
                 console.log('⚠️ fileManagerGeneral not found, creating it now...');
                 const FileManager = window.FileManager;
                 if (FileManager) {
                     window.fileManagerGeneral = new FileManager('General', window.viewerGeneral);
                     window.fileManagerGeneral.updateQuote();
-                    alert('✅ Price recalculated! Check sidebar for updated values.');
                 } else {
                     alert('❌ Error: FileManager class not loaded');
+                    return;
                 }
-            } else {
-                alert('❌ Please upload a 3D model first!');
             }
+            
+            alert('✅ Volume RECALCULATED and price updated!\n\nCheck the console (F12) to see the changes.');
         });
     });
 });
