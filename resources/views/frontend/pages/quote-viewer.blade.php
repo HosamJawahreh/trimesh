@@ -381,74 +381,13 @@ document.addEventListener('DOMContentLoaded', function() {
                                                     </button>
                                                 </div>
                                             </div>
-                                        </div>
-                                    </div>
 
-                                        <script>
-                                        // Hide price summary/sidebar in HTML and only show after Save & Calculate and after repair/fill
-                                        document.addEventListener('DOMContentLoaded', function() {
-                                                            const priceSummaryGeneral = document.getElementById('priceSummaryGeneral');
-                                                            const priceSidebar = document.getElementById('quoteTotalPriceGeneral');
-                                                            const volumeSidebar = document.getElementById('quoteTotalVolumeGeneral');
-                                                            if (priceSummaryGeneral) priceSummaryGeneral.style.display = 'none';
-                                                            if (priceSidebar) priceSidebar.style.display = 'none';
-                                                            if (volumeSidebar) volumeSidebar.style.display = 'none';
+                                            <div class="control-divider"></div>
 
-                                                            // Hide price summary/sidebar on file upload or removal
-                                                            function hidePriceSummary() {
-                                                                if (priceSummaryGeneral) priceSummaryGeneral.style.display = 'none';
-                                                                if (priceSidebar) priceSidebar.style.display = 'none';
-                                                                if (volumeSidebar) volumeSidebar.style.display = 'none';
-                                                            }
-                                                            const fileInput = document.getElementById('fileInput3d');
-                                                            if (fileInput) fileInput.addEventListener('change', hidePriceSummary);
-                                                            document.addEventListener('fileRemoved', hidePriceSummary);
-
-                                                            const saveBtn = document.getElementById('saveCalculationsBtn');
-                                                            if (saveBtn) {
-                                                                saveBtn.addEventListener('click', async function() {
-                                                                    let repairImplemented = false;
-                                                                    // 1. Repair/fill all uploaded meshes before calculation
-                                                                    if (window.viewerGeneral && window.viewerGeneral.uploadedFiles) {
-                                                                        for (const fileData of window.viewerGeneral.uploadedFiles) {
-                                                                            if (fileData.mesh && typeof window.viewerGeneral.repairMesh === 'function') {
-                                                                                repairImplemented = true;
-                                                                                await window.viewerGeneral.repairMesh(fileData.mesh, { fillHoles: true });
-                                                                            }
-                                                                        }
-                                                                    }
-                                                                    // 2. Recalculate volume for all files
-                                                                    if (window.viewerGeneral && window.viewerGeneral.uploadedFiles) {
-                                                                        window.viewerGeneral.uploadedFiles.forEach(fileData => {
-                                                                            if (fileData.mesh && typeof window.viewerGeneral.calculateVolume === 'function') {
-                                                                                fileData.volume = window.viewerGeneral.calculateVolume(fileData.mesh);
-                                                                            }
-                                                                        });
-                                                                    }
-                                                                    // 3. Calculate and show all file prices
-                                                                    if (window.showAllFilePrices) window.showAllFilePrices('General');
-                                                                    // 4. Show price summary/sidebar
-                                                                    if (priceSummaryGeneral) priceSummaryGeneral.style.display = 'block';
-                                                                    if (priceSidebar) priceSidebar.style.display = 'block';
-                                                                    if (volumeSidebar) volumeSidebar.style.display = 'block';
-                                                                    // 5. Show warning if repair/fill is not implemented
-                                                                    if (!repairImplemented) {
-                                                                        let warn = document.getElementById('meshRepairWarning');
-                                                                        if (!warn) {
-                                                                            warn = document.createElement('div');
-                                                                            warn.id = 'meshRepairWarning';
-                                                                            warn.style = 'color: #d84315; font-weight: bold; margin-top: 10px;';
-                                                                            warn.textContent = '⚠️ Mesh repair/fill is not implemented. Please implement repairMesh for watertight models!';
-                                                                            if (priceSummaryGeneral) priceSummaryGeneral.parentNode.insertBefore(warn, priceSummaryGeneral.nextSibling);
-                                                                        }
-                                                                    } else {
-                                                                        const warn = document.getElementById('meshRepairWarning');
-                                                                        if (warn) warn.remove();
-                                                                    }
-                                                                });
-                                                            }
-                                                        });
-                                                        </span>
+                                            <div class="control-section tools-section">
+                                                <div class="control-label">Tools</div>
+                                                <div class="control-buttons">
+                                                    <button type="button" class="control-btn tool-btn" id="panToolBtn" title="Pan Tool">
                                                         <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
                                                             <path d="M9 2C9 2 9 7 9 7M9 7L6.5 4.5M9 7L11.5 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                                                             <path d="M9 16C9 16 9 11 9 11M9 11L6.5 13.5M9 11L11.5 13.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -918,8 +857,29 @@ document.addEventListener('DOMContentLoaded', function() {
                                                                 });
                                                             }
                                                         });
-                                                    </div>
+                                                        </script>
+                                                        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                                                            <circle cx="13" cy="4" r="2.5" stroke="currentColor" stroke-width="1.5"/>
+                                                            <circle cx="5" cy="9" r="2.5" stroke="currentColor" stroke-width="1.5"/>
+                                                            <circle cx="13" cy="14" r="2.5" stroke="currentColor" stroke-width="1.5"/>
+                                                            <path d="M7.5 10L10.5 12.5M7.5 8L10.5 5.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                                        </svg>
+                                                        <span>Share</span>
+                                                    </button>
                                                 </div>
+                                            </div>
+
+                                            <div class="control-divider"></div>
+
+                                            <div class="control-section actions-section">
+                                                <button type="button" class="control-btn save-btn" id="saveCalculationsBtn">
+                                                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                                                        <path d="M15 16H3C2.44772 16 2 15.5523 2 15V3C2 2.44772 2.44772 2 3 2H12L16 6V15C16 15.5523 15.5523 16 15 16Z" stroke="currentColor" stroke-width="1.5"/>
+                                                        <path d="M12 2V6H5V2" stroke="currentColor" stroke-width="1.5"/>
+                                                        <path d="M5 10H13V16H5V10Z" stroke="currentColor" stroke-width="1.5"/>
+                                                    </svg>
+                                                    <span>Save & Calculate</span>
+                                                </button>
                                             </div>
                                         </div>
 
@@ -4056,6 +4016,72 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         console.log('✅ Toolbar visibility triple-confirmed');
     }, 2000);
+});
+</script>
+
+<script>
+// Hide price summary/sidebar in HTML and only show after Save & Calculate and after repair/fill
+document.addEventListener('DOMContentLoaded', function() {
+    const priceSummaryGeneral = document.getElementById('priceSummaryGeneral');
+    const priceSidebar = document.getElementById('quoteTotalPriceGeneral');
+    const volumeSidebar = document.getElementById('quoteTotalVolumeGeneral');
+    if (priceSummaryGeneral) priceSummaryGeneral.style.display = 'none';
+    if (priceSidebar) priceSidebar.style.display = 'none';
+    if (volumeSidebar) volumeSidebar.style.display = 'none';
+
+    // Hide price summary/sidebar on file upload or removal
+    function hidePriceSummary() {
+        if (priceSummaryGeneral) priceSummaryGeneral.style.display = 'none';
+        if (priceSidebar) priceSidebar.style.display = 'none';
+        if (volumeSidebar) volumeSidebar.style.display = 'none';
+    }
+    const fileInput = document.getElementById('fileInput3d');
+    if (fileInput) fileInput.addEventListener('change', hidePriceSummary);
+    document.addEventListener('fileRemoved', hidePriceSummary);
+
+    const saveBtn = document.getElementById('saveCalculationsBtn');
+    if (saveBtn) {
+        saveBtn.addEventListener('click', async function() {
+            let repairImplemented = false;
+            // 1. Repair/fill all uploaded meshes before calculation
+            if (window.viewerGeneral && window.viewerGeneral.uploadedFiles) {
+                for (const fileData of window.viewerGeneral.uploadedFiles) {
+                    if (fileData.mesh && typeof window.viewerGeneral.repairMesh === 'function') {
+                        repairImplemented = true;
+                        await window.viewerGeneral.repairMesh(fileData.mesh, { fillHoles: true });
+                    }
+                }
+            }
+            // 2. Recalculate volume for all files
+            if (window.viewerGeneral && window.viewerGeneral.uploadedFiles) {
+                window.viewerGeneral.uploadedFiles.forEach(fileData => {
+                    if (fileData.mesh && typeof window.viewerGeneral.calculateVolume === 'function') {
+                        fileData.volume = window.viewerGeneral.calculateVolume(fileData.mesh);
+                    }
+                });
+            }
+            // 3. Calculate and show all file prices
+            if (window.showAllFilePrices) window.showAllFilePrices('General');
+            // 4. Show price summary/sidebar
+            if (priceSummaryGeneral) priceSummaryGeneral.style.display = 'block';
+            if (priceSidebar) priceSidebar.style.display = 'block';
+            if (volumeSidebar) volumeSidebar.style.display = 'block';
+            // 5. Show warning if repair/fill is not implemented
+            if (!repairImplemented) {
+                let warn = document.getElementById('meshRepairWarning');
+                if (!warn) {
+                    warn = document.createElement('div');
+                    warn.id = 'meshRepairWarning';
+                    warn.style = 'color: #d84315; font-weight: bold; margin-top: 10px;';
+                    warn.textContent = '⚠️ Mesh repair/fill is not implemented. Please implement repairMesh for watertight models!';
+                    if (priceSummaryGeneral) priceSummaryGeneral.parentNode.insertBefore(warn, priceSummaryGeneral.nextSibling);
+                }
+            } else {
+                const warn = document.getElementById('meshRepairWarning');
+                if (warn) warn.remove();
+            }
+        });
+    }
 });
 </script>
 
