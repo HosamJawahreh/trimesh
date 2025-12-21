@@ -3,6 +3,25 @@
      Professional & Optimized Layout
      ============================================ --}}
 
+{{-- EMERGENCY TEST BUTTON - REMOVE AFTER TESTING --}}
+<div style="position: fixed; top: 10px; right: 10px; z-index: 999999;">
+    <button id="emergencyTestBtn" onclick="
+        alert('EMERGENCY BUTTON WORKS!');
+        console.log('🚨 EMERGENCY TEST');
+        
+        // Try to calculate
+        const viewer = window.viewerGeneral;
+        if (!viewer) {
+            alert('No viewer found!');
+            return;
+        }
+        
+        alert('Viewer found! Files: ' + (viewer.uploadedFiles ? viewer.uploadedFiles.length : 0));
+    " style="background: #ff0000; color: white; padding: 20px 40px; font-size: 24px; font-weight: bold; border: 5px solid yellow; cursor: pointer; box-shadow: 0 4px 20px rgba(0,0,0,0.3); border-radius: 10px;">
+        🚨 TEST CALCULATE 🚨
+    </button>
+</div>
+
 <section class="dgm-3d-quote-area pb-100">
     <div class="container">
         {{-- General 3D Printing Form --}}
