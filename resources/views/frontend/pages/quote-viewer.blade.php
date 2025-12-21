@@ -377,9 +377,16 @@ document.addEventListener('DOMContentLoaded', function() {
                                                         <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                                                             <path d="M8 14L2 10L8 6L14 10L8 14Z" stroke="currentColor" stroke-width="1.5"/>
                                                         </svg>
-                                                        <script>
-                                                        // Hide price summary/sidebar in HTML and only show after Save & Calculate and after repair/fill
-                                                        document.addEventListener('DOMContentLoaded', function() {
+                                                        <span>Bottom</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                        <script>
+                                        // Hide price summary/sidebar in HTML and only show after Save & Calculate and after repair/fill
+                                        document.addEventListener('DOMContentLoaded', function() {
                                                             const priceSummaryGeneral = document.getElementById('priceSummaryGeneral');
                                                             const priceSidebar = document.getElementById('quoteTotalPriceGeneral');
                                                             const volumeSidebar = document.getElementById('quoteTotalVolumeGeneral');
@@ -441,7 +448,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                                                 });
                                                             }
                                                         });
-                                                        </script>
+                                                        </span>
                                                         <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
                                                             <path d="M9 2C9 2 9 7 9 7M9 7L6.5 4.5M9 7L11.5 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                                                             <path d="M9 16C9 16 9 11 9 11M9 11L6.5 13.5M9 11L11.5 13.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -911,29 +918,8 @@ document.addEventListener('DOMContentLoaded', function() {
                                                                 });
                                                             }
                                                         });
-                                                        </script>
-                                                        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                                                            <circle cx="13" cy="4" r="2.5" stroke="currentColor" stroke-width="1.5"/>
-                                                            <circle cx="5" cy="9" r="2.5" stroke="currentColor" stroke-width="1.5"/>
-                                                            <circle cx="13" cy="14" r="2.5" stroke="currentColor" stroke-width="1.5"/>
-                                                            <path d="M7.5 10L10.5 12.5M7.5 8L10.5 5.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                                                        </svg>
-                                                        <span>Share</span>
-                                                    </button>
+                                                    </div>
                                                 </div>
-                                            </div>
-
-                                            <div class="control-divider"></div>
-
-                                            <div class="control-section actions-section">
-                                                <button type="button" class="control-btn save-btn" id="saveCalculationsBtn">
-                                                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                                                        <path d="M15 16H3C2.44772 16 2 15.5523 2 15V3C2 2.44772 2.44772 2 3 2H12L16 6V15C16 15.5523 15.5523 16 15 16Z" stroke="currentColor" stroke-width="1.5"/>
-                                                        <path d="M12 2V6H5V2" stroke="currentColor" stroke-width="1.5"/>
-                                                        <path d="M5 10H13V16H5V10Z" stroke="currentColor" stroke-width="1.5"/>
-                                                    </svg>
-                                                    <span>Save & Calculate</span>
-                                                </button>
                                             </div>
                                         </div>
 
