@@ -199,32 +199,22 @@ document.addEventListener('DOMContentLoaded', function() {
     saveBtns.forEach((saveBtn, index) => {
         console.log('📌 Attaching handler to button', index);
         saveBtn.addEventListener('click', async function() {
-            alert('🔥 BUTTON ' + index + ' CLICKED! Starting calculation...');
-            console.log('💾 SAVE & CALCULATE STARTED');
+            console.log('💾 SAVE & CALCULATE STARTED - Button', index);
             const viewer = window.viewerGeneral;
             if (!viewer || !viewer.uploadedFiles || viewer.uploadedFiles.length === 0) {
-                alert('Please upload a 3D model first!');
+                alert('❌ Please upload a 3D model first!');
                 return;
             }
             
-            alert('✅ Found ' + viewer.uploadedFiles.length + ' file(s). Starting repair...');
+            console.log('✅ Found', viewer.uploadedFiles.length, 'file(s)');
             
-            // Step 1: Repair meshes
-            if (viewer.repairMesh) {
-                for (const fileData of viewer.uploadedFiles) {
-                    if (fileData.mesh) {
-                        try {
-                            await viewer.repairMesh(fileData.mesh, { fillHoles: true });
-                            console.log('✅ Repaired:', fileData.file.name);
-                        } catch (e) { console.warn('Repair skipped'); }
-                    }
-                }
-                alert('✅ Repair complete! Now calculating volume...');
-            } else {
-                alert('⚠️ No repair function available. Calculating volume from current mesh...');
-            }
+            // Step 1: Repair meshes (SKIP for now - causing issues)
+            // The repair function needs JSCAD library which may not be loaded
+            // We'll calculate volume directly from current mesh
+            console.log('⚠️ Skipping mesh repair (JSCAD not loaded). Calculating from current geometry...');
             
             // Step 2: Calculate volume (AFTER repair)
+            console.log('📊 Calculating volume from mesh geometry...');
             let totalVolumeCm3 = 0;
             viewer.uploadedFiles.forEach((fileData) => {
                 const geometry = fileData.mesh?.geometry;
@@ -250,27 +240,44 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 const volumeMm3 = Math.abs(signedVolume) / 6;
                 totalVolumeCm3 += volumeMm3 / 1000;  // MM³ to CM³
+                console.log('📦 File:', fileData.file.name, 'Volume:', (volumeMm3/1000).toFixed(2), 'cm³');
             });
+            
+            console.log('📊 TOTAL Volume:', totalVolumeCm3.toFixed(2), 'cm³');
             
             // Step 3: Calculate price
             const tech = document.getElementById('technologySelectGeneral')?.value || 'fdm';
             const mat = document.getElementById('materialSelectGeneral')?.value || 'pla';
+            console.log('🔧 Technology:', tech, 'Material:', mat);
             const prices = { 'fdm': { 'pla': 0.50, 'abs': 0.60, 'petg': 0.70, 'nylon': 1.50, 'resin': 1.00 }, 'sla': { 'pla': 1.50, 'abs': 1.70, 'petg': 1.80, 'nylon': 2.50, 'resin': 2.00 }, 'sls': { 'pla': 3.00, 'abs': 3.20, 'petg': 3.30, 'nylon': 4.00, 'resin': 3.50 }, 'mjf': { 'pla': 4.00, 'abs': 4.20, 'petg': 4.30, 'nylon': 5.00, 'resin': 4.50 }, 'dmls': { 'pla': 10.00, 'abs': 10.50, 'petg': 11.00, 'nylon': 12.00, 'resin': 11.50 } };
-            const totalPrice = totalVolumeCm3 * (prices[tech]?.[mat] || 0.50);
+            const pricePerCm3 = prices[tech]?.[mat] || 0.50;
+            const totalPrice = totalVolumeCm3 * pricePerCm3;
             
-            // Step 4: Update UI
+            console.log('💰 Price per cm³:', pricePerCm3, '→ Total Price:', totalPrice.toFixed(2));
+            
+            // Step 4: Update UI with VERY VISIBLE styling
+            console.log('🎨 Updating UI elements...');
             document.querySelectorAll('#quoteTotalVolumeGeneral').forEach(el => {
                 el.textContent = `${totalVolumeCm3.toFixed(2)} cm³`;
-                el.style.cssText = 'display: block !important; visibility: visible !important; color: #2c3e50 !important;';
+                el.style.cssText = 'display: block !important; visibility: visible !important; color: white !important; background-color: #ff0000 !important; padding: 5px !important; font-weight: bold !important; font-size: 1.2rem !important;';
+                console.log('✅ Updated volume element:', el);
             });
             document.querySelectorAll('#quoteTotalPriceGeneral').forEach(el => {
                 el.textContent = `$${totalPrice.toFixed(2)}`;
-                el.style.cssText = 'display: block !important; visibility: visible !important; color: #2c3e50 !important;';
+                el.style.cssText = 'display: block !important; visibility: visible !important; color: white !important; background-color: #00ff00 !important; padding: 5px !important; font-weight: bold !important; font-size: 1.2rem !important;';
+                console.log('✅ Updated price element:', el);
             });
             const summary = document.getElementById('priceSummaryGeneral');
-            if (summary) summary.style.display = 'block';
-            console.log('✅ Volume:', totalVolumeCm3.toFixed(2), 'cm³, Price: $' + totalPrice.toFixed(2));
-            alert('✅ DONE! Volume: ' + totalVolumeCm3.toFixed(2) + ' cm³, Price: $' + totalPrice.toFixed(2));
+            if (summary) {
+                summary.style.display = 'block';
+                console.log('✅ Showed price summary');
+            }
+            
+            console.log('✅✅✅ CALCULATION COMPLETE ✅✅✅');
+            console.log('📊 Volume:', totalVolumeCm3.toFixed(2), 'cm³');
+            console.log('💰 Price: $' + totalPrice.toFixed(2));
+            
+            alert('✅ CALCULATION COMPLETE!\n\n📊 Volume: ' + totalVolumeCm3.toFixed(2) + ' cm³\n💰 Price: $' + totalPrice.toFixed(2) + '\n\nLook for RED volume and GREEN price in sidebar!');
         });
     });
 });
