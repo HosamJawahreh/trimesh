@@ -3894,9 +3894,10 @@ loading
 </script>
 
 <script src="{{ asset('frontend/assets/js/3d-viewer-pro.js') }}?v=5"></script>
-<script src="{{ asset('frontend/assets/js/volume-calculator.js') }}?v=1"></script>
-<script src="{{ asset('frontend/assets/js/pricing-calculator.js') }}?v=1"></script>
-<script src="{{ asset('frontend/assets/js/simple-save-calculate.js') }}?v=1"></script>
+<script src="{{ asset('frontend/assets/js/volume-calculator.js') }}?v={{ time() }}"></script>
+<script src="{{ asset('frontend/assets/js/pricing-calculator.js') }}?v={{ time() }}"></script>
+<script src="{{ asset('frontend/assets/js/simple-save-calculate.js') }}?v={{ time() }}"></script>
+<script src="{{ asset('frontend/assets/js/debug-calculator.js') }}?v={{ time() }}"></script>
 
 {{-- INLINE HANDLER DEFINITION - Put it directly in HTML to bypass loading issues --}}
 <script>
