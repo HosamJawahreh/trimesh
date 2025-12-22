@@ -37,9 +37,9 @@ window.MeshRepairVisual = {
             console.error(`❌ Mesh appears to be severely damaged (${analysis.holes} estimated holes)`);
             console.error('   This mesh may need manual repair in a 3D modeling tool');
             console.error(`   Open edges detected: ${analysis.openEdges}`);
-            return { 
-                repaired: false, 
-                holesFound: analysis.holes, 
+            return {
+                repaired: false,
+                holesFound: analysis.holes,
                 holesFilled: 0,
                 error: 'Mesh too damaged for automatic repair'
             };
@@ -77,7 +77,7 @@ window.MeshRepairVisual = {
             // Calculate volume BEFORE repair for comparison
             const originalVolumeMm3 = this.calculateGeometryVolume(geometry);
             console.log(`📊 Volume BEFORE repair: ${(originalVolumeMm3 / 1000).toFixed(2)} cm³`);
-            
+
             const mergedGeometry = this.addRepairVisualization(viewer, repairGeometries, mesh);
 
             // CRITICAL: Update fileData.geometry so volume calculation uses repaired mesh
@@ -87,7 +87,7 @@ window.MeshRepairVisual = {
                 console.log('✅ Updated fileData.geometry and mesh.geometry to repaired version');
                 console.log(`   Original geometry: ${geometry.attributes.position.count} vertices`);
                 console.log(`   New geometry: ${mergedGeometry.attributes.position.count} vertices`);
-                
+
                 // Calculate volume AFTER repair for comparison
                 const repairedVolumeMm3 = this.calculateGeometryVolume(mergedGeometry);
                 console.log(`📊 Volume AFTER repair: ${(repairedVolumeMm3 / 1000).toFixed(2)} cm³`);
@@ -128,11 +128,11 @@ window.MeshRepairVisual = {
         // Many STL files (especially medical scans) are non-indexed but may have holes
         if (!indices) {
             console.log('   ℹ️ Non-indexed geometry - building edge map from triangles');
-            
+
             const edgeMap = new Map();
             const vertexMap = new Map(); // Map to merge duplicate vertices
             let triangleCount = 0;
-            
+
             // Build vertex map to identify unique vertices (tolerance for floating point errors)
             const tolerance = 0.0001;
             const getVertexKey = (x, y, z) => {
@@ -141,11 +141,11 @@ window.MeshRepairVisual = {
                 const kz = Math.round(z / tolerance);
                 return `${kx},${ky},${kz}`;
             };
-            
+
             // Map each vertex position to an index
             const vertexIndices = [];
             let nextIndex = 0;
-            
+
             for (let i = 0; i < vertices.length; i += 3) {
                 const key = getVertexKey(vertices[i], vertices[i + 1], vertices[i + 2]);
                 if (!vertexMap.has(key)) {
@@ -153,26 +153,26 @@ window.MeshRepairVisual = {
                 }
                 vertexIndices.push(vertexMap.get(key));
             }
-            
+
             console.log(`   Mapped ${vertices.length / 3} vertices to ${vertexMap.size} unique positions`);
-            
+
             // Build edge map from triangles
             for (let i = 0; i < vertexIndices.length; i += 3) {
                 const v0 = vertexIndices[i];
                 const v1 = vertexIndices[i + 1];
                 const v2 = vertexIndices[i + 2];
-                
+
                 // Add three edges of triangle
                 this.addEdge(edgeMap, v0, v1);
                 this.addEdge(edgeMap, v1, v2);
                 this.addEdge(edgeMap, v2, v0);
-                
+
                 triangleCount++;
             }
-            
+
             console.log(`   Processed ${triangleCount} non-indexed triangles`);
             console.log(`   Built edge map with ${edgeMap.size} unique edges`);
-            
+
             // Count open edges
             let openEdges = 0;
             for (const [key, count] of edgeMap.entries()) {
@@ -180,9 +180,9 @@ window.MeshRepairVisual = {
                     openEdges++;
                 }
             }
-            
+
             console.log(`   Found ${openEdges} open edges in non-indexed geometry`);
-            
+
             // Estimate holes
             let estimatedHoles = 0;
             if (openEdges > 0) {
@@ -197,7 +197,7 @@ window.MeshRepairVisual = {
                     console.warn(`   ⚠️ Very high open edge count (${openEdges}) - mesh may be severely damaged`);
                 }
             }
-            
+
             return {
                 triangles: triangleCount,
                 openEdges: openEdges,
@@ -233,7 +233,7 @@ window.MeshRepairVisual = {
         // Count open edges (edges that appear only once)
         let openEdges = 0;
         const openEdgesList = [];
-        
+
         for (const [key, count] of edgeMap.entries()) {
             if (count === 1) {
                 openEdges++;
@@ -308,34 +308,34 @@ window.MeshRepairVisual = {
         if (!indices) {
             // Non-indexed geometry - use vertex mapping from analysis if available
             console.log('   Processing non-indexed geometry for boundary detection');
-            
+
             if (analysis && analysis.vertexIndices) {
                 console.log('   Using pre-computed vertex mapping');
                 const vertexIndices = analysis.vertexIndices;
-                
+
                 // Build edge map from mapped vertices
                 for (let i = 0; i < vertexIndices.length; i += 3) {
                     const v0 = vertexIndices[i];
                     const v1 = vertexIndices[i + 1];
                     const v2 = vertexIndices[i + 2];
-                    
+
                     const edges = [
                         [v0, v1],
                         [v1, v2],
                         [v2, v0]
                     ];
-                    
+
                     for (const [va, vb] of edges) {
                         const key = va < vb ? `${va}-${vb}` : `${vb}-${va}`;
                         edgeMap.set(key, (edgeMap.get(key) || 0) + 1);
                     }
                 }
-                
+
                 // Find open edges and get their actual positions
                 for (const [key, count] of edgeMap.entries()) {
                     if (count === 1) {
                         const [va, vb] = key.split('-').map(Number);
-                        
+
                         // Find the actual vertex positions (first occurrence)
                         let v1Pos = null, v2Pos = null;
                         for (let i = 0; i < vertexIndices.length; i++) {
@@ -347,7 +347,7 @@ window.MeshRepairVisual = {
                             }
                             if (v1Pos && v2Pos) break;
                         }
-                        
+
                         if (v1Pos && v2Pos) {
                             openEdges.push({
                                 indices: [va, vb],
@@ -356,7 +356,7 @@ window.MeshRepairVisual = {
                         }
                     }
                 }
-                
+
                 console.log(`   Found ${openEdges.length} open edges from non-indexed geometry`);
             } else {
                 console.warn('   ⚠️ No vertex mapping available for non-indexed geometry');
@@ -487,34 +487,34 @@ window.MeshRepairVisual = {
         }
 
         const positions = [];
-        
+
         if (boundary.length === 1) {
             // Single edge - create a VOLUME-ADDING triangle by offsetting the third point
             const edge = boundary[0];
             const p1 = edge.positions[0];
             const p2 = edge.positions[1];
-            
+
             // Calculate edge vector
             const edgeX = p2[0] - p1[0];
             const edgeY = p2[1] - p1[1];
             const edgeZ = p2[2] - p1[2];
             const edgeLength = Math.sqrt(edgeX*edgeX + edgeY*edgeY + edgeZ*edgeZ);
-            
+
             // Calculate midpoint
             const midX = (p1[0] + p2[0]) / 2;
             const midY = (p1[1] + p2[1]) / 2;
             const midZ = (p1[2] + p2[2]) / 2;
-            
+
             // Create a perpendicular offset (inward) - use a fraction of edge length
             const offsetDist = edgeLength * 0.1; // 10% of edge length for volume
-            
+
             // Simple offset: move along average normal (approximate)
             // Use a vector perpendicular to edge by rotating 90° in XY plane
             const perpX = -edgeY;
             const perpY = edgeX;
             const perpZ = 0;
             const perpLength = Math.sqrt(perpX*perpX + perpY*perpY + perpZ*perpZ);
-            
+
             // Normalize and scale
             let offsetX, offsetY, offsetZ;
             if (perpLength > 0.001) {
@@ -527,40 +527,40 @@ window.MeshRepairVisual = {
                 offsetY = 0;
                 offsetZ = 0;
             }
-            
+
             // Create a triangle with OFFSET third point for volume
             positions.push(
                 p1[0], p1[1], p1[2],
                 p2[0], p2[1], p2[2],
                 midX + offsetX, midY + offsetY, midZ + offsetZ
             );
-            
+
         } else if (boundary.length === 2) {
             // Two edges - create triangles to bridge the gap
             const edge1 = boundary[0];
             const edge2 = boundary[1];
-            
+
             // Create two triangles to close the gap
             positions.push(
                 edge1.positions[0][0], edge1.positions[0][1], edge1.positions[0][2],
                 edge1.positions[1][0], edge1.positions[1][1], edge1.positions[1][2],
                 edge2.positions[0][0], edge2.positions[0][1], edge2.positions[0][2]
             );
-            
+
             positions.push(
                 edge1.positions[1][0], edge1.positions[1][1], edge1.positions[1][2],
                 edge2.positions[1][0], edge2.positions[1][1], edge2.positions[1][2],
                 edge2.positions[0][0], edge2.positions[0][1], edge2.positions[0][2]
             );
-            
+
         } else {
             // Standard fan triangulation for 3+ edges
             const firstPos = boundary[0].positions[0];
-            
+
             for (let i = 1; i < boundary.length - 1; i++) {
                 const p1 = boundary[i].positions[0];
                 const p2 = boundary[i + 1].positions[0];
-                
+
                 positions.push(
                     firstPos[0], firstPos[1], firstPos[2],
                     p1[0], p1[1], p1[2],

@@ -175,7 +175,7 @@
                                 </div>
                                 <div class="h4 mb-0">{{ number_format($stats['successful_repairs']) }}</div>
                                 <div class="progress mt-2" style="height: 5px;">
-                                    <div class="progress-bar bg-success" role="progressbar" 
+                                    <div class="progress-bar bg-success" role="progressbar"
                                          style="width: {{ $stats['success_rate'] }}%"></div>
                                 </div>
                             </div>
@@ -187,7 +187,7 @@
                                 </div>
                                 <div class="h4 mb-0">{{ number_format($stats['failed_repairs']) }}</div>
                                 <div class="progress mt-2" style="height: 5px;">
-                                    <div class="progress-bar bg-danger" role="progressbar" 
+                                    <div class="progress-bar bg-danger" role="progressbar"
                                          style="width: {{ $stats['total_repairs'] > 0 ? ($stats['failed_repairs'] / $stats['total_repairs'] * 100) : 0 }}%"></div>
                                 </div>
                             </div>
@@ -288,7 +288,7 @@
                                             <small>{{ number_format($repair->volume_change, 4) }} cm³</small>
                                         </td>
                                         <td>
-                                            <a href="{{ route('admin.mesh-repair.show', $repair->id) }}" 
+                                            <a href="{{ route('admin.mesh-repair.show', $repair->id) }}"
                                                class="btn btn-sm btn-info">
                                                 <i class="fas fa-eye"></i>
                                             </a>
@@ -373,7 +373,7 @@ async function checkServiceHealth() {
     try {
         const response = await fetch('/api/mesh/status');
         const data = await response.json();
-        
+
         if (data.available) {
             alert('✅ Service is healthy and responding!\n\nService URL: ' + data.service_url);
         } else {

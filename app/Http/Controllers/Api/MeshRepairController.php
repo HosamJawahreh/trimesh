@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Services\MeshRepairService;
-use App\Models\File;
+use App\Models\ThreeDFile;
 use App\Models\MeshRepair;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -47,18 +47,73 @@ class MeshRepairController extends Controller
     public function analyze(Request $request): JsonResponse
     {
         try {
+            // Debug: Log what we received
+            \Log::info('Mesh analyze request received', [
+                'has_file' => $request->hasFile('file'),
+                'has_file_id' => $request->has('file_id'),
+                'all_keys' => array_keys($request->all()),
+                'files' => array_keys($request->allFiles())
+            ]);
+
             // Validate request
             $validator = Validator::make($request->all(), [
-                'file_id' => 'required_without:file|integer|exists:files,id',
+                'file_id' => 'required_without:file|string', // Changed to string to accept file_xxxx format
                 'file' => 'required_without:file_id|file|mimes:stl,obj,ply|max:102400' // 100MB
             ]);
 
             if ($validator->fails()) {
+                \Log::error('Mesh analyze validation failed', [
+                    'errors' => $validator->errors()->toArray()
+                ]);
                 return response()->json([
                     'success' => false,
                     'message' => 'Validation failed',
-                    'errors' => $validator->errors()
+                    'errors' => $validator->errors(),
+                    'debug' => [
+                        'has_file' => $request->hasFile('file'),
+                        'has_file_id' => $request->has('file_id'),
+                        'keys' => array_keys($request->all())
+                    ]
                 ], 422);
+            }
+
+            // If file_id is provided, look up the file
+            if ($request->has('file_id')) {
+                $fileId = $request->input('file_id');
+                $dbFile = ThreeDFile::where('file_id', $fileId)->first();
+                
+                if (!$dbFile) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'File not found in database',
+                        'file_id' => $fileId
+                    ], 404);
+                }
+                
+                if ($dbFile->isExpired()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'File has expired',
+                        'file_id' => $fileId
+                    ], 410);
+                }
+                
+                // Use the file from disk
+                $filePath = storage_path('app/' . $dbFile->file_path);
+                
+                if (!file_exists($filePath)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'File not found on disk',
+                        'file_id' => $fileId
+                    ], 404);
+                }
+                
+                \Log::info('Using file from database', [
+                    'file_id' => $fileId,
+                    'file_path' => $filePath,
+                    'file_name' => $dbFile->file_name
+                ]);
             }
 
             // Check service availability
@@ -69,16 +124,16 @@ class MeshRepairController extends Controller
                 ], 503);
             }
 
-            // Get file
+            // Get file path - either from database or uploaded file
             if ($request->has('file_id')) {
-                $file = File::findOrFail($request->file_id);
-                $filePath = Storage::path($file->path);
+                // Already handled above - $filePath and $dbFile are set
+                // Use the file from disk
+                $analysis = $this->meshRepairService->analyzeMesh($filePath);
             } else {
-                $filePath = $request->file('file');
+                // Use uploaded file
+                $uploadedFile = $request->file('file');
+                $analysis = $this->meshRepairService->analyzeMesh($uploadedFile);
             }
-
-            // Analyze mesh
-            $analysis = $this->meshRepairService->analyzeMesh($filePath);
 
             // Add recommendations
             $recommendations = $this->meshRepairService->getRepairRecommendations($analysis);
@@ -110,9 +165,10 @@ class MeshRepairController extends Controller
     public function repair(Request $request): JsonResponse
     {
         try {
-            // Validate request
+            // Validate request - support both file_id (string) and file upload
             $validator = Validator::make($request->all(), [
-                'file_id' => 'required|integer|exists:files,id',
+                'file_id' => 'required_without:file|string', // Accept file_xxxx format
+                'file' => 'required_without:file_id|file|mimes:stl,obj,ply|max:102400',
                 'aggressive' => 'sometimes|boolean',
                 'save_result' => 'sometimes|boolean'
             ]);
@@ -133,22 +189,59 @@ class MeshRepairController extends Controller
                 ], 503);
             }
 
-            $file = File::findOrFail($request->file_id);
             $aggressive = $request->get('aggressive', true);
             $saveResult = $request->get('save_result', true);
 
-            // Get file path
-            $filePath = Storage::path($file->path);
-
-            // Repair mesh
-            $repairResult = $this->meshRepairService->repairMesh($filePath, $aggressive);
+            // Get file path - either from database or uploaded file
+            if ($request->has('file_id')) {
+                $fileId = $request->input('file_id');
+                $dbFile = ThreeDFile::where('file_id', $fileId)->first();
+                
+                if (!$dbFile) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'File not found in database',
+                        'file_id' => $fileId
+                    ], 404);
+                }
+                
+                if ($dbFile->isExpired()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'File has expired',
+                        'file_id' => $fileId
+                    ], 410);
+                }
+                
+                // Use the file from disk
+                $filePath = storage_path('app/' . $dbFile->file_path);
+                
+                if (!file_exists($filePath)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'File not found on disk',
+                        'file_id' => $fileId
+                    ], 404);
+                }
+                
+                // Repair mesh
+                $repairResult = $this->meshRepairService->repairMesh($filePath, $aggressive);
+                $file = $dbFile; // Use for saving result
+            } else {
+                // Use uploaded file
+                $uploadedFile = $request->file('file');
+                
+                // Repair mesh
+                $repairResult = $this->meshRepairService->repairMesh($uploadedFile, $aggressive);
+                $file = null; // No database file to associate with
+            }
 
             // Calculate quality score
             $qualityScore = $this->meshRepairService->calculateQualityScore($repairResult);
 
-            // Save to database if requested
+            // Save to database if requested and we have a database file
             $meshRepair = null;
-            if ($saveResult) {
+            if ($saveResult && $file) {
                 $meshRepair = MeshRepair::create([
                     'file_id' => $file->id,
                     'original_volume_cm3' => $repairResult['original_stats']['volume_cm3'],
@@ -166,6 +259,13 @@ class MeshRepairController extends Controller
                         'repair_summary' => $repairResult['repair_summary']
                     ])
                 ]);
+                
+                \Log::info('Mesh repair saved to database', [
+                    'mesh_repair_id' => $meshRepair->id,
+                    'file_id' => $file->id,
+                    'holes_filled' => $meshRepair->holes_filled,
+                    'quality_score' => $meshRepair->quality_score
+                ]);
 
                 // Update file record
                 $file->update([
@@ -177,8 +277,15 @@ class MeshRepairController extends Controller
 
             return response()->json([
                 'success' => true,
-                'repair_result' => $repairResult,
+                'original_stats' => $repairResult['original_stats'],
+                'repaired_stats' => $repairResult['repaired_stats'],
+                'repair_summary' => $repairResult['repair_summary'],
                 'quality_score' => $qualityScore,
+                'volume_change_cm3' => $repairResult['repaired_stats']['volume_cm3'] - $repairResult['original_stats']['volume_cm3'],
+                'volume_change_percent' => $repairResult['original_stats']['volume_cm3'] > 0 
+                    ? (($repairResult['repaired_stats']['volume_cm3'] - $repairResult['original_stats']['volume_cm3']) / $repairResult['original_stats']['volume_cm3']) * 100
+                    : 0,
+                'repair_time_seconds' => $repairResult['repair_time_seconds'] ?? 0,
                 'repair_id' => $meshRepair?->id,
                 'message' => 'Mesh repaired successfully'
             ]);
@@ -205,7 +312,7 @@ class MeshRepairController extends Controller
     {
         try {
             $validator = Validator::make($request->all(), [
-                'file_id' => 'required|integer|exists:files,id',
+                'file_id' => 'required|integer|exists:three_d_files,id',
                 'aggressive' => 'sometimes|boolean'
             ]);
 
@@ -223,7 +330,7 @@ class MeshRepairController extends Controller
                 ], 503);
             }
 
-            $file = File::findOrFail($request->file_id);
+            $file = ThreeDFile::findOrFail($request->file_id);
             $aggressive = $request->get('aggressive', true);
 
             // Prepare output path
@@ -280,8 +387,8 @@ class MeshRepairController extends Controller
     public function history(int $fileId): JsonResponse
     {
         try {
-            $file = File::findOrFail($fileId);
-            
+            $file = ThreeDFile::findOrFail($fileId);
+
             $repairs = MeshRepair::where('file_id', $fileId)
                 ->orderBy('created_at', 'desc')
                 ->get();

@@ -168,12 +168,12 @@
                                     @endif
                                 </td>
                                 <td>
-                                    <a href="{{ route('admin.mesh-repair.show', $repair->id) }}" 
+                                    <a href="{{ route('admin.mesh-repair.show', $repair->id) }}"
                                        class="btn btn-sm btn-info" title="View Details">
                                         <i class="fas fa-eye"></i>
                                     </a>
-                                    <form method="POST" action="{{ route('admin.mesh-repair.destroy', $repair->id) }}" 
-                                          style="display: inline;" 
+                                    <form method="POST" action="{{ route('admin.mesh-repair.destroy', $repair->id) }}"
+                                          style="display: inline;"
                                           onsubmit="return confirm('Delete this repair record?');">
                                         @csrf
                                         @method('DELETE')

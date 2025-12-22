@@ -3944,7 +3944,8 @@ loading
 <script src="{{ asset('frontend/assets/js/3d-viewer-pro.js') }}?v=5"></script>
 <script src="{{ asset('frontend/assets/js/volume-calculator.js') }}?v={{ time() }}"></script>
 <script src="{{ asset('frontend/assets/js/pricing-calculator.js') }}?v={{ time() }}"></script>
-<script src="{{ asset('frontend/assets/js/simple-save-calculate.js') }}?v={{ time() }}"></script>
+{{-- REMOVED: simple-save-calculate.js - Conflicts with enhanced-save-calculate.js --}}
+{{-- <script src="{{ asset('frontend/assets/js/simple-save-calculate.js') }}?v={{ time() }}"></script> --}}
 <script src="{{ asset('frontend/assets/js/debug-calculator.js') }}?v={{ time() }}"></script>
 
 {{-- INLINE HANDLER DEFINITION - Put it directly in HTML to bypass loading issues --}}
@@ -4808,10 +4809,10 @@ console.log('========================================');
 </script>
 
 {{-- Mesh Repair with Visual Feedback --}}
-<script src="{{ asset('frontend/assets/js/mesh-repair-visual.js') }}?v=1"></script>
+<script src="{{ asset('frontend/assets/js/mesh-repair-visual.js') }}?v={{ time() }}"></script>
 
-<script src="{{ asset('frontend/assets/js/enhanced-save-calculate.js') }}?v=2"></script>
-<script src="{{ asset('frontend/assets/js/3d-file-manager.js') }}?v=3"></script>
+<script src="{{ asset('frontend/assets/js/enhanced-save-calculate.js') }}?v={{ time() }}"></script>
+<script src="{{ asset('frontend/assets/js/3d-file-manager.js') }}?v={{ time() }}"></script>
 
 <!-- QR Code Library for Share Modal -->
 <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>

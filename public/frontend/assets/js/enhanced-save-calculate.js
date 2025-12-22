@@ -2,12 +2,17 @@
  * ========================================
  * ENHANCED SAVE & CALCULATE
  * With Auto Mesh Analysis and Repair
+ * VERSION: 4.0 - SERVER-SIDE REPAIR WITH COLOR PRESERVATION
  * ========================================
  */
 
-console.log('💾 Loading Enhanced Save & Calculate System...');
+console.log('💾 ===== ENHANCED SAVE & CALCULATE V4.0 LOADED =====');
+console.log('💾 WITH PYMESHFIX + COLOR PRESERVATION - TIMESTAMP:', new Date().toISOString());
+console.log('💾 If you see V4.0, the NEW JavaScript with server-side repair is loaded!');
+console.log('💾 If you see V3 or lower, HARD REFRESH (Ctrl + Shift + R) NOW!');
 
 window.EnhancedSaveCalculate = {
+    version: '4.0',
     isProcessing: false,
     serverSideRepairAvailable: false,
     useServerSideRepair: true, // Default to server-side if available
@@ -17,12 +22,24 @@ window.EnhancedSaveCalculate = {
      */
     async checkServerRepairStatus() {
         try {
-            const response = await fetch('/api/mesh/status');
+            // Add cache-busting and no-cache headers
+            const response = await fetch('/api/mesh/status?_=' + Date.now(), {
+                cache: 'no-cache',
+                headers: {
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'Pragma': 'no-cache',
+                    'Expires': '0'
+                }
+            });
             if (response.ok) {
                 const data = await response.json();
                 this.serverSideRepairAvailable = data.available === true;
                 console.log('🔧 Server-side mesh repair:', this.serverSideRepairAvailable ? 'AVAILABLE ✅' : 'UNAVAILABLE ❌');
+                console.log('🔧 Server response:', data);
                 return this.serverSideRepairAvailable;
+            } else {
+                console.error('🔧 Server status check failed:', response.status, response.statusText);
+                this.serverSideRepairAvailable = false;
             }
         } catch (error) {
             console.warn('⚠️ Server-side repair check failed:', error.message);
@@ -37,32 +54,114 @@ window.EnhancedSaveCalculate = {
     async repairMeshServerSide(fileData, viewerId = 'general') {
         try {
             console.log(`🌐 Server-side repair starting for: ${fileData.file.name}`);
-            
-            // First, upload file to server if not already there
-            // For now, we'll create a FormData with the file blob
-            const formData = new FormData();
-            formData.append('file', fileData.file);
-            formData.append('aggressive', 'true');
-            
+
+            // Check if file has a storage ID (already uploaded to database)
+            let fileId = fileData.storageId || fileData.id;
+            console.log('📋 File ID:', fileId);
+
+            // If file is NOT in database yet, upload it first
+            if (!fileId || !fileId.startsWith('file_')) {
+                console.log('📤 File not in database yet, uploading first...');
+                
+                // Convert file to base64
+                const arrayBuffer = await fileData.file.arrayBuffer();
+                const bytes = new Uint8Array(arrayBuffer);
+                let binary = '';
+                for (let i = 0; i < bytes.length; i++) {
+                    binary += String.fromCharCode(bytes[i]);
+                }
+                const base64Data = btoa(binary);
+                
+                // Upload to server
+                const uploadResponse = await fetch('/api/3d-files/store', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        file: base64Data,
+                        fileName: fileData.file.name,
+                        metadata: JSON.stringify({
+                            size: fileData.file.size,
+                            type: fileData.file.type,
+                            uploadedFrom: 'enhanced-save-calculate'
+                        })
+                    })
+                });
+                
+                if (!uploadResponse.ok) {
+                    throw new Error('Failed to upload file to server');
+                }
+                
+                const uploadResult = await uploadResponse.json();
+                if (!uploadResult.success) {
+                    throw new Error(uploadResult.message || 'Upload failed');
+                }
+                
+                fileId = uploadResult.fileId;
+                fileData.storageId = fileId; // Store for future use
+                console.log('✅ File uploaded to server with ID:', fileId);
+                
+                // Update URL to include this file
+                if (window.fileStorageManager) {
+                    window.fileStorageManager.updateURL(fileId);
+                }
+            }
+
             // Analyze mesh first
             this.updateProgress('Analyzing mesh on server...', 30);
-            const analyzeResponse = await fetch('/api/mesh/analyze', {
-                method: 'POST',
-                body: formData
-            });
+
+            let analyzeResponse;
             
-            if (!analyzeResponse.ok) {
-                throw new Error(`Analysis failed: ${analyzeResponse.statusText}`);
+            if (fileId && fileId.startsWith('file_')) {
+                // File is already in database - use file_id parameter
+                console.log('💾 Using file ID from database:', fileId);
+                
+                const formData = new FormData();
+                formData.append('file_id', fileId);
+                formData.append('aggressive', 'true');
+                
+                analyzeResponse = await fetch('/api/mesh/analyze', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'Accept': 'application/json',
+                    }
+                });
+            } else {
+                // File needs to be uploaded - use file upload
+                console.log('📤 Uploading file to server:', fileData.file.name, 'size:', fileData.file.size);
+                
+                const formData = new FormData();
+                formData.append('file', fileData.file);
+                formData.append('aggressive', 'true');
+                
+                analyzeResponse = await fetch('/api/mesh/analyze', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'Accept': 'application/json',
+                    }
+                });
             }
-            
+
+            console.log('📥 Analyze response status:', analyzeResponse.status, analyzeResponse.statusText);
+
+            if (!analyzeResponse.ok) {
+                const errorData = await analyzeResponse.json().catch(() => ({}));
+                console.error('❌ Analysis error response:', errorData);
+                throw new Error(`Analysis failed: ${analyzeResponse.statusText} - ${JSON.stringify(errorData)}`);
+            }
+
             const analysis = await analyzeResponse.json();
             console.log('📊 Server analysis result:', analysis);
-            
+
             // Show recommendations if any
             if (analysis.recommendations && analysis.recommendations.length > 0) {
                 console.log('💡 Recommendations:', analysis.recommendations);
             }
-            
+
             // Check if repair is needed
             if (analysis.analysis.is_watertight) {
                 console.log('✓ Mesh is already watertight - no repair needed');
@@ -74,39 +173,59 @@ window.EnhancedSaveCalculate = {
                     server_side: true
                 };
             }
-            
+
             // Perform repair
             this.updateProgress(`Repairing mesh (${analysis.analysis.holes_count} holes)...`, 50);
+
+            let repairResponse;
             
-            const repairFormData = new FormData();
-            repairFormData.append('file', fileData.file);
-            repairFormData.append('aggressive', 'true');
-            repairFormData.append('save_result', 'false'); // Don't save to DB yet
-            
-            const repairResponse = await fetch('/api/mesh/repair', {
-                method: 'POST',
-                body: repairFormData
-            });
-            
+            if (fileId && fileId.startsWith('file_')) {
+                // File is already in database - use file_id parameter
+                console.log('💾 Repairing using file ID from database:', fileId);
+                
+                const repairFormData = new FormData();
+                repairFormData.append('file_id', fileId);
+                repairFormData.append('aggressive', 'true');
+                repairFormData.append('save_result', 'true'); // Save to database for admin logs
+
+                repairResponse = await fetch('/api/mesh/repair', {
+                    method: 'POST',
+                    body: repairFormData
+                });
+            } else {
+                // File needs to be uploaded - use file upload
+                console.log('📤 Repairing by uploading file:', fileData.file.name);
+                
+                const repairFormData = new FormData();
+                repairFormData.append('file', fileData.file);
+                repairFormData.append('aggressive', 'true');
+                repairFormData.append('save_result', 'true'); // Save to database for admin logs
+
+                repairResponse = await fetch('/api/mesh/repair', {
+                    method: 'POST',
+                    body: repairFormData
+                });
+            }
+
             if (!repairResponse.ok) {
                 throw new Error(`Repair failed: ${repairResponse.statusText}`);
             }
-            
+
             const repairResult = await repairResponse.json();
             console.log('✅ Server repair complete:', repairResult);
-            
+
             return {
                 repaired: true,
-                original_volume_cm3: repairResult.repair_result.original_stats.volume_cm3,
-                repaired_volume_cm3: repairResult.repair_result.repaired_stats.volume_cm3,
-                holes_filled: repairResult.repair_result.repair_summary.holes_filled,
+                original_volume_cm3: repairResult.original_stats.volume_cm3,
+                repaired_volume_cm3: repairResult.repaired_stats.volume_cm3,
+                holes_filled: repairResult.repair_summary.holes_filled,
                 quality_score: repairResult.quality_score,
-                volume_change_cm3: repairResult.repair_result.volume_change_cm3,
-                volume_change_percent: repairResult.repair_result.volume_change_percent,
-                watertight: repairResult.repair_result.repaired_stats.is_watertight,
+                volume_change_cm3: repairResult.volume_change_cm3,
+                volume_change_percent: repairResult.volume_change_percent,
+                watertight: repairResult.repaired_stats.is_watertight,
                 server_side: true
             };
-            
+
         } catch (error) {
             console.error('❌ Server-side repair error:', error);
             throw error;
@@ -120,10 +239,10 @@ window.EnhancedSaveCalculate = {
         const hasRepairs = results.some(r => r.repaired);
         const totalHolesFilled = results.reduce((sum, r) => sum + (r.holes_filled || 0), 0);
         const avgQuality = results.reduce((sum, r) => sum + (r.quality_score || 0), 0) / results.length;
-        
+
         let message = '';
         let type = 'info';
-        
+
         if (hasRepairs) {
             const totalChange = results.reduce((sum, r) => sum + Math.abs(r.volume_change_cm3 || 0), 0);
             message = `
@@ -137,7 +256,7 @@ window.EnhancedSaveCalculate = {
             message = 'All meshes are watertight - no repairs needed';
             type = 'success';
         }
-        
+
         if (window.showToolbarNotification) {
             showToolbarNotification(message, type, 6000);
         }
@@ -210,13 +329,13 @@ window.EnhancedSaveCalculate = {
                             fileName: fileData.file.name,
                             ...serverResult
                         });
-                        
+
                         // Store server-calculated volume for later use
                         fileData.serverVolume = serverResult.repaired_volume_cm3 || serverResult.volume_cm3;
                     }
-                    
+
                     this.showServerRepairResults(repairResults);
-                    
+
                 } catch (serverError) {
                     console.error('⚠️ Server-side repair failed, falling back to client-side:', serverError);
                     useServerRepair = false;
@@ -272,7 +391,7 @@ window.EnhancedSaveCalculate = {
                                     });
 
                                     console.log(`   ✅ Repair result:`, result);
-                                    
+
                                     // CRITICAL CHECK: Verify geometry was updated
                                     if (result.repaired && result.holesFilled > 0) {
                                         console.log(`   🔍 VERIFYING REPAIR:`);
@@ -299,9 +418,9 @@ window.EnhancedSaveCalculate = {
                         const totalFilled = repairResults.reduce((sum, r) => sum + (r.holesFilled || 0), 0);
                         const totalFound = repairResults.reduce((sum, r) => sum + (r.holesFound || 0), 0);
                         const hasErrors = repairResults.some(r => r.error);
-                        
+
                         console.log(`📊 Repair summary: Found ${totalFound} holes, filled ${totalFilled}`);
-                        
+
                         if (window.showToolbarNotification) {
                             if (hasErrors) {
                                 showToolbarNotification(
@@ -421,7 +540,7 @@ window.EnhancedSaveCalculate = {
             // Get selected technology and material
             const techSelect = document.getElementById(`technologySelect${viewerId === 'general' ? 'General' : 'Medical'}`);
             const matSelect = document.getElementById(`materialSelect${viewerId === 'general' ? 'General' : 'Medical'}`);
-            
+
             const technology = techSelect?.value || 'fdm';
             const material = matSelect?.value || 'pla';
 
@@ -429,12 +548,12 @@ window.EnhancedSaveCalculate = {
             console.log(`   Technology: ${technology} (from dropdown: ${techSelect?.value})`);
             console.log(`   Material: ${material} (from dropdown: ${matSelect?.value})`);
             console.log(`   Volume (REPAIRED): ${totalVolume.toFixed(2)} cm³`);
-            
+
             // Calculate price based on technology, material, and NEW volume (includes repairs)
             const pricePerCm3 = this.getPricePerCm3(technology, material);
             console.log(`   📊 Looking up price for [${technology}][${material}]`);
             console.log(`   📊 Price per cm³: $${pricePerCm3.toFixed(2)}`);
-            
+
             const totalPrice = totalVolume * pricePerCm3;
             const printTime = this.estimatePrintTime(totalVolume, technology);
 

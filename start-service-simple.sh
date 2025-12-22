@@ -29,18 +29,18 @@ else
     echo "⚠️  Some dependencies missing"
     echo "   Installing now (this may take a few minutes)..."
     echo ""
-    
+
     # Install pip if needed
     if ! command -v pip3 &> /dev/null; then
         echo "Installing pip..."
         sudo apt-get update
         sudo apt-get install -y python3-pip python3-venv build-essential python3-dev
     fi
-    
+
     # Install dependencies
     echo "Installing Python packages..."
     pip3 install --user fastapi uvicorn pymeshfix trimesh numpy
-    
+
     echo ""
     echo "✅ Dependencies installed"
 fi

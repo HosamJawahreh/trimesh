@@ -7,6 +7,7 @@ use App\Models\MeshRepair;
 use App\Services\MeshRepairService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
 
 class MeshRepairAdminController extends Controller
@@ -32,23 +33,23 @@ class MeshRepairAdminController extends Controller
             'today_repairs' => MeshRepair::whereDate('created_at', today())->count(),
             'week_repairs' => MeshRepair::whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])->count(),
             'month_repairs' => MeshRepair::whereMonth('created_at', now()->month)->count(),
-            
+
             'successful_repairs' => MeshRepair::where('status', 'completed')->count(),
             'failed_repairs' => MeshRepair::where('status', 'failed')->count(),
             'pending_repairs' => MeshRepair::where('status', 'pending')->count(),
-            
+
             'average_quality' => MeshRepair::where('status', 'completed')->avg('quality_score'),
             'average_time' => MeshRepair::where('status', 'completed')->avg('repair_time_seconds'),
             'total_holes_filled' => MeshRepair::sum('holes_filled'),
-            
+
             'watertight_achieved' => MeshRepair::where('is_watertight', true)->count(),
             'manifold_achieved' => MeshRepair::where('is_manifold', true)->count(),
-            
+
             'average_volume_change' => MeshRepair::selectRaw('AVG(repaired_volume_cm3 - original_volume_cm3) as avg')->first()->avg ?? 0,
         ];
 
         // Calculate success rate
-        $stats['success_rate'] = $stats['total_repairs'] > 0 
+        $stats['success_rate'] = $stats['total_repairs'] > 0
             ? round(($stats['successful_repairs'] / $stats['total_repairs']) * 100, 1)
             : 0;
 
@@ -60,7 +61,7 @@ class MeshRepairAdminController extends Controller
 
         // Get quality distribution
         $qualityDistribution = MeshRepair::select(
-                DB::raw('CASE 
+                DB::raw('CASE
                     WHEN quality_score >= 90 THEN "excellent"
                     WHEN quality_score >= 70 THEN "good"
                     WHEN quality_score >= 50 THEN "fair"
@@ -155,7 +156,7 @@ class MeshRepairAdminController extends Controller
 
         // Note: In production, these should be stored in database or .env file
         // For now, we'll just validate and return success
-        
+
         return redirect()->back()->with('success', 'Settings updated successfully');
     }
 
@@ -165,7 +166,7 @@ class MeshRepairAdminController extends Controller
     public function show($id)
     {
         $repair = MeshRepair::with('file')->findOrFail($id);
-        
+
         // Decode metadata
         $metadata = is_string($repair->metadata) ? json_decode($repair->metadata, true) : $repair->metadata;
 
@@ -178,12 +179,12 @@ class MeshRepairAdminController extends Controller
     public function destroy($id)
     {
         $repair = MeshRepair::findOrFail($id);
-        
+
         // Delete repaired file if exists
         if ($repair->repaired_file_path && Storage::exists($repair->repaired_file_path)) {
             Storage::delete($repair->repaired_file_path);
         }
-        
+
         $repair->delete();
 
         return redirect()->route('admin.mesh-repair.logs')->with('success', 'Repair record deleted');
@@ -195,14 +196,14 @@ class MeshRepairAdminController extends Controller
     public function export(Request $request)
     {
         $format = $request->get('format', 'csv');
-        
+
         $repairs = MeshRepair::with('file')
             ->orderBy('created_at', 'desc')
             ->get();
 
         if ($format === 'csv') {
             $filename = 'mesh-repairs-' . now()->format('Y-m-d') . '.csv';
-            
+
             $headers = [
                 'Content-Type' => 'text/csv',
                 'Content-Disposition' => "attachment; filename=\"$filename\"",
@@ -210,11 +211,11 @@ class MeshRepairAdminController extends Controller
 
             $callback = function() use ($repairs) {
                 $file = fopen('php://output', 'w');
-                
+
                 // Headers
                 fputcsv($file, [
-                    'ID', 'File Name', 'Date', 'Status', 'Original Volume (cm³)', 
-                    'Repaired Volume (cm³)', 'Volume Change', 'Holes Filled', 
+                    'ID', 'File Name', 'Date', 'Status', 'Original Volume (cm³)',
+                    'Repaired Volume (cm³)', 'Volume Change', 'Holes Filled',
                     'Quality Score', 'Repair Time (s)', 'Watertight', 'Manifold'
                 ]);
 

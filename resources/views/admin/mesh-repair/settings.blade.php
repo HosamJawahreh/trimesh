@@ -36,14 +36,14 @@
                 <div class="card-body">
                     <form method="POST" action="{{ route('admin.mesh-repair.settings.update') }}">
                         @csrf
-                        
+
                         <div class="form-group">
                             <label for="service_url">Service URL</label>
-                            <input type="url" 
-                                   class="form-control @error('service_url') is-invalid @enderror" 
-                                   id="service_url" 
-                                   name="service_url" 
-                                   value="{{ old('service_url', $config['service_url']) }}" 
+                            <input type="url"
+                                   class="form-control @error('service_url') is-invalid @enderror"
+                                   id="service_url"
+                                   name="service_url"
+                                   value="{{ old('service_url', $config['service_url']) }}"
                                    required>
                             <small class="form-text text-muted">
                                 Python mesh repair service endpoint (e.g., http://localhost:8001)
@@ -55,13 +55,13 @@
 
                         <div class="form-group">
                             <label for="timeout">Request Timeout (seconds)</label>
-                            <input type="number" 
-                                   class="form-control @error('timeout') is-invalid @enderror" 
-                                   id="timeout" 
-                                   name="timeout" 
-                                   value="{{ old('timeout', $config['timeout']) }}" 
-                                   min="30" 
-                                   max="600" 
+                            <input type="number"
+                                   class="form-control @error('timeout') is-invalid @enderror"
+                                   id="timeout"
+                                   name="timeout"
+                                   value="{{ old('timeout', $config['timeout']) }}"
+                                   min="30"
+                                   max="600"
                                    required>
                             <small class="form-text text-muted">
                                 Maximum time to wait for repair response (30-600 seconds)
@@ -73,13 +73,13 @@
 
                         <div class="form-group">
                             <label for="max_file_size">Maximum File Size (bytes)</label>
-                            <input type="number" 
-                                   class="form-control @error('max_file_size') is-invalid @enderror" 
-                                   id="max_file_size" 
-                                   name="max_file_size" 
-                                   value="{{ old('max_file_size', $config['max_file_size']) }}" 
-                                   min="1048576" 
-                                   max="1073741824" 
+                            <input type="number"
+                                   class="form-control @error('max_file_size') is-invalid @enderror"
+                                   id="max_file_size"
+                                   name="max_file_size"
+                                   value="{{ old('max_file_size', $config['max_file_size']) }}"
+                                   min="1048576"
+                                   max="1073741824"
                                    required>
                             <small class="form-text text-muted">
                                 Maximum upload size: {{ number_format($config['max_file_size'] / 1024 / 1024, 0) }} MB
@@ -244,9 +244,9 @@ async function checkServiceHealth() {
     try {
         const response = await fetch('/api/mesh/status');
         const data = await response.json();
-        
+
         const statusDiv = document.getElementById('service-status');
-        
+
         if (data.available) {
             statusDiv.innerHTML = `
                 <div class="text-success">

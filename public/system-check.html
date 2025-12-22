@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>System Status Check</title>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #1e1e1e; color: #00ff00; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .ok { background: #004400; border: 2px solid #00ff00; }
+        .error { background: #440000; border: 2px solid #ff0000; color: #ff0000; }
+        .warning { background: #444400; border: 2px solid #ffff00; color: #ffff00; }
+        pre { background: #000; padding: 10px; overflow-x: auto; }
+        button { background: #00ff00; color: #000; padding: 10px 20px; font-size: 16px; cursor: pointer; border: none; margin: 5px; }
+        button:hover { background: #00cc00; }
+    </style>
+</head>
+<body>
+    <h1>🔧 TriMesh System Status Check</h1>
+    <p>Timestamp: <span id="timestamp"></span></p>
+
+    <div id="status-container"></div>
+
+    <h2>Actions:</h2>
+    <button onclick="checkAll()">🔄 Check All Systems</button>
+    <button onclick="clearBrowserCache()">🗑️ Instructions to Clear Cache</button>
+    <button onclick="window.location.href='/quote'">→ Go to Quote Page</button>
+
+    <script>
+        document.getElementById('timestamp').textContent = new Date().toISOString();
+
+        async function checkAll() {
+            const container = document.getElementById('status-container');
+            container.innerHTML = '<h2>Running checks...</h2>';
+
+            const checks = [];
+
+            // Check 1: Python Service Health
+            checks.push(checkPythonService());
+
+            // Check 2: Laravel API
+            checks.push(checkLaravelAPI());
+
+            // Check 3: JavaScript Loading
+            checks.push(checkJavaScript());
+
+            const results = await Promise.all(checks);
+            
+            container.innerHTML = results.join('');
+
+            // Summary
+            const allOk = results.every(r => r.includes('class="status ok"'));
+            if (allOk) {
+                container.innerHTML += '<div class="status ok"><h2>✅ ALL SYSTEMS OPERATIONAL</h2><p>Your browser needs to do a HARD REFRESH: Press Ctrl+Shift+R</p></div>';
+            } else {
+                container.innerHTML += '<div class="status error"><h2>❌ SOME SYSTEMS NEED ATTENTION</h2></div>';
+            }
+        }
+
+        async function checkPythonService() {
+            try {
+                const response = await fetch('http://127.0.0.1:8001/health');
+                const data = await response.json();
+                if (data.status === 'healthy') {
+                    return `<div class="status ok">
+                        <h3>✅ Python Mesh Service</h3>
+                        <p>Status: <strong>RUNNING</strong></p>
+                        <p>Port: 8001</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    </div>`;
+                }
+            } catch (error) {
+                return `<div class="status error">
+                    <h3>❌ Python Mesh Service</h3>
+                    <p>Status: <strong>NOT RESPONDING</strong></p>
+                    <p>Error: ${error.message}</p>
+                    <p>Fix: Run "nohup python3 main.py > service.log 2>&1 &" in python-mesh-service folder</p>
+                </div>`;
+            }
+        }
+
+        async function checkLaravelAPI() {
+            try {
+                const response = await fetch('/api/mesh/status');
+                const data = await response.json();
+                if (data.available) {
+                    return `<div class="status ok">
+                        <h3>✅ Laravel API</h3>
+                        <p>Status: <strong>AVAILABLE</strong></p>
+                        <p>Service URL: ${data.service_url}</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    </div>`;
+                } else {
+                    return `<div class="status error">
+                        <h3>❌ Laravel API</h3>
+                        <p>Status: Service reports unavailable</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    </div>`;
+                }
+            } catch (error) {
+                return `<div class="status error">
+                    <h3>❌ Laravel API</h3>
+                    <p>Error: ${error.message}</p>
+                </div>`;
+            }
+        }
+
+        async function checkJavaScript() {
+            const scriptUrl = '/frontend/assets/js/enhanced-save-calculate.js?v=' + Date.now();
+            try {
+                const response = await fetch(scriptUrl);
+                const text = await response.text();
+                
+                const hasV3 = text.includes('ENHANCED SAVE & CALCULATE V3');
+                const hasPymeshfix = text.includes('pymeshfix');
+                const hasServerRepair = text.includes('server-side mesh repair');
+
+                if (hasV3 && hasPymeshfix && hasServerRepair) {
+                    return `<div class="status ok">
+                        <h3>✅ JavaScript Files</h3>
+                        <p>Version: <strong>V3 (Latest with pymeshfix)</strong></p>
+                        <p>✅ Contains V3 markers</p>
+                        <p>✅ Contains pymeshfix support</p>
+                        <p>✅ Contains server-side repair</p>
+                        <p><strong>Your server has the correct files!</strong></p>
+                        <p><strong>If you don't see repair working, press Ctrl+Shift+R</strong></p>
+                    </div>`;
+                } else {
+                    return `<div class="status warning">
+                        <h3>⚠️ JavaScript Files</h3>
+                        <p>Version check:</p>
+                        <p>V3 Markers: ${hasV3 ? '✅' : '❌'}</p>
+                        <p>Pymeshfix Support: ${hasPymeshfix ? '✅' : '❌'}</p>
+                        <p>Server Repair: ${hasServerRepair ? '✅' : '❌'}</p>
+                    </div>`;
+                }
+            } catch (error) {
+                return `<div class="status error">
+                    <h3>❌ JavaScript Files</h3>
+                    <p>Error loading: ${error.message}</p>
+                </div>`;
+            }
+        }
+
+        function clearBrowserCache() {
+            const instructions = `
+TO CLEAR BROWSER CACHE AND LOAD NEW CODE:
+
+METHOD 1 - Hard Refresh (Easiest):
+1. Go to the /quote page
+2. Press: Ctrl + Shift + R
+3. Press: F12 to open console
+4. Look for: "V3 LOADED" message
+
+METHOD 2 - DevTools:
+1. Press F12
+2. Right-click the Refresh button
+3. Select "Empty Cache and Hard Reload"
+
+METHOD 3 - Incognito (100% works):
+1. Press: Ctrl + Shift + N
+2. Go to: http://127.0.0.1:8000/quote
+3. Press: F12
+4. Should see "V3 LOADED"
+
+IF YOU SEE "V3 LOADED" in console:
+✅ New code is loaded
+✅ Upload STL and click "Save & Calculate"
+✅ Should see pymeshfix repair working
+✅ Admin logs should populate
+            `;
+            alert(instructions);
+        }
+
+        // Auto-check on load
+        checkAll();
+
+        // Auto-refresh every 30 seconds
+        setInterval(() => {
+            document.getElementById('timestamp').textContent = new Date().toISOString();
+        }, 1000);
+    </script>
+</body>
+</html>

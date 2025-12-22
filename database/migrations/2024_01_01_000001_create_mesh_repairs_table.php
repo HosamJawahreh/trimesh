@@ -26,7 +26,7 @@ return new class extends Migration
             $table->string('repaired_file_path')->nullable();
             $table->json('metadata')->nullable();
             $table->timestamps();
-            
+
             // Indexes
             $table->index('file_id');
             $table->index('status');

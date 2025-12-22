@@ -76,10 +76,10 @@ class MeshRepairResponse(BaseModel):
 def analyze_mesh(mesh: trimesh.Trimesh) -> Dict[str, Any]:
     """
     Comprehensive mesh analysis
-    
+
     Args:
         mesh: Input trimesh object
-        
+
     Returns:
         Dictionary with detailed mesh statistics
     """
@@ -90,15 +90,15 @@ def analyze_mesh(mesh: trimesh.Trimesh) -> Dict[str, Any]:
             "faces": len(mesh.faces),
             "edges": len(mesh.edges),
         }
-        
+
         # Volume calculation (absolute value for watertight check)
         volume_mm3 = float(abs(mesh.volume))
         stats["volume_mm3"] = volume_mm3
         stats["volume_cm3"] = volume_mm3 / 1000.0
-        
+
         # Surface area
         stats["surface_area_mm2"] = float(mesh.area)
-        
+
         # Bounding box
         bounds = mesh.bounds
         stats["bounding_box"] = {
@@ -106,29 +106,29 @@ def analyze_mesh(mesh: trimesh.Trimesh) -> Dict[str, Any]:
             "max": bounds[1].tolist(),
             "size": (bounds[1] - bounds[0]).tolist()
         }
-        
+
         # Topology checks
         stats["is_watertight"] = mesh.is_watertight
         stats["is_manifold"] = mesh.is_winding_consistent
-        
+
         # Euler characteristic and genus
         stats["euler_number"] = mesh.euler_number
         # For closed surfaces: genus = (2 - euler) / 2
         stats["genus"] = (2 - mesh.euler_number) // 2 if mesh.is_watertight else -1
-        
+
         # Connected components
         components = mesh.split(only_watertight=False)
         stats["connected_components"] = len(components)
-        
+
         # Hole detection (edges that appear only once)
         edges_sorted = np.sort(mesh.edges_sorted, axis=1)
         unique_edges, counts = np.unique(edges_sorted, axis=0, return_counts=True)
         boundary_edges = unique_edges[counts == 1]
         stats["holes_count"] = len(boundary_edges)
         stats["boundary_edges"] = len(boundary_edges)
-        
+
         return stats
-        
+
     except Exception as e:
         logger.error(f"Error analyzing mesh: {str(e)}")
         return {
@@ -142,20 +142,20 @@ def analyze_mesh(mesh: trimesh.Trimesh) -> Dict[str, Any]:
 def repair_mesh_pymeshfix(mesh: trimesh.Trimesh, aggressive: bool = True) -> trimesh.Trimesh:
     """
     Repair mesh using pymeshfix (MeshFix algorithm)
-    
+
     Args:
         mesh: Input trimesh object
         aggressive: Use aggressive repair mode
-        
+
     Returns:
         Repaired trimesh object
     """
     try:
         logger.info(f"Repairing mesh with {len(mesh.vertices)} vertices using pymeshfix...")
-        
+
         # Create pymeshfix object
         meshfix = pymeshfix.MeshFix(mesh.vertices, mesh.faces)
-        
+
         # Repair with different strategies based on mode
         if aggressive:
             # Aggressive repair: fill all holes, remove non-manifold edges
@@ -163,21 +163,47 @@ def repair_mesh_pymeshfix(mesh: trimesh.Trimesh, aggressive: bool = True) -> tri
         else:
             # Conservative repair: minimal changes
             meshfix.repair(verbose=False, joincomp=False)
-        
+
         # Get repaired mesh
         repaired_vertices = meshfix.v
         repaired_faces = meshfix.f
-        
-        # Create new trimesh object
+
+        # Preserve vertex colors if present
+        vertex_colors = None
+        if hasattr(mesh.visual, 'vertex_colors') and mesh.visual.vertex_colors is not None:
+            original_colors = mesh.visual.vertex_colors
+            logger.info(f"Original mesh has vertex colors: {original_colors.shape}")
+            
+            # Map old vertices to new vertices (pymeshfix may reorder/add vertices)
+            # For vertices that exist in both, preserve colors
+            # For new vertices, interpolate from nearby vertices
+            if len(repaired_vertices) == len(mesh.vertices):
+                # Same number of vertices - try to map colors
+                vertex_colors = original_colors
+                logger.info("Preserving vertex colors (same vertex count)")
+            else:
+                # Different number of vertices - interpolate colors for new vertices
+                from scipy.spatial import cKDTree
+                tree = cKDTree(mesh.vertices)
+                distances, indices = tree.query(repaired_vertices, k=1)
+                vertex_colors = original_colors[indices]
+                logger.info(f"Interpolated colors for {len(repaired_vertices)} vertices")
+
+        # Create new trimesh object with preserved colors
         repaired_mesh = trimesh.Trimesh(
             vertices=repaired_vertices,
             faces=repaired_faces,
             process=True  # Clean up mesh
         )
         
+        # Apply vertex colors if we have them
+        if vertex_colors is not None:
+            repaired_mesh.visual.vertex_colors = vertex_colors
+            logger.info("✓ Vertex colors preserved in repaired mesh")
+
         logger.info(f"Repair complete: {len(repaired_mesh.vertices)} vertices")
         return repaired_mesh
-        
+
     except Exception as e:
         logger.error(f"Error in pymeshfix repair: {str(e)}")
         # Fallback to trimesh basic repair
@@ -187,33 +213,33 @@ def repair_mesh_pymeshfix(mesh: trimesh.Trimesh, aggressive: bool = True) -> tri
 def repair_mesh_trimesh(mesh: trimesh.Trimesh) -> trimesh.Trimesh:
     """
     Repair mesh using trimesh built-in methods (fallback)
-    
+
     Args:
         mesh: Input trimesh object
-        
+
     Returns:
         Repaired trimesh object
     """
     try:
         logger.info("Using trimesh fallback repair...")
-        
+
         # Remove duplicate vertices
         mesh.merge_vertices()
-        
+
         # Remove degenerate faces
         mesh.remove_degenerate_faces()
-        
+
         # Remove unreferenced vertices
         mesh.remove_unreferenced_vertices()
-        
+
         # Fill holes (if possible)
         trimesh.repair.fill_holes(mesh)
-        
+
         # Fix normals
         trimesh.repair.fix_normals(mesh)
-        
+
         return mesh
-        
+
     except Exception as e:
         logger.error(f"Error in trimesh repair: {str(e)}")
         return mesh  # Return original if repair fails
@@ -244,10 +270,10 @@ async def health_check():
 async def analyze_uploaded_mesh(file: UploadFile = File(...)):
     """
     Analyze uploaded 3D mesh file
-    
+
     Args:
         file: Uploaded STL/OBJ/PLY file
-        
+
     Returns:
         Comprehensive mesh analysis
     """
@@ -256,19 +282,19 @@ async def analyze_uploaded_mesh(file: UploadFile = File(...)):
         content = await file.read()
         if len(content) > MAX_FILE_SIZE:
             raise HTTPException(status_code=400, detail=f"File too large (max {MAX_FILE_SIZE / 1024 / 1024}MB)")
-        
+
         # Save to temporary file
         with tempfile.NamedTemporaryFile(delete=False, suffix=Path(file.filename).suffix) as tmp_file:
             tmp_file.write(content)
             tmp_path = tmp_file.name
-        
+
         try:
             # Load mesh
             mesh = trimesh.load(tmp_path, force='mesh')
-            
+
             # Analyze
             stats = analyze_mesh(mesh)
-            
+
             return MeshAnalysisResponse(
                 filename=file.filename,
                 vertices=stats["vertices"],
@@ -285,11 +311,11 @@ async def analyze_uploaded_mesh(file: UploadFile = File(...)):
                 euler_number=stats["euler_number"],
                 genus=stats.get("genus", -1)
             )
-            
+
         finally:
             # Cleanup
             os.unlink(tmp_path)
-            
+
     except Exception as e:
         logger.error(f"Error analyzing mesh: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error analyzing mesh: {str(e)}")
@@ -303,12 +329,12 @@ async def repair_uploaded_mesh(
 ):
     """
     Repair uploaded 3D mesh file
-    
+
     Args:
         file: Uploaded STL/OBJ/PLY file
         aggressive: Use aggressive repair mode
         return_file: Include repaired file in response
-        
+
     Returns:
         Repair statistics and optionally repaired file
     """
@@ -317,41 +343,41 @@ async def repair_uploaded_mesh(
         content = await file.read()
         if len(content) > MAX_FILE_SIZE:
             raise HTTPException(status_code=400, detail=f"File too large")
-        
+
         # Save original file
         original_path = UPLOAD_DIR / file.filename
         with open(original_path, "wb") as f:
             f.write(content)
-        
+
         try:
             # Load original mesh
             logger.info(f"Loading mesh: {file.filename}")
             mesh_original = trimesh.load(str(original_path), force='mesh')
-            
+
             # Analyze original
             original_stats = analyze_mesh(mesh_original)
             logger.info(f"Original: {original_stats['vertices']} vertices, "
                        f"{original_stats['volume_cm3']:.2f} cm³, "
                        f"watertight: {original_stats['is_watertight']}")
-            
+
             # Repair mesh
             mesh_repaired = repair_mesh_pymeshfix(mesh_original, aggressive=aggressive)
-            
+
             # Analyze repaired
             repaired_stats = analyze_mesh(mesh_repaired)
             logger.info(f"Repaired: {repaired_stats['vertices']} vertices, "
                        f"{repaired_stats['volume_cm3']:.2f} cm³, "
                        f"watertight: {repaired_stats['is_watertight']}")
-            
+
             # Calculate changes
             volume_change = repaired_stats["volume_cm3"] - original_stats["volume_cm3"]
             volume_change_percent = (volume_change / original_stats["volume_cm3"] * 100) if original_stats["volume_cm3"] > 0 else 0
-            
+
             # Save repaired mesh
             repaired_filename = f"repaired_{file.filename}"
             repaired_path = REPAIRED_DIR / repaired_filename
             mesh_repaired.export(str(repaired_path))
-            
+
             # Repair summary
             repair_summary = {
                 "holes_filled": original_stats.get("holes_count", 0) - repaired_stats.get("holes_count", 0),
@@ -361,7 +387,7 @@ async def repair_uploaded_mesh(
                 "manifold_achieved": repaired_stats["is_manifold"],
                 "repair_method": "pymeshfix" if aggressive else "trimesh"
             }
-            
+
             response_data = {
                 "success": True,
                 "original_stats": original_stats,
@@ -370,17 +396,17 @@ async def repair_uploaded_mesh(
                 "volume_change_cm3": round(volume_change, 4),
                 "volume_change_percent": round(volume_change_percent, 2)
             }
-            
+
             if return_file:
                 response_data["repaired_file_path"] = str(repaired_path)
-            
+
             return MeshRepairResponse(**response_data)
-            
+
         finally:
             # Cleanup original file
             if original_path.exists():
                 os.unlink(original_path)
-            
+
     except Exception as e:
         logger.error(f"Error repairing mesh: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error repairing mesh: {str(e)}")
@@ -393,24 +419,24 @@ async def repair_and_download(
 ):
     """
     Repair mesh and return repaired file for download
-    
+
     Args:
         file: Uploaded mesh file
         aggressive: Use aggressive repair
-        
+
     Returns:
         Repaired mesh file
     """
     try:
         # Perform repair
         repair_result = await repair_uploaded_mesh(file, aggressive, return_file=True)
-        
+
         if not repair_result.repaired_file_path:
             raise HTTPException(status_code=500, detail="Repair completed but file not saved")
-        
+
         # Return file
         repaired_path = Path(repair_result.repaired_file_path)
-        
+
         return FileResponse(
             path=str(repaired_path),
             media_type="application/octet-stream",
@@ -421,7 +447,7 @@ async def repair_and_download(
                 "X-Volume-Change": str(repair_result.volume_change_cm3)
             }
         )
-        
+
     except Exception as e:
         logger.error(f"Error in repair-download: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
