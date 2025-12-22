@@ -8,6 +8,44 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\BlogCommentController;
 use App\Http\Controllers\DefaultPageController;
 
+// ============================================
+// TEMPORARY INSTALLER BYPASS - REMOVE AFTER USE
+// ============================================
+Route::get('/fix-installer', function() {
+    try {
+        // Check if table exists
+        if (!\Illuminate\Support\Facades\Schema::hasTable('configurations')) {
+            return response()->json([
+                'success' => false,
+                'error' => 'configurations table does not exist. Run: php artisan migrate'
+            ], 500);
+        }
+        
+        // Mark as installed
+        \Illuminate\Support\Facades\DB::table('configurations')->updateOrInsert(
+            ['key' => 'is_installed'],
+            [
+                'value' => '1',
+                'created_at' => now(),
+                'updated_at' => now()
+            ]
+        );
+        
+        return response()->json([
+            'success' => true,
+            'message' => '✅ Installation marked as complete!',
+            'next_step' => 'Visit homepage: ' . url('/'),
+            'warning' => 'Remove this route from routes/web.php for security'
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'error' => $e->getMessage()
+        ], 500);
+    }
+})->name('fix.installer');
+// ============================================
+
 
 Route::group(["middleware" => ['maintenance']], function () {
     Route::get('/', [HomeController::class, 'index'])->name('home');
