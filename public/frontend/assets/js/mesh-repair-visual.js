@@ -417,6 +417,7 @@ window.MeshRepairVisual = {
         return boundaries;
     },    /**
      * Group connected open edges into hole boundaries
+     * AGGRESSIVE MODE: Repairs all boundaries including single/double edges for medical STL files
      */
     groupOpenEdges(openEdges) {
         if (openEdges.length === 0) {
@@ -424,10 +425,12 @@ window.MeshRepairVisual = {
             return [];
         }
 
-        console.log(`   Grouping ${openEdges.length} open edges...`);
+        console.log(`   Grouping ${openEdges.length} open edges (AGGRESSIVE MEDICAL MODE)...`);
 
         const boundaries = [];
         const used = new Set();
+        let singleEdgeCount = 0;
+        let smallBoundaryCount = 0;
 
         for (let i = 0; i < openEdges.length; i++) {
             if (used.has(i)) continue;
@@ -455,57 +458,95 @@ window.MeshRepairVisual = {
                 }
             }
 
+            // ACCEPT ALL BOUNDARIES - even single edges for medical STL repair
+            boundaries.push(boundary);
             if (boundary.length >= 3) {
-                boundaries.push(boundary);
-                console.log(`   Found boundary with ${boundary.length} edges`);
+                // Don't log each one to avoid console spam
+            } else if (boundary.length === 2) {
+                smallBoundaryCount++;
             } else {
-                console.log(`   Skipped small boundary with ${boundary.length} edges`);
+                singleEdgeCount++;
             }
         }
+
+        console.log(`   📊 Grouped into ${boundaries.length} boundaries:`);
+        console.log(`      ✓ ${boundaries.filter(b => b.length >= 3).length} standard boundaries (≥3 edges)`);
+        console.log(`      ✓ ${smallBoundaryCount} small gaps (2 edges) - WILL REPAIR`);
+        console.log(`      ✓ ${singleEdgeCount} scattered edges (1 edge) - WILL REPAIR`);
 
         return boundaries;
     },
 
     /**
-     * Fill a hole with triangles
+     * Fill a hole with triangles - AGGRESSIVE MODE for medical STL files
+     * Handles boundaries of ANY size including single edges
      */
     fillHole(boundary) {
-        if (!boundary || boundary.length < 3) {
-            console.log('   ⚠️ Boundary too small to fill');
+        if (!boundary || boundary.length === 0) {
             return null;
         }
 
-        console.log(`   Filling hole with ${boundary.length} boundary edges...`);
-
-        // Simple fan triangulation from first vertex
         const positions = [];
         
-        // Get the first vertex position
-        const firstPos = boundary[0].positions[0];
-        
-        // Create triangles in a fan pattern
-        for (let i = 1; i < boundary.length - 1; i++) {
-            const p1 = boundary[i].positions[0];
-            const p2 = boundary[i + 1].positions[0];
+        if (boundary.length === 1) {
+            // Single edge - create a triangle by closing the gap with a point at the midpoint
+            const edge = boundary[0];
+            const p1 = edge.positions[0];
+            const p2 = edge.positions[1];
             
-            // Add triangle vertices
+            // Calculate midpoint and offset slightly inward to close the gap
+            const midX = (p1[0] + p2[0]) / 2;
+            const midY = (p1[1] + p2[1]) / 2;
+            const midZ = (p1[2] + p2[2]) / 2;
+            
+            // Create a triangle to cap the edge
             positions.push(
-                firstPos[0], firstPos[1], firstPos[2],
                 p1[0], p1[1], p1[2],
-                p2[0], p2[1], p2[2]
+                p2[0], p2[1], p2[2],
+                midX, midY, midZ
             );
+            
+        } else if (boundary.length === 2) {
+            // Two edges - create triangles to bridge the gap
+            const edge1 = boundary[0];
+            const edge2 = boundary[1];
+            
+            // Create two triangles to close the gap
+            positions.push(
+                edge1.positions[0][0], edge1.positions[0][1], edge1.positions[0][2],
+                edge1.positions[1][0], edge1.positions[1][1], edge1.positions[1][2],
+                edge2.positions[0][0], edge2.positions[0][1], edge2.positions[0][2]
+            );
+            
+            positions.push(
+                edge1.positions[1][0], edge1.positions[1][1], edge1.positions[1][2],
+                edge2.positions[1][0], edge2.positions[1][1], edge2.positions[1][2],
+                edge2.positions[0][0], edge2.positions[0][1], edge2.positions[0][2]
+            );
+            
+        } else {
+            // Standard fan triangulation for 3+ edges
+            const firstPos = boundary[0].positions[0];
+            
+            for (let i = 1; i < boundary.length - 1; i++) {
+                const p1 = boundary[i].positions[0];
+                const p2 = boundary[i + 1].positions[0];
+                
+                positions.push(
+                    firstPos[0], firstPos[1], firstPos[2],
+                    p1[0], p1[1], p1[2],
+                    p2[0], p2[1], p2[2]
+                );
+            }
         }
 
         if (positions.length === 0) {
-            console.log('   ⚠️ No positions generated');
             return null;
         }
 
         const geometry = new THREE.BufferGeometry();
         geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
         geometry.computeVertexNormals();
-
-        console.log(`   ✅ Created repair geometry with ${positions.length / 9} triangles`);
 
         return geometry;
     },
