@@ -46,7 +46,7 @@ window.MeshRepairVisual = {
         }
 
         // Step 2: Find hole boundaries
-        const holeBoundaries = this.findHoleBoundaries(geometry);
+        const holeBoundaries = this.findHoleBoundaries(geometry, analysis);
         console.log(`🔍 Found ${holeBoundaries.length} hole boundaries`);
 
         if (holeBoundaries.length === 0) {
@@ -124,22 +124,93 @@ window.MeshRepairVisual = {
 
         console.log(`🔍 Analyzing geometry: ${vertices.length / 3} vertices, ${indices ? 'indexed' : 'non-indexed'}`);
 
-        // For non-indexed geometry, we can't easily detect holes
-        // Non-indexed geometries are typically pre-triangulated and watertight
+        // For non-indexed geometry, we NEED to build an edge map to detect holes
+        // Many STL files (especially medical scans) are non-indexed but may have holes
         if (!indices) {
-            console.log('   ℹ️ Non-indexed geometry detected - assuming watertight');
-            console.log('   Non-indexed geometries are typically exported as watertight meshes');
+            console.log('   ℹ️ Non-indexed geometry - building edge map from triangles');
+            
+            const edgeMap = new Map();
+            const vertexMap = new Map(); // Map to merge duplicate vertices
+            let triangleCount = 0;
+            
+            // Build vertex map to identify unique vertices (tolerance for floating point errors)
+            const tolerance = 0.0001;
+            const getVertexKey = (x, y, z) => {
+                const kx = Math.round(x / tolerance);
+                const ky = Math.round(y / tolerance);
+                const kz = Math.round(z / tolerance);
+                return `${kx},${ky},${kz}`;
+            };
+            
+            // Map each vertex position to an index
+            const vertexIndices = [];
+            let nextIndex = 0;
+            
+            for (let i = 0; i < vertices.length; i += 3) {
+                const key = getVertexKey(vertices[i], vertices[i + 1], vertices[i + 2]);
+                if (!vertexMap.has(key)) {
+                    vertexMap.set(key, nextIndex++);
+                }
+                vertexIndices.push(vertexMap.get(key));
+            }
+            
+            console.log(`   Mapped ${vertices.length / 3} vertices to ${vertexMap.size} unique positions`);
+            
+            // Build edge map from triangles
+            for (let i = 0; i < vertexIndices.length; i += 3) {
+                const v0 = vertexIndices[i];
+                const v1 = vertexIndices[i + 1];
+                const v2 = vertexIndices[i + 2];
+                
+                // Add three edges of triangle
+                this.addEdge(edgeMap, v0, v1);
+                this.addEdge(edgeMap, v1, v2);
+                this.addEdge(edgeMap, v2, v0);
+                
+                triangleCount++;
+            }
+            
+            console.log(`   Processed ${triangleCount} non-indexed triangles`);
+            console.log(`   Built edge map with ${edgeMap.size} unique edges`);
+            
+            // Count open edges
+            let openEdges = 0;
+            for (const [key, count] of edgeMap.entries()) {
+                if (count === 1) {
+                    openEdges++;
+                }
+            }
+            
+            console.log(`   Found ${openEdges} open edges in non-indexed geometry`);
+            
+            // Estimate holes
+            let estimatedHoles = 0;
+            if (openEdges > 0) {
+                if (openEdges < 20) {
+                    estimatedHoles = 1;
+                } else if (openEdges < 100) {
+                    estimatedHoles = Math.ceil(openEdges / 15);
+                } else if (openEdges < 500) {
+                    estimatedHoles = Math.ceil(openEdges / 30);
+                } else {
+                    estimatedHoles = Math.min(Math.ceil(openEdges / 50), 50);
+                    console.warn(`   ⚠️ Very high open edge count (${openEdges}) - mesh may be severely damaged`);
+                }
+            }
+            
             return {
-                triangles: vertices.length / 9,
-                openEdges: 0,
-                holes: 0,
-                manifold: true,
-                watertight: true,
-                nonIndexed: true
+                triangles: triangleCount,
+                openEdges: openEdges,
+                holes: estimatedHoles,
+                manifold: openEdges === 0,
+                watertight: openEdges === 0,
+                nonIndexed: true,
+                vertexMap: vertexMap,
+                vertexIndices: vertexIndices
             };
         }
 
-        // Build edge map to find open edges (ONLY for indexed geometry)
+        // Build edge map to find open edges (for indexed geometry)
         const edgeMap = new Map();
         let triangleCount = 0;
 
@@ -223,7 +294,7 @@ window.MeshRepairVisual = {
     /**
      * Find hole boundaries
      */
-    findHoleBoundaries(geometry) {
+    findHoleBoundaries(geometry, analysis = null) {
         const position = geometry.attributes.position;
         const vertices = position.array;
         const indices = geometry.index ? geometry.index.array : null;
@@ -234,7 +305,65 @@ window.MeshRepairVisual = {
         const edgeMap = new Map();
         const openEdges = [];
 
-        if (indices) {
+        if (!indices) {
+            // Non-indexed geometry - use vertex mapping from analysis if available
+            console.log('   Processing non-indexed geometry for boundary detection');
+            
+            if (analysis && analysis.vertexIndices) {
+                console.log('   Using pre-computed vertex mapping');
+                const vertexIndices = analysis.vertexIndices;
+                
+                // Build edge map from mapped vertices
+                for (let i = 0; i < vertexIndices.length; i += 3) {
+                    const v0 = vertexIndices[i];
+                    const v1 = vertexIndices[i + 1];
+                    const v2 = vertexIndices[i + 2];
+                    
+                    const edges = [
+                        [v0, v1],
+                        [v1, v2],
+                        [v2, v0]
+                    ];
+                    
+                    for (const [va, vb] of edges) {
+                        const key = va < vb ? `${va}-${vb}` : `${vb}-${va}`;
+                        edgeMap.set(key, (edgeMap.get(key) || 0) + 1);
+                    }
+                }
+                
+                // Find open edges and get their actual positions
+                for (const [key, count] of edgeMap.entries()) {
+                    if (count === 1) {
+                        const [va, vb] = key.split('-').map(Number);
+                        
+                        // Find the actual vertex positions (first occurrence)
+                        let v1Pos = null, v2Pos = null;
+                        for (let i = 0; i < vertexIndices.length; i++) {
+                            if (vertexIndices[i] === va && !v1Pos) {
+                                v1Pos = [vertices[i * 3], vertices[i * 3 + 1], vertices[i * 3 + 2]];
+                            }
+                            if (vertexIndices[i] === vb && !v2Pos) {
+                                v2Pos = [vertices[i * 3], vertices[i * 3 + 1], vertices[i * 3 + 2]];
+                            }
+                            if (v1Pos && v2Pos) break;
+                        }
+                        
+                        if (v1Pos && v2Pos) {
+                            openEdges.push({
+                                indices: [va, vb],
+                                positions: [v1Pos, v2Pos]
+                            });
+                        }
+                    }
+                }
+                
+                console.log(`   Found ${openEdges.length} open edges from non-indexed geometry`);
+            } else {
+                console.warn('   ⚠️ No vertex mapping available for non-indexed geometry');
+                return [];
+            }
+        } else {
+            // Indexed geometry
             for (let i = 0; i < indices.length; i += 3) {
                 const i0 = indices[i];
                 const i1 = indices[i + 1];
@@ -258,7 +387,7 @@ window.MeshRepairVisual = {
             for (const [key, count] of edgeMap.entries()) {
                 if (count === 1) {
                     const [v1, v2] = key.split('-').map(Number);
-                    
+
                     // Get actual vertex positions
                     const v1x = vertices[v1 * 3];
                     const v1y = vertices[v1 * 3 + 1];
@@ -266,7 +395,7 @@ window.MeshRepairVisual = {
                     const v2x = vertices[v2 * 3];
                     const v2y = vertices[v2 * 3 + 1];
                     const v2z = vertices[v2 * 3 + 2];
-                    
+
                     openEdges.push({
                         indices: [v1, v2],
                         positions: [[v1x, v1y, v1z], [v2x, v2y, v2z]]
@@ -275,8 +404,6 @@ window.MeshRepairVisual = {
             }
 
             console.log(`   Found ${openEdges.length} open edges (boundary edges)`);
-        } else {
-            console.log('   ⚠️ Non-indexed geometry - hole detection limited');
         }
 
         // Group connected open edges into boundaries
@@ -288,9 +415,7 @@ window.MeshRepairVisual = {
         });
 
         return boundaries;
-    },
-
-    /**
+    },    /**
      * Group connected open edges into hole boundaries
      */
     groupOpenEdges(openEdges) {
