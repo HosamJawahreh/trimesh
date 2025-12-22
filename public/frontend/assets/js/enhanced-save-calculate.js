@@ -100,6 +100,16 @@ window.EnhancedSaveCalculate = {
                                 });
 
                                 console.log(`   ✅ Repair result:`, result);
+                                
+                                // CRITICAL CHECK: Verify geometry was updated
+                                if (result.repaired && result.holesFilled > 0) {
+                                    console.log(`   🔍 VERIFYING REPAIR:`);
+                                    console.log(`      fileData.geometry exists: ${!!fileData.geometry}`);
+                                    console.log(`      fileData.mesh.geometry updated: ${fileData.mesh.geometry === fileData.geometry}`);
+                                    if (fileData.geometry) {
+                                        console.log(`      Repaired geometry vertices: ${fileData.geometry.attributes.position.count}`);
+                                    }
+                                }
                             } else {
                                 console.log(`   ✓ ${fileData.file.name} is watertight - no repair needed`);
                                 repairResults.push({
@@ -233,17 +243,20 @@ window.EnhancedSaveCalculate = {
             const material = matSelect?.value || 'pla';
 
             console.log(`💰 Pricing calculation:`);
-            console.log(`   Technology: ${technology}`);
-            console.log(`   Material: ${material}`);
-            console.log(`   Volume: ${totalVolume.toFixed(2)} cm³`);
-
+            console.log(`   Technology: ${technology} (from dropdown: ${techSelect?.value})`);
+            console.log(`   Material: ${material} (from dropdown: ${matSelect?.value})`);
+            console.log(`   Volume (REPAIRED): ${totalVolume.toFixed(2)} cm³`);
+            
             // Calculate price based on technology, material, and NEW volume (includes repairs)
             const pricePerCm3 = this.getPricePerCm3(technology, material);
+            console.log(`   📊 Looking up price for [${technology}][${material}]`);
+            console.log(`   📊 Price per cm³: $${pricePerCm3.toFixed(2)}`);
+            
             const totalPrice = totalVolume * pricePerCm3;
             const printTime = this.estimatePrintTime(totalVolume, technology);
 
-            console.log(`   Price per cm³: $${pricePerCm3.toFixed(2)}`);
-            console.log(`   Total price: $${totalPrice.toFixed(2)}`);
+            console.log(`   ✅ FINAL CALCULATION:`);
+            console.log(`      ${totalVolume.toFixed(2)} cm³ × $${pricePerCm3.toFixed(2)}/cm³ = $${totalPrice.toFixed(2)}`);
             console.log(`   Print time: ${printTime}`);
 
             // Step 5: Update UI
