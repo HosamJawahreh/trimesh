@@ -20,7 +20,7 @@ Route::get('/fix-installer', function() {
                 'error' => 'configurations table does not exist. Run: php artisan migrate'
             ], 500);
         }
-        
+
         // Mark as installed
         \Illuminate\Support\Facades\DB::table('configurations')->updateOrInsert(
             ['key' => 'is_installed'],
@@ -30,7 +30,7 @@ Route::get('/fix-installer', function() {
                 'updated_at' => now()
             ]
         );
-        
+
         return response()->json([
             'success' => true,
             'message' => '✅ Installation marked as complete!',
