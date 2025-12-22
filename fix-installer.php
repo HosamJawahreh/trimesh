@@ -1,7 +1,7 @@
 <?php
 /**
  * BYPASS INSTALLER - RUN THIS ONCE ON LIVE SERVER
- * 
+ *
  * Instructions:
  * 1. Upload this file to your live server root: https://trimesh.brand-makers.net/fix-installer.php
  * 2. Visit: https://trimesh.brand-makers.net/fix-installer.php
@@ -16,26 +16,26 @@ $app->make('Illuminate\Contracts\Console\Kernel')->bootstrap();
 try {
     // Get database connection
     $db = DB::connection();
-    
+
     echo "<h1>Fixing Installer Redirect Issue</h1>";
     echo "<pre>";
-    
+
     // Check if configurations table exists
     echo "Checking configurations table...\n";
     $tableExists = $db->select("SHOW TABLES LIKE 'configurations'");
-    
+
     if (empty($tableExists)) {
         echo "❌ ERROR: configurations table does not exist!\n";
         echo "Run: php artisan migrate\n";
         exit;
     }
-    
+
     echo "✅ Table exists\n\n";
-    
+
     // Check current installation status
     echo "Checking current installation status...\n";
     $current = $db->table('configurations')->where('key', 'is_installed')->first();
-    
+
     if ($current) {
         echo "Current status: {$current->value}\n";
         if ($current->value == '1') {
@@ -57,11 +57,11 @@ try {
         ]);
         echo "✅ Installation record created\n\n";
     }
-    
+
     // Also set admin_email if not exists
     echo "Checking admin_email...\n";
     $adminEmail = $db->table('configurations')->where('key', 'admin_email')->first();
-    
+
     if (!$adminEmail) {
         $db->table('configurations')->insert([
             'key' => 'admin_email',
@@ -73,11 +73,11 @@ try {
     } else {
         echo "✅ Admin email already exists: {$adminEmail->value}\n\n";
     }
-    
+
     // Verify final status
     echo "Final verification...\n";
     $final = $db->table('configurations')->where('key', 'is_installed')->first();
-    
+
     if ($final && $final->value == '1') {
         echo "✅✅✅ SUCCESS! ✅✅✅\n\n";
         echo "The app is now marked as INSTALLED.\n";
@@ -88,9 +88,9 @@ try {
         echo "❌ ERROR: Something went wrong!\n";
         echo "Check database connection and permissions.\n";
     }
-    
+
     echo "</pre>";
-    
+
 } catch (Exception $e) {
     echo "<h1>ERROR</h1>";
     echo "<pre>";

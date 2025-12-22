@@ -2,7 +2,7 @@
 /**
  * EMERGENCY INSTALLER BYPASS
  * This file disables the installer check temporarily
- * 
+ *
  * INSTRUCTIONS:
  * 1. Upload this to: /app/Http/Middleware/EmergencyBypass.php
  * 2. Then edit /bootstrap/app.php to add this middleware
