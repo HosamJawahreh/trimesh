@@ -74,6 +74,10 @@ window.MeshRepairVisual = {
 
         // Step 4: Add visual indicators for repaired areas
         if (repairGeometries.length > 0) {
+            // Calculate volume BEFORE repair for comparison
+            const originalVolumeMm3 = this.calculateGeometryVolume(geometry);
+            console.log(`📊 Volume BEFORE repair: ${(originalVolumeMm3 / 1000).toFixed(2)} cm³`);
+            
             const mergedGeometry = this.addRepairVisualization(viewer, repairGeometries, mesh);
 
             // CRITICAL: Update fileData.geometry so volume calculation uses repaired mesh
@@ -81,7 +85,13 @@ window.MeshRepairVisual = {
                 fileData.geometry = mergedGeometry;
                 fileData.mesh.geometry = mergedGeometry;
                 console.log('✅ Updated fileData.geometry and mesh.geometry to repaired version');
-                console.log(`   New geometry has ${mergedGeometry.attributes.position.count} vertices`);
+                console.log(`   Original geometry: ${geometry.attributes.position.count} vertices`);
+                console.log(`   New geometry: ${mergedGeometry.attributes.position.count} vertices`);
+                
+                // Calculate volume AFTER repair for comparison
+                const repairedVolumeMm3 = this.calculateGeometryVolume(mergedGeometry);
+                console.log(`📊 Volume AFTER repair: ${(repairedVolumeMm3 / 1000).toFixed(2)} cm³`);
+                console.log(`📊 Volume DIFFERENCE: ${((repairedVolumeMm3 - originalVolumeMm3) / 1000).toFixed(2)} cm³`);
             } else {
                 console.warn('⚠️ Failed to get merged geometry');
             }
@@ -466,6 +476,33 @@ window.MeshRepairVisual = {
 
         // Return the merged geometry so caller can update fileData
         return mergedGeometry;
+    },
+
+    /**
+     * Calculate volume from geometry (for comparison)
+     */
+    calculateGeometryVolume(geometry) {
+        if (!geometry || !geometry.attributes || !geometry.attributes.position) {
+            return 0;
+        }
+
+        const position = geometry.attributes.position;
+        const vertices = position.array;
+        let volume = 0;
+
+        // Calculate volume using signed volume of triangles
+        for (let i = 0; i < vertices.length; i += 9) {
+            const v1 = [vertices[i], vertices[i + 1], vertices[i + 2]];
+            const v2 = [vertices[i + 3], vertices[i + 4], vertices[i + 5]];
+            const v3 = [vertices[i + 6], vertices[i + 7], vertices[i + 8]];
+
+            // Signed volume of tetrahedron formed by origin and triangle
+            const signedVol = (v1[0] * v2[1] * v3[2] + v2[0] * v3[1] * v1[2] + v3[0] * v1[1] * v2[2] -
+                              v1[0] * v3[1] * v2[2] - v2[0] * v1[1] * v3[2] - v3[0] * v2[1] * v1[2]) / 6.0;
+            volume += signedVol;
+        }
+
+        return Math.abs(volume); // Return in mm³
     },
 
     /**

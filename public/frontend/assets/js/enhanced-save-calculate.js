@@ -174,6 +174,9 @@ window.EnhancedSaveCalculate = {
                     }
 
                     console.log(`📐 Calculating volume for: ${fileData.file?.name}`);
+                    console.log(`   🔍 DEBUGGING GEOMETRY SOURCE:`);
+                    console.log(`      fileData.geometry exists: ${!!fileData.geometry}`);
+                    console.log(`      Using repaired geometry: ${!!fileData.geometry}`);
                     console.log(`   Geometry has ${geometry.attributes.position.count} vertices`);
                     console.log(`   Indexed: ${!!geometry.index}`);
 
