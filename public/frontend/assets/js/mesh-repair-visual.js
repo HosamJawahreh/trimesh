@@ -489,21 +489,50 @@ window.MeshRepairVisual = {
         const positions = [];
         
         if (boundary.length === 1) {
-            // Single edge - create a triangle by closing the gap with a point at the midpoint
+            // Single edge - create a VOLUME-ADDING triangle by offsetting the third point
             const edge = boundary[0];
             const p1 = edge.positions[0];
             const p2 = edge.positions[1];
             
-            // Calculate midpoint and offset slightly inward to close the gap
+            // Calculate edge vector
+            const edgeX = p2[0] - p1[0];
+            const edgeY = p2[1] - p1[1];
+            const edgeZ = p2[2] - p1[2];
+            const edgeLength = Math.sqrt(edgeX*edgeX + edgeY*edgeY + edgeZ*edgeZ);
+            
+            // Calculate midpoint
             const midX = (p1[0] + p2[0]) / 2;
             const midY = (p1[1] + p2[1]) / 2;
             const midZ = (p1[2] + p2[2]) / 2;
             
-            // Create a triangle to cap the edge
+            // Create a perpendicular offset (inward) - use a fraction of edge length
+            const offsetDist = edgeLength * 0.1; // 10% of edge length for volume
+            
+            // Simple offset: move along average normal (approximate)
+            // Use a vector perpendicular to edge by rotating 90° in XY plane
+            const perpX = -edgeY;
+            const perpY = edgeX;
+            const perpZ = 0;
+            const perpLength = Math.sqrt(perpX*perpX + perpY*perpY + perpZ*perpZ);
+            
+            // Normalize and scale
+            let offsetX, offsetY, offsetZ;
+            if (perpLength > 0.001) {
+                offsetX = (perpX / perpLength) * offsetDist;
+                offsetY = (perpY / perpLength) * offsetDist;
+                offsetZ = (perpZ / perpLength) * offsetDist;
+            } else {
+                // Edge is vertical, offset in XY plane
+                offsetX = offsetDist;
+                offsetY = 0;
+                offsetZ = 0;
+            }
+            
+            // Create a triangle with OFFSET third point for volume
             positions.push(
                 p1[0], p1[1], p1[2],
                 p2[0], p2[1], p2[2],
-                midX, midY, midZ
+                midX + offsetX, midY + offsetY, midZ + offsetZ
             );
             
         } else if (boundary.length === 2) {
