@@ -173,7 +173,7 @@ def repair_mesh_pymeshfix(mesh: trimesh.Trimesh, aggressive: bool = True) -> tri
         if hasattr(mesh.visual, 'vertex_colors') and mesh.visual.vertex_colors is not None:
             original_colors = mesh.visual.vertex_colors
             logger.info(f"Original mesh has vertex colors: {original_colors.shape}")
-            
+
             # Map old vertices to new vertices (pymeshfix may reorder/add vertices)
             # For vertices that exist in both, preserve colors
             # For new vertices, interpolate from nearby vertices
@@ -195,7 +195,7 @@ def repair_mesh_pymeshfix(mesh: trimesh.Trimesh, aggressive: bool = True) -> tri
             faces=repaired_faces,
             process=True  # Clean up mesh
         )
-        
+
         # Apply vertex colors if we have them
         if vertex_colors is not None:
             repaired_mesh.visual.vertex_colors = vertex_colors

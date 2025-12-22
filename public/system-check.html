@@ -43,7 +43,7 @@
             checks.push(checkJavaScript());
 
             const results = await Promise.all(checks);
-            
+
             container.innerHTML = results.join('');
 
             // Summary
@@ -108,7 +108,7 @@
             try {
                 const response = await fetch(scriptUrl);
                 const text = await response.text();
-                
+
                 const hasV3 = text.includes('ENHANCED SAVE & CALCULATE V3');
                 const hasPymeshfix = text.includes('pymeshfix');
                 const hasServerRepair = text.includes('server-side mesh repair');

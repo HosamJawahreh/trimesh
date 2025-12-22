@@ -81,7 +81,7 @@ class MeshRepairController extends Controller
             if ($request->has('file_id')) {
                 $fileId = $request->input('file_id');
                 $dbFile = ThreeDFile::where('file_id', $fileId)->first();
-                
+
                 if (!$dbFile) {
                     return response()->json([
                         'success' => false,
@@ -89,7 +89,7 @@ class MeshRepairController extends Controller
                         'file_id' => $fileId
                     ], 404);
                 }
-                
+
                 if ($dbFile->isExpired()) {
                     return response()->json([
                         'success' => false,
@@ -97,10 +97,10 @@ class MeshRepairController extends Controller
                         'file_id' => $fileId
                     ], 410);
                 }
-                
+
                 // Use the file from disk
                 $filePath = storage_path('app/' . $dbFile->file_path);
-                
+
                 if (!file_exists($filePath)) {
                     return response()->json([
                         'success' => false,
@@ -108,7 +108,7 @@ class MeshRepairController extends Controller
                         'file_id' => $fileId
                     ], 404);
                 }
-                
+
                 \Log::info('Using file from database', [
                     'file_id' => $fileId,
                     'file_path' => $filePath,
@@ -196,7 +196,7 @@ class MeshRepairController extends Controller
             if ($request->has('file_id')) {
                 $fileId = $request->input('file_id');
                 $dbFile = ThreeDFile::where('file_id', $fileId)->first();
-                
+
                 if (!$dbFile) {
                     return response()->json([
                         'success' => false,
@@ -204,7 +204,7 @@ class MeshRepairController extends Controller
                         'file_id' => $fileId
                     ], 404);
                 }
-                
+
                 if ($dbFile->isExpired()) {
                     return response()->json([
                         'success' => false,
@@ -212,10 +212,10 @@ class MeshRepairController extends Controller
                         'file_id' => $fileId
                     ], 410);
                 }
-                
+
                 // Use the file from disk
                 $filePath = storage_path('app/' . $dbFile->file_path);
-                
+
                 if (!file_exists($filePath)) {
                     return response()->json([
                         'success' => false,
@@ -223,14 +223,14 @@ class MeshRepairController extends Controller
                         'file_id' => $fileId
                     ], 404);
                 }
-                
+
                 // Repair mesh
                 $repairResult = $this->meshRepairService->repairMesh($filePath, $aggressive);
                 $file = $dbFile; // Use for saving result
             } else {
                 // Use uploaded file
                 $uploadedFile = $request->file('file');
-                
+
                 // Repair mesh
                 $repairResult = $this->meshRepairService->repairMesh($uploadedFile, $aggressive);
                 $file = null; // No database file to associate with
@@ -259,7 +259,7 @@ class MeshRepairController extends Controller
                         'repair_summary' => $repairResult['repair_summary']
                     ])
                 ]);
-                
+
                 \Log::info('Mesh repair saved to database', [
                     'mesh_repair_id' => $meshRepair->id,
                     'file_id' => $file->id,
@@ -282,7 +282,7 @@ class MeshRepairController extends Controller
                 'repair_summary' => $repairResult['repair_summary'],
                 'quality_score' => $qualityScore,
                 'volume_change_cm3' => $repairResult['repaired_stats']['volume_cm3'] - $repairResult['original_stats']['volume_cm3'],
-                'volume_change_percent' => $repairResult['original_stats']['volume_cm3'] > 0 
+                'volume_change_percent' => $repairResult['original_stats']['volume_cm3'] > 0
                     ? (($repairResult['repaired_stats']['volume_cm3'] - $repairResult['original_stats']['volume_cm3']) / $repairResult['original_stats']['volume_cm3']) * 100
                     : 0,
                 'repair_time_seconds' => $repairResult['repair_time_seconds'] ?? 0,

@@ -124,25 +124,25 @@ def repair_mesh_basic(mesh: trimesh.Trimesh, aggressive: bool = True) -> trimesh
     try:
         # 1. Remove duplicate vertices
         mesh.merge_vertices()
-        
+
         # 2. Remove degenerate faces
         mesh.remove_degenerate_faces()
-        
+
         # 3. Remove duplicate faces
         mesh.remove_duplicate_faces()
-        
+
         # 4. Fix normals
         mesh.fix_normals()
-        
+
         # 5. Fill holes (basic - just closes small gaps)
         if aggressive:
             mesh.fill_holes()
-        
+
         # 6. Remove unreferenced vertices
         mesh.remove_unreferenced_vertices()
-        
+
         return mesh
-        
+
     except Exception as e:
         logger.error(f"Basic repair error: {str(e)}")
         return mesh  # Return original if repair fails
@@ -193,7 +193,7 @@ async def analyze_mesh_file(
 
         # Load mesh
         mesh = trimesh.load(str(temp_path))
-        
+
         # Analyze
         analysis = analyze_mesh(mesh)
         analysis["filename"] = file.filename
@@ -235,7 +235,7 @@ async def repair_mesh_file(
     """
     import time
     start_time = time.time()
-    
+
     try:
         # Validate file
         if not file.filename.lower().endswith(('.stl', '.obj', '.ply')):

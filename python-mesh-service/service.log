@@ -1,0 +1,18 @@
+nohup: ignoring input
+INFO:     Started server process [42248]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8001 (Press CTRL+C to quit)
+INFO:     127.0.0.1:35816 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58974 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39518 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58544 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51770 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56402 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54852 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44044 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44754 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59426 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42158 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:38362 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52660 - "GET /health HTTP/1.1" 200 OK
