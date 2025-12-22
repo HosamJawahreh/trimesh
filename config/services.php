@@ -35,4 +35,10 @@ return [
         ],
     ],
 
+    'mesh_repair' => [
+        'url' => env('MESH_REPAIR_SERVICE_URL', 'http://localhost:8001'),
+        'timeout' => env('MESH_REPAIR_TIMEOUT', 120), // seconds
+        'max_file_size' => env('MESH_REPAIR_MAX_FILE_SIZE', 100 * 1024 * 1024), // 100MB
+    ],
+
 ];

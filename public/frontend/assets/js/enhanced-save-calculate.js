@@ -9,6 +9,149 @@ console.log('💾 Loading Enhanced Save & Calculate System...');
 
 window.EnhancedSaveCalculate = {
     isProcessing: false,
+    serverSideRepairAvailable: false,
+    useServerSideRepair: true, // Default to server-side if available
+
+    /**
+     * Check if server-side mesh repair service is available
+     */
+    async checkServerRepairStatus() {
+        try {
+            const response = await fetch('/api/mesh/status');
+            if (response.ok) {
+                const data = await response.json();
+                this.serverSideRepairAvailable = data.available === true;
+                console.log('🔧 Server-side mesh repair:', this.serverSideRepairAvailable ? 'AVAILABLE ✅' : 'UNAVAILABLE ❌');
+                return this.serverSideRepairAvailable;
+            }
+        } catch (error) {
+            console.warn('⚠️ Server-side repair check failed:', error.message);
+            this.serverSideRepairAvailable = false;
+        }
+        return false;
+    },
+
+    /**
+     * Repair mesh using server-side Python service (production-grade)
+     */
+    async repairMeshServerSide(fileData, viewerId = 'general') {
+        try {
+            console.log(`🌐 Server-side repair starting for: ${fileData.file.name}`);
+            
+            // First, upload file to server if not already there
+            // For now, we'll create a FormData with the file blob
+            const formData = new FormData();
+            formData.append('file', fileData.file);
+            formData.append('aggressive', 'true');
+            
+            // Analyze mesh first
+            this.updateProgress('Analyzing mesh on server...', 30);
+            const analyzeResponse = await fetch('/api/mesh/analyze', {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (!analyzeResponse.ok) {
+                throw new Error(`Analysis failed: ${analyzeResponse.statusText}`);
+            }
+            
+            const analysis = await analyzeResponse.json();
+            console.log('📊 Server analysis result:', analysis);
+            
+            // Show recommendations if any
+            if (analysis.recommendations && analysis.recommendations.length > 0) {
+                console.log('💡 Recommendations:', analysis.recommendations);
+            }
+            
+            // Check if repair is needed
+            if (analysis.analysis.is_watertight) {
+                console.log('✓ Mesh is already watertight - no repair needed');
+                return {
+                    repaired: false,
+                    watertight: true,
+                    volume_cm3: analysis.analysis.volume_cm3,
+                    quality_score: 100,
+                    server_side: true
+                };
+            }
+            
+            // Perform repair
+            this.updateProgress(`Repairing mesh (${analysis.analysis.holes_count} holes)...`, 50);
+            
+            const repairFormData = new FormData();
+            repairFormData.append('file', fileData.file);
+            repairFormData.append('aggressive', 'true');
+            repairFormData.append('save_result', 'false'); // Don't save to DB yet
+            
+            const repairResponse = await fetch('/api/mesh/repair', {
+                method: 'POST',
+                body: repairFormData
+            });
+            
+            if (!repairResponse.ok) {
+                throw new Error(`Repair failed: ${repairResponse.statusText}`);
+            }
+            
+            const repairResult = await repairResponse.json();
+            console.log('✅ Server repair complete:', repairResult);
+            
+            return {
+                repaired: true,
+                original_volume_cm3: repairResult.repair_result.original_stats.volume_cm3,
+                repaired_volume_cm3: repairResult.repair_result.repaired_stats.volume_cm3,
+                holes_filled: repairResult.repair_result.repair_summary.holes_filled,
+                quality_score: repairResult.quality_score,
+                volume_change_cm3: repairResult.repair_result.volume_change_cm3,
+                volume_change_percent: repairResult.repair_result.volume_change_percent,
+                watertight: repairResult.repair_result.repaired_stats.is_watertight,
+                server_side: true
+            };
+            
+        } catch (error) {
+            console.error('❌ Server-side repair error:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Show server repair results in UI
+     */
+    showServerRepairResults(results) {
+        const hasRepairs = results.some(r => r.repaired);
+        const totalHolesFilled = results.reduce((sum, r) => sum + (r.holes_filled || 0), 0);
+        const avgQuality = results.reduce((sum, r) => sum + (r.quality_score || 0), 0) / results.length;
+        
+        let message = '';
+        let type = 'info';
+        
+        if (hasRepairs) {
+            const totalChange = results.reduce((sum, r) => sum + Math.abs(r.volume_change_cm3 || 0), 0);
+            message = `
+                <strong>Server-side repair complete!</strong><br>
+                • Holes filled: ${totalHolesFilled}<br>
+                • Volume change: ${totalChange.toFixed(4)} cm³<br>
+                • Quality score: ${avgQuality.toFixed(1)}/100 (${this.getQualityRating(avgQuality)})
+            `;
+            type = 'success';
+        } else {
+            message = 'All meshes are watertight - no repairs needed';
+            type = 'success';
+        }
+        
+        if (window.showToolbarNotification) {
+            showToolbarNotification(message, type, 6000);
+        }
+    },
+
+    /**
+     * Get quality rating from score
+     */
+    getQualityRating(score) {
+        if (score >= 90) return 'Excellent';
+        if (score >= 70) return 'Good';
+        if (score >= 50) return 'Fair';
+        return 'Poor';
+    },
 
     async execute(viewerId = 'general') {
         if (this.isProcessing) {
@@ -47,12 +190,43 @@ window.EnhancedSaveCalculate = {
             console.log('🚀 Starting enhanced save & calculate...');
             this.showProgressModal();
 
-            // Step 1: Analyze all meshes
+            // Check if server-side repair is available
+            await this.updateProgress('Checking repair services...', 10);
+            await this.checkServerRepairStatus();
+
+            // Step 1: Analyze and Repair meshes
             await this.updateProgress('Analyzing meshes...', 20);
             const analysisResults = [];
+            const repairResults = [];
+            let useServerRepair = this.serverSideRepairAvailable && this.useServerSideRepair;
 
-            // Use our new visual repair system
-            if (window.MeshRepairVisual) {
+            // Try server-side repair first if available
+            if (useServerRepair) {
+                console.log('🌐 Using server-side mesh repair (production-grade)');
+                try {
+                    for (const fileData of viewer.uploadedFiles) {
+                        const serverResult = await this.repairMeshServerSide(fileData, viewerId);
+                        repairResults.push({
+                            fileName: fileData.file.name,
+                            ...serverResult
+                        });
+                        
+                        // Store server-calculated volume for later use
+                        fileData.serverVolume = serverResult.repaired_volume_cm3 || serverResult.volume_cm3;
+                    }
+                    
+                    this.showServerRepairResults(repairResults);
+                    
+                } catch (serverError) {
+                    console.error('⚠️ Server-side repair failed, falling back to client-side:', serverError);
+                    useServerRepair = false;
+                    repairResults.length = 0; // Clear results
+                }
+            }
+
+            // Fallback to client-side repair if server-side not available or failed
+            if (!useServerRepair && window.MeshRepairVisual) {
+                console.log('💻 Using client-side mesh repair (fallback)');
                 try {
                     for (const fileData of viewer.uploadedFiles) {
                         if (fileData.mesh && fileData.mesh.geometry) {
@@ -68,104 +242,103 @@ window.EnhancedSaveCalculate = {
                 } catch (analysisError) {
                     console.warn('⚠️ Analysis encountered error:', analysisError);
                 }
-            }
 
-            // Step 2: Repair meshes with visual feedback
-            await this.updateProgress('Repairing meshes...', 40);
-            const repairResults = [];
+                // Repair meshes with visual feedback
+                await this.updateProgress('Repairing meshes...', 40);
 
-            if (window.MeshRepairVisual && analysisResults.length > 0) {
-                try {
-                    for (let i = 0; i < viewer.uploadedFiles.length; i++) {
-                        const fileData = viewer.uploadedFiles[i];
-                        const analysis = analysisResults[i];
+                if (analysisResults.length > 0) {
+                    try {
+                        for (let i = 0; i < viewer.uploadedFiles.length; i++) {
+                            const fileData = viewer.uploadedFiles[i];
+                            const analysis = analysisResults[i];
 
-                        console.log(`🔧 Processing: ${fileData.file.name}`);
-                        console.log(`   Analysis: ${JSON.stringify(analysis.analysis)}`);
+                            console.log(`🔧 Processing: ${fileData.file.name}`);
+                            console.log(`   Analysis: ${JSON.stringify(analysis.analysis)}`);
 
-                        if (fileData.mesh && analysis) {
-                            // Always try to repair if there are open edges (even if holes estimate is 0)
-                            if (analysis.analysis.openEdges > 0 || analysis.analysis.holes > 0) {
-                                console.log(`🔧 Repairing: ${fileData.file.name}`);
-                                console.log(`   Holes: ${analysis.analysis.holes}, Open edges: ${analysis.analysis.openEdges}`);
+                            if (fileData.mesh && analysis) {
+                                // Always try to repair if there are open edges (even if holes estimate is 0)
+                                if (analysis.analysis.openEdges > 0 || analysis.analysis.holes > 0) {
+                                    console.log(`🔧 Repairing: ${fileData.file.name}`);
+                                    console.log(`   Holes: ${analysis.analysis.holes}, Open edges: ${analysis.analysis.openEdges}`);
 
-                                const result = await window.MeshRepairVisual.repairMeshWithVisualization(
-                                    viewer,
-                                    fileData
-                                );
+                                    const result = await window.MeshRepairVisual.repairMeshWithVisualization(
+                                        viewer,
+                                        fileData
+                                    );
 
-                                repairResults.push({
-                                    fileName: fileData.file.name,
-                                    ...result
-                                });
+                                    repairResults.push({
+                                        fileName: fileData.file.name,
+                                        ...result
+                                    });
 
-                                console.log(`   ✅ Repair result:`, result);
-                                
-                                // CRITICAL CHECK: Verify geometry was updated
-                                if (result.repaired && result.holesFilled > 0) {
-                                    console.log(`   🔍 VERIFYING REPAIR:`);
-                                    console.log(`      fileData.geometry exists: ${!!fileData.geometry}`);
-                                    console.log(`      fileData.mesh.geometry updated: ${fileData.mesh.geometry === fileData.geometry}`);
-                                    if (fileData.geometry) {
-                                        console.log(`      Repaired geometry vertices: ${fileData.geometry.attributes.position.count}`);
+                                    console.log(`   ✅ Repair result:`, result);
+                                    
+                                    // CRITICAL CHECK: Verify geometry was updated
+                                    if (result.repaired && result.holesFilled > 0) {
+                                        console.log(`   🔍 VERIFYING REPAIR:`);
+                                        console.log(`      fileData.geometry exists: ${!!fileData.geometry}`);
+                                        console.log(`      fileData.mesh.geometry updated: ${fileData.mesh.geometry === fileData.geometry}`);
+                                        if (fileData.geometry) {
+                                            console.log(`      Repaired geometry vertices: ${fileData.geometry.attributes.position.count}`);
+                                        }
                                     }
+                                } else {
+                                    console.log(`   ✓ ${fileData.file.name} is watertight - no repair needed`);
+                                    repairResults.push({
+                                        fileName: fileData.file.name,
+                                        repaired: false,
+                                        holesFound: 0,
+                                        holesFilled: 0,
+                                        watertight: true
+                                    });
                                 }
-                            } else {
-                                console.log(`   ✓ ${fileData.file.name} is watertight - no repair needed`);
-                                repairResults.push({
-                                    fileName: fileData.file.name,
-                                    repaired: false,
-                                    holesFound: 0,
-                                    holesFilled: 0,
-                                    watertight: true
-                                });
                             }
                         }
-                    }
 
-                    // Show summary notification
-                    const totalFilled = repairResults.reduce((sum, r) => sum + (r.holesFilled || 0), 0);
-                    const totalFound = repairResults.reduce((sum, r) => sum + (r.holesFound || 0), 0);
-                    const hasErrors = repairResults.some(r => r.error);
-                    
-                    console.log(`📊 Repair summary: Found ${totalFound} holes, filled ${totalFilled}`);
-                    
-                    if (window.showToolbarNotification) {
-                        if (hasErrors) {
-                            showToolbarNotification(
-                                `Mesh appears damaged. Using original geometry for calculation. Consider repairing mesh in 3D software.`,
-                                'warning',
-                                7000
-                            );
-                        } else if (totalFilled > 0) {
-                            showToolbarNotification(
-                                `Repaired ${totalFilled} holes across ${repairResults.length} files. Repaired areas shown in green/cyan.`,
-                                'success',
-                                5000
-                            );
-                        } else if (totalFound > 0) {
-                            showToolbarNotification(
-                                `Found ${totalFound} holes but could not repair them automatically. Using original geometry.`,
-                                'warning',
-                                5000
-                            );
-                        } else {
-                            showToolbarNotification(
-                                `All meshes are watertight - no repairs needed.`,
-                                'success',
-                                3000
-                            );
+                        // Show summary notification
+                        const totalFilled = repairResults.reduce((sum, r) => sum + (r.holesFilled || 0), 0);
+                        const totalFound = repairResults.reduce((sum, r) => sum + (r.holesFound || 0), 0);
+                        const hasErrors = repairResults.some(r => r.error);
+                        
+                        console.log(`📊 Repair summary: Found ${totalFound} holes, filled ${totalFilled}`);
+                        
+                        if (window.showToolbarNotification) {
+                            if (hasErrors) {
+                                showToolbarNotification(
+                                    `Mesh appears damaged. Using original geometry for calculation. Consider repairing mesh in 3D software.`,
+                                    'warning',
+                                    7000
+                                );
+                            } else if (totalFilled > 0) {
+                                showToolbarNotification(
+                                    `Repaired ${totalFilled} holes across ${repairResults.length} files. Repaired areas shown in green/cyan.`,
+                                    'success',
+                                    5000
+                                );
+                            } else if (totalFound > 0) {
+                                showToolbarNotification(
+                                    `Found ${totalFound} holes but could not repair them automatically. Using original geometry.`,
+                                    'warning',
+                                    5000
+                                );
+                            } else {
+                                showToolbarNotification(
+                                    `All meshes are watertight - no repairs needed.`,
+                                    'success',
+                                    3000
+                                );
+                            }
                         }
+                    } catch (repairError) {
+                        console.error('❌ Repair encountered error:', repairError);
+                        console.error('Stack:', repairError.stack);
                     }
-                } catch (repairError) {
-                    console.error('❌ Repair encountered error:', repairError);
-                    console.error('Stack:', repairError.stack);
+                } else {
+                    console.log('   ℹ️ No analysis performed');
                 }
-            } else {
-                console.log('   ℹ️ No repair system available or no analysis performed');
             }
 
-            // Step 3: Calculate volumes (AFTER repair, so includes repaired geometry)
+            // Step 3: Calculate volumes (AFTER repair, using server volume if available)
             await this.updateProgress('Calculating volumes...', 60);
             let totalVolume = 0;
 
@@ -175,7 +348,17 @@ window.EnhancedSaveCalculate = {
                 try {
                     let volume = 0;
 
-                    // CRITICAL: Get geometry from fileData.geometry (which was updated by repair)
+                    // PRIORITY: Use server-calculated volume if available (most accurate)
+                    if (fileData.serverVolume) {
+                        console.log(`📐 Using server-calculated volume for: ${fileData.file?.name}`);
+                        volume = fileData.serverVolume;
+                        fileData.volume = { cm3: volume, mm3: volume * 1000 };
+                        totalVolume += volume;
+                        console.log(`   ✅ Server volume: ${volume.toFixed(4)} cm³ (production-grade)`);
+                        continue;
+                    }
+
+                    // FALLBACK: Calculate from geometry (client-side or original)
                     const geometry = fileData.geometry || (fileData.mesh && fileData.mesh.geometry);
 
                     if (!geometry) {

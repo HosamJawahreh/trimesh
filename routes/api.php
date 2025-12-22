@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ThreeDFileController;
+use App\Http\Controllers\Api\MeshRepairController;
 
 /*
 |--------------------------------------------------------------------------
@@ -21,4 +22,14 @@ Route::prefix('3d-files')->name('3d-files.')->group(function () {
     Route::get('/{fileId}', [ThreeDFileController::class, 'show'])->name('show');
     Route::post('/{fileId}/camera', [ThreeDFileController::class, 'updateCamera'])->name('updateCamera');
     Route::post('/cleanup-expired', [ThreeDFileController::class, 'cleanupExpired'])->name('cleanup');
+});
+
+// Mesh Repair API Routes
+Route::prefix('mesh')->name('mesh.')->group(function () {
+    Route::get('/status', [MeshRepairController::class, 'status'])->name('status');
+    Route::get('/stats', [MeshRepairController::class, 'stats'])->name('stats');
+    Route::post('/analyze', [MeshRepairController::class, 'analyze'])->name('analyze');
+    Route::post('/repair', [MeshRepairController::class, 'repair'])->name('repair');
+    Route::post('/repair-download', [MeshRepairController::class, 'repairAndDownload'])->name('repair-download');
+    Route::get('/history/{fileId}', [MeshRepairController::class, 'history'])->name('history');
 });

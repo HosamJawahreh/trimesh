@@ -4,84 +4,7 @@
      ============================================ --}}
 
 {{-- EMERGENCY TEST BUTTON - REMOVE AFTER TESTING --}}
-<div style="position: fixed; top: 10px; right: 10px; z-index: 999999;">
-    <button id="emergencyTestBtn" onclick="
-        alert('🔥 STARTING...');
-        
-        const viewer = window.viewerGeneral;
-        if (!viewer || !viewer.uploadedFiles || viewer.uploadedFiles.length === 0) {
-            alert('ERROR: No viewer or files!');
-            return;
-        }
-        
-        const fileData = viewer.uploadedFiles[0];
-        const geometry = fileData.mesh?.geometry;
-        if (!geometry) {
-            alert('ERROR: No geometry!');
-            return;
-        }
-        
-        const positions = geometry.attributes.position.array;
-        const indices = geometry.index ? geometry.index.array : null;
-        let signedVolume = 0;
-        
-        if (indices) {
-            for (let i = 0; i < indices.length; i += 3) {
-                const i0 = indices[i] * 3, i1 = indices[i + 1] * 3, i2 = indices[i + 2] * 3;
-                const v0x = positions[i0], v0y = positions[i0 + 1], v0z = positions[i0 + 2];
-                const v1x = positions[i1], v1y = positions[i1 + 1], v1z = positions[i1 + 2];
-                const v2x = positions[i2], v2y = positions[i2 + 1], v2z = positions[i2 + 2];
-                signedVolume += v0x * (v1y * v2z - v1z * v2y) + v0y * (v1z * v2x - v1x * v2z) + v0z * (v1x * v2y - v1y * v2x);
-            }
-        } else {
-            for (let i = 0; i < positions.length; i += 9) {
-                const v0x = positions[i], v0y = positions[i + 1], v0z = positions[i + 2];
-                const v1x = positions[i + 3], v1y = positions[i + 4], v1z = positions[i + 5];
-                const v2x = positions[i + 6], v2y = positions[i + 7], v2z = positions[i + 8];
-                signedVolume += v0x * (v1y * v2z - v1z * v2y) + v0y * (v1z * v2x - v1x * v2z) + v0z * (v1x * v2y - v1y * v2x);
-            }
-        }
-        
-        // FIX: Positions are in MM, volume is in MM³, convert to CM³
-        const volumeMm3 = Math.abs(signedVolume) / 6;
-        const volumeCm3 = volumeMm3 / 1000;  // MM³ to CM³
-        const price = volumeCm3 * 0.5;
-        
-        console.log('📐 Volume (mm³):', volumeMm3);
-        console.log('📐 Volume (cm³):', volumeCm3);
-        console.log('💰 Price:', price);
-        
-        // Try to find and log ALL elements first
-        const volEls = document.querySelectorAll('#quoteTotalVolumeGeneral');
-        const priceEls = document.querySelectorAll('#quoteTotalPriceGeneral');
-        console.log('Found', volEls.length, 'volume elements');
-        console.log('Found', priceEls.length, 'price elements');
-        
-        // Update with EXTREME styling
-        volEls.forEach((el, i) => {
-            console.log('Updating volume el', i, el);
-            el.textContent = volumeCm3.toFixed(2) + ' cm³';
-            el.style.cssText = 'display: block !important; visibility: visible !important; color: #ff0000 !important; font-size: 28px !important; font-weight: bold !important; background: yellow !important; padding: 5px !important;';
-        });
-        
-        priceEls.forEach((el, i) => {
-            console.log('Updating price el', i, el);
-            el.textContent = '$' + price.toFixed(2);
-            el.style.cssText = 'display: block !important; visibility: visible !important; color: #ff0000 !important; font-size: 28px !important; font-weight: bold !important; background: yellow !important; padding: 5px !important;';
-        });
-        
-        // Also show the summary containers
-        const summary = document.getElementById('priceSummaryGeneral');
-        if (summary) {
-            summary.style.display = 'block';
-            summary.style.visibility = 'visible';
-        }
-        
-        alert('✅ DONE!\\n\\nVolume: ' + volumeCm3.toFixed(2) + ' cm³\\nPrice: $' + price.toFixed(2) + '\\n\\nLOOK FOR RED TEXT ON YELLOW BACKGROUND!');
-    " style="background: #ff0000; color: white; padding: 20px 40px; font-size: 24px; font-weight: bold; border: 5px solid yellow; cursor: pointer; box-shadow: 0 4px 20px rgba(0,0,0,0.3); border-radius: 10px;">
-        🚨 CLICK ME 🚨
-    </button>
-</div>
+
 
 <section class="dgm-3d-quote-area pb-100">
     <div class="container">
@@ -200,25 +123,25 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('📌 Attaching handler to button', index);
         saveBtn.addEventListener('click', async function() {
             console.log('💾 SAVE & CALCULATE STARTED - Button', index);
-            
+
             const viewer = window.viewerGeneral;
             if (!viewer || !viewer.uploadedFiles || viewer.uploadedFiles.length === 0) {
                 alert('❌ Please upload a 3D model first!');
                 return;
             }
-            
+
             console.log('� STEP 1: REPAIRING MESHES...');
-            
+
             // STEP 1: Repair ALL meshes using the MeshRepairVisual system
             if (window.MeshRepairVisual) {
                 for (let i = 0; i < viewer.uploadedFiles.length; i++) {
                     const fileData = viewer.uploadedFiles[i];
                     console.log(`\n🔧 Repairing file ${i + 1}/${viewer.uploadedFiles.length}: ${fileData.file.name}`);
-                    
+
                     try {
                         const result = await window.MeshRepairVisual.repairMeshWithVisualization(viewer, fileData);
                         console.log('✅ Repair result:', result);
-                        
+
                         if (result.holesFilled > 0) {
                             console.log(`   ✅ Filled ${result.holesFilled} holes!`);
                         } else if (result.watertight) {
@@ -233,9 +156,9 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 console.warn('⚠️ MeshRepairVisual not loaded - skipping repair');
             }
-            
+
             console.log('\n📊 STEP 2: RECALCULATING VOLUMES...');
-            
+
             // STEP 2: Recalculate volume for ALL files (AFTER repair)
             viewer.uploadedFiles.forEach((fileData, index) => {
                 if (fileData.geometry && viewer.calculateVolume) {
@@ -251,10 +174,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 }
             });
-            
+
             console.log('\n✅ Volume recalculation complete!');
             console.log('\n💰 STEP 3: UPDATING PRICING...');
-            
+
             // STEP 3: Update pricing with NEW volumes
             if (window.fileManagerGeneral) {
                 console.log('✅ Calling fileManagerGeneral.updateQuote() with NEW volumes');
@@ -270,7 +193,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     return;
                 }
             }
-            
+
             console.log('\n✅✅✅ ALL DONE! ✅✅✅');
             alert('✅ Mesh repaired, volume recalculated, and price updated!\n\nCheck the console (F12) to see:\n- Holes filled\n- Volume changes\n- New pricing');
         });
@@ -4031,16 +3954,16 @@ console.log('🚀 INLINE SCRIPT STARTING...');
 // Professional notification system - IMPROVED positioning
 window.showToolbarNotification = function(message, type = 'info', duration = 2500) {
     const notification = document.createElement('div');
-    
+
     const colors = {
         success: { bg: '#10b981', icon: '✓' },
         error: { bg: '#ef4444', icon: '✕' },
         info: { bg: '#3b82f6', icon: 'ℹ' },
         warning: { bg: '#f59e0b', icon: '⚠' }
     };
-    
+
     const style = colors[type] || colors.info;
-    
+
     notification.style.cssText = `
         position: fixed;
         top: 140px;
@@ -4061,12 +3984,12 @@ window.showToolbarNotification = function(message, type = 'info', duration = 250
         pointer-events: auto;
         cursor: pointer;
     `;
-    
+
     notification.innerHTML = `
         <span style="font-size: 18px; font-weight: bold;">${style.icon}</span>
         <span>${message}</span>
     `;
-    
+
     // Add animation keyframes if not already added
     if (!document.getElementById('toolbar-notification-styles')) {
         const styleSheet = document.createElement('style');
@@ -4083,15 +4006,15 @@ window.showToolbarNotification = function(message, type = 'info', duration = 250
         `;
         document.head.appendChild(styleSheet);
     }
-    
+
     document.body.appendChild(notification);
-    
+
     // Click to dismiss
     notification.onclick = function() {
         notification.style.animation = 'slideOut 0.3s ease-out';
         setTimeout(() => document.body.removeChild(notification), 300);
     };
-    
+
     // Auto dismiss
     setTimeout(() => {
         if (document.body.contains(notification)) {
@@ -4109,7 +4032,7 @@ window.showToolbarNotification = function(message, type = 'info', duration = 250
 window.toggleToolbarButton = function(buttonId, isActive) {
     const button = document.getElementById(buttonId);
     if (!button) return;
-    
+
     if (isActive) {
         button.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
         button.style.color = 'white';
@@ -4131,7 +4054,7 @@ window.toolbarHandler = {
             submenu.style.display = isVisible ? 'none' : 'block';
             toggleToolbarButton('measurementToolBtn', !isVisible);
             showToolbarNotification(isVisible ? 'Measurement tools hidden' : 'Measurement tools shown', 'info', 1500);
-            
+
             // Initialize measurement tool handlers if not already done
             if (!submenu.dataset.initialized) {
                 this.initMeasurementTools(viewerType, submenu);
@@ -4139,15 +4062,15 @@ window.toolbarHandler = {
             }
         }
     },
-    
+
     initMeasurementTools: function(viewerType, submenu) {
         const viewer = viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral;
-        
+
         if (!viewer) {
             console.warn('Viewer not found for measurement tools');
             return;
         }
-        
+
         // Initialize measurement state
         if (!viewer.measurementState) {
             viewer.measurementState = {
@@ -4157,7 +4080,7 @@ window.toolbarHandler = {
                 labels: []
             };
         }
-        
+
         // Close button
         const closeBtn = submenu.querySelector('.submenu-close');
         if (closeBtn) {
@@ -4166,7 +4089,7 @@ window.toolbarHandler = {
                 toggleToolbarButton('measurementToolBtn', false);
             });
         }
-        
+
         // Measurement tool buttons
         submenu.querySelectorAll('.submenu-btn').forEach(btn => {
             btn.addEventListener('click', () => {
@@ -4175,10 +4098,10 @@ window.toolbarHandler = {
             });
         });
     },
-    
+
     handleMeasurementTool: function(viewer, measureType, viewerType) {
         console.log(`📐 Measurement tool: ${measureType}`);
-        
+
         switch(measureType) {
             case 'distance':
                 this.startDistanceMeasurement(viewer, viewerType);
@@ -4200,35 +4123,35 @@ window.toolbarHandler = {
                 break;
         }
     },
-    
+
     startDistanceMeasurement: function(viewer, viewerType) {
         viewer.measurementState.mode = 'distance';
         viewer.measurementState.points = [];
-        
+
         showToolbarNotification('Click two points on the model to measure distance', 'info', 3000);
-        
+
         // Add click handler for measurement
         const onMeasurementClick = (event) => {
             const raycaster = new THREE.Raycaster();
             const mouse = new THREE.Vector2();
-            
+
             const rect = viewer.renderer.domElement.getBoundingClientRect();
             mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
             mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-            
+
             raycaster.setFromCamera(mouse, viewer.camera);
-            
+
             const meshes = [];
             viewer.scene.traverse((obj) => {
                 if (obj.isMesh) meshes.push(obj);
             });
-            
+
             const intersects = raycaster.intersectObjects(meshes);
-            
+
             if (intersects.length > 0) {
                 const point = intersects[0].point.clone();
                 viewer.measurementState.points.push(point);
-                
+
                 // Create point marker
                 const geometry = new THREE.SphereGeometry(0.5, 16, 16);
                 const material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
@@ -4237,7 +4160,7 @@ window.toolbarHandler = {
                 sphere.userData.isMeasurementPoint = true;
                 viewer.scene.add(sphere);
                 viewer.measurementState.lines.push(sphere);
-                
+
                 if (viewer.measurementState.points.length === 2) {
                     // Draw line between points
                     const lineGeometry = new THREE.BufferGeometry().setFromPoints(viewer.measurementState.points);
@@ -4246,11 +4169,11 @@ window.toolbarHandler = {
                     line.userData.isMeasurementLine = true;
                     viewer.scene.add(line);
                     viewer.measurementState.lines.push(line);
-                    
+
                     // Calculate and display distance
                     const distance = viewer.measurementState.points[0].distanceTo(viewer.measurementState.points[1]);
                     const midPoint = new THREE.Vector3().addVectors(viewer.measurementState.points[0], viewer.measurementState.points[1]).multiplyScalar(0.5);
-                    
+
                     // Create label
                     const canvas = document.createElement('canvas');
                     const context = canvas.getContext('2d');
@@ -4263,7 +4186,7 @@ window.toolbarHandler = {
                     context.textAlign = 'center';
                     context.textBaseline = 'middle';
                     context.fillText(`${distance.toFixed(2)} mm`, 128, 32);
-                    
+
                     const texture = new THREE.CanvasTexture(canvas);
                     const spriteMaterial = new THREE.SpriteMaterial({ map: texture });
                     const sprite = new THREE.Sprite(spriteMaterial);
@@ -4272,37 +4195,37 @@ window.toolbarHandler = {
                     sprite.userData.isMeasurementLabel = true;
                     viewer.scene.add(sprite);
                     viewer.measurementState.labels.push(sprite);
-                    
+
                     showToolbarNotification(`Distance: ${distance.toFixed(2)} mm`, 'success', 3000);
-                    
+
                     // Reset for next measurement
                     viewer.measurementState.mode = null;
                     viewer.measurementState.points = [];
                     viewer.renderer.domElement.removeEventListener('click', onMeasurementClick);
                 }
-                
+
                 if (viewer.render) viewer.render();
             }
         };
-        
+
         viewer.renderer.domElement.addEventListener('click', onMeasurementClick);
     },
-    
+
     startPointToLineMeasurement: function(viewer, viewerType) {
         showToolbarNotification('Point-to-line measurement: Coming in next update', 'info', 2000);
     },
-    
+
     startPointToSurfaceMeasurement: function(viewer, viewerType) {
         showToolbarNotification('Point-to-surface measurement: Coming in next update', 'info', 2000);
     },
-    
+
     startAngleMeasurement: function(viewer, viewerType) {
         showToolbarNotification('Angle measurement: Coming in next update', 'info', 2000);
     },
-    
+
     clearAllMeasurements: function(viewer) {
         if (!viewer || !viewer.scene) return;
-        
+
         // Remove all measurement objects
         const toRemove = [];
         viewer.scene.traverse((obj) => {
@@ -4310,13 +4233,13 @@ window.toolbarHandler = {
                 toRemove.push(obj);
             }
         });
-        
+
         toRemove.forEach(obj => {
             viewer.scene.remove(obj);
             if (obj.geometry) obj.geometry.dispose();
             if (obj.material) obj.material.dispose();
         });
-        
+
         // Reset measurement state
         if (viewer.measurementState) {
             viewer.measurementState.points = [];
@@ -4324,7 +4247,7 @@ window.toolbarHandler = {
             viewer.measurementState.labels = [];
             viewer.measurementState.mode = null;
         }
-        
+
         if (viewer.render) viewer.render();
         showToolbarNotification('All measurements cleared', 'success', 1500);
     },
@@ -4337,7 +4260,7 @@ window.toolbarHandler = {
             showToolbarNotification('Please wait for the 3D model to load', 'warning');
             return;
         }
-        
+
         // Save state before making changes
         this.saveState(viewer);
 
@@ -4345,46 +4268,46 @@ window.toolbarHandler = {
 
         if (existingHelper) {
             existingHelper.visible = !existingHelper.visible;
-            
+
             // Toggle dimension labels
             const labels = viewer.scene.children.filter(child => child.userData && child.userData.isDimensionLabel);
             labels.forEach(label => label.visible = existingHelper.visible);
-            
+
             toggleToolbarButton('boundingBoxBtn', existingHelper.visible);
             showToolbarNotification(existingHelper.visible ? 'Bounding box shown' : 'Bounding box hidden', 'success', 1500);
         } else {
             const box = new THREE.Box3();
             let hasGeometry = false;
-            
+
             viewer.scene.traverse((object) => {
                 if (object.isMesh && object.geometry) {
                     box.expandByObject(object);
                     hasGeometry = true;
                 }
             });
-            
+
             if (hasGeometry) {
                 const helper = new THREE.Box3Helper(box, 0xffaa00);
                 helper.userData.isBoundingBoxHelper = true;
                 viewer.scene.add(helper);
-                
+
                 // Add dimension labels
                 const size = box.getSize(new THREE.Vector3());
                 const center = box.getCenter(new THREE.Vector3());
-                
+
                 // Create text sprites for dimensions
                 const createTextSprite = (text, position) => {
                     const canvas = document.createElement('canvas');
                     const context = canvas.getContext('2d');
                     canvas.width = 256;
                     canvas.height = 64;
-                    
+
                     context.fillStyle = '#000000';
                     context.font = 'Bold 24px Arial';
                     context.textAlign = 'center';
                     context.textBaseline = 'middle';
                     context.fillText(text, 128, 32);
-                    
+
                     const texture = new THREE.CanvasTexture(canvas);
                     const material = new THREE.SpriteMaterial({ map: texture, transparent: true });
                     const sprite = new THREE.Sprite(material);
@@ -4393,28 +4316,28 @@ window.toolbarHandler = {
                     sprite.userData.isDimensionLabel = true;
                     return sprite;
                 };
-                
+
                 // X dimension (Width)
                 const xLabel = createTextSprite(
                     `X: ${size.x.toFixed(1)} mm`,
                     new THREE.Vector3(center.x, box.min.y - size.y * 0.1, center.z)
                 );
                 viewer.scene.add(xLabel);
-                
+
                 // Y dimension (Height)
                 const yLabel = createTextSprite(
                     `Y: ${size.y.toFixed(1)} mm`,
                     new THREE.Vector3(box.max.x + size.x * 0.15, center.y, center.z)
                 );
                 viewer.scene.add(yLabel);
-                
+
                 // Z dimension (Depth)
                 const zLabel = createTextSprite(
                     `Z: ${size.z.toFixed(1)} mm`,
                     new THREE.Vector3(center.x, center.y, box.max.z + size.z * 0.1)
                 );
                 viewer.scene.add(zLabel);
-                
+
                 toggleToolbarButton('boundingBoxBtn', true);
                 showToolbarNotification('Bounding box enabled with dimensions', 'success', 2000);
             }
@@ -4431,7 +4354,7 @@ window.toolbarHandler = {
             showToolbarNotification('Please wait for the 3D model to load', 'warning');
             return;
         }
-        
+
         // Save state before making changes
         this.saveState(viewer);
 
@@ -4439,11 +4362,11 @@ window.toolbarHandler = {
 
         if (existingAxis) {
             existingAxis.visible = !existingAxis.visible;
-            
+
             // Toggle axis labels
             const labels = viewer.scene.children.filter(child => child.userData && child.userData.isAxisLabel);
             labels.forEach(label => label.visible = existingAxis.visible);
-            
+
             toggleToolbarButton('axisToggleBtn', existingAxis.visible);
             showToolbarNotification(existingAxis.visible ? 'Axis shown' : 'Axis hidden', 'success', 1500);
         } else {
@@ -4455,24 +4378,24 @@ window.toolbarHandler = {
             const size = box.getSize(new THREE.Vector3());
             const maxDim = Math.max(size.x, size.y, size.z);
             const axisSize = maxDim * 0.6;
-            
+
             const axesHelper = new THREE.AxesHelper(axisSize);
             axesHelper.userData.isAxisHelper = true;
             viewer.scene.add(axesHelper);
-            
+
             // Add axis labels (X, Y, Z)
             const createAxisLabel = (text, position, color) => {
                 const canvas = document.createElement('canvas');
                 const context = canvas.getContext('2d');
                 canvas.width = 128;
                 canvas.height = 128;
-                
+
                 context.fillStyle = color;
                 context.font = 'Bold 64px Arial';
                 context.textAlign = 'center';
                 context.textBaseline = 'middle';
                 context.fillText(text, 64, 64);
-                
+
                 const texture = new THREE.CanvasTexture(canvas);
                 const material = new THREE.SpriteMaterial({ map: texture, transparent: true });
                 const sprite = new THREE.Sprite(material);
@@ -4481,19 +4404,19 @@ window.toolbarHandler = {
                 sprite.userData.isAxisLabel = true;
                 return sprite;
             };
-            
+
             // X axis (Red)
             const xLabel = createAxisLabel('X', new THREE.Vector3(axisSize * 1.1, 0, 0), '#ff0000');
             viewer.scene.add(xLabel);
-            
+
             // Y axis (Green)
             const yLabel = createAxisLabel('Y', new THREE.Vector3(0, axisSize * 1.1, 0), '#00ff00');
             viewer.scene.add(yLabel);
-            
+
             // Z axis (Blue)
             const zLabel = createAxisLabel('Z', new THREE.Vector3(0, 0, axisSize * 1.1), '#0000ff');
             viewer.scene.add(zLabel);
-            
+
             toggleToolbarButton('axisToggleBtn', true);
             showToolbarNotification('Axis enabled with labels', 'success', 2000);
         }
@@ -4509,7 +4432,7 @@ window.toolbarHandler = {
             showToolbarNotification('Please wait for the 3D model to load', 'warning');
             return;
         }
-        
+
         // Save state before making changes
         this.saveState(viewer);
 
@@ -4529,14 +4452,14 @@ window.toolbarHandler = {
             const maxDim = Math.max(size.x, size.y, size.z);
             const gridSize = Math.ceil(maxDim * 1.5);
             const divisions = Math.max(10, Math.ceil(gridSize / 10));
-            
+
             const gridHelper = new THREE.GridHelper(gridSize, divisions, 0x888888, 0x444444);
             gridHelper.userData.isGridHelper = true;
-            
+
             // Position grid at the bottom of the model
             const center = box.getCenter(new THREE.Vector3());
             gridHelper.position.y = box.min.y;
-            
+
             viewer.scene.add(gridHelper);
             toggleToolbarButton('gridToggleBtn', true);
             showToolbarNotification('Measurement grid enabled', 'success', 1500);
@@ -4553,7 +4476,7 @@ window.toolbarHandler = {
             showToolbarNotification('Please wait for the 3D model to load', 'warning');
             return;
         }
-        
+
         // Save state before making changes
         this.saveState(viewer);
 
@@ -4572,7 +4495,7 @@ window.toolbarHandler = {
             showToolbarNotification('Please wait for the 3D model to load', 'warning');
             return;
         }
-        
+
         // Save state before making changes
         this.saveState(viewer);
 
@@ -4639,15 +4562,15 @@ window.toolbarHandler = {
         }
     },
 
-    undo: function() { 
+    undo: function() {
         console.log('⏪ Undo action');
         const viewer = window.viewerGeneral || window.viewerMedical;
-        
+
         if (!viewer || !viewer.stateHistory) {
             viewer.stateHistory = [];
             viewer.stateHistoryIndex = -1;
         }
-        
+
         if (viewer.stateHistoryIndex > 0) {
             viewer.stateHistoryIndex--;
             const state = viewer.stateHistory[viewer.stateHistoryIndex];
@@ -4657,16 +4580,16 @@ window.toolbarHandler = {
             showToolbarNotification('Nothing to undo', 'info', 1500);
         }
     },
-    
-    redo: function() { 
+
+    redo: function() {
         console.log('⏩ Redo action');
         const viewer = window.viewerGeneral || window.viewerMedical;
-        
+
         if (!viewer || !viewer.stateHistory) {
             viewer.stateHistory = [];
             viewer.stateHistoryIndex = -1;
         }
-        
+
         if (viewer.stateHistoryIndex < viewer.stateHistory.length - 1) {
             viewer.stateHistoryIndex++;
             const state = viewer.stateHistory[viewer.stateHistoryIndex];
@@ -4676,13 +4599,13 @@ window.toolbarHandler = {
             showToolbarNotification('Nothing to redo', 'info', 1500);
         }
     },
-    
+
     saveState: function(viewer) {
         if (!viewer.stateHistory) {
             viewer.stateHistory = [];
             viewer.stateHistoryIndex = -1;
         }
-        
+
         // Capture current state
         const state = {
             cameraPosition: viewer.camera.position.clone(),
@@ -4695,66 +4618,66 @@ window.toolbarHandler = {
                 grid: !!viewer.scene.children.find(child => child.userData && child.userData.isGridHelper && child.visible)
             }
         };
-        
+
         // Remove future states if we're not at the end
         if (viewer.stateHistoryIndex < viewer.stateHistory.length - 1) {
             viewer.stateHistory = viewer.stateHistory.slice(0, viewer.stateHistoryIndex + 1);
         }
-        
+
         viewer.stateHistory.push(state);
         viewer.stateHistoryIndex++;
-        
+
         // Limit history to 50 states
         if (viewer.stateHistory.length > 50) {
             viewer.stateHistory.shift();
             viewer.stateHistoryIndex--;
         }
     },
-    
+
     restoreState: function(viewer, state) {
         if (!state) return;
-        
+
         viewer.camera.position.copy(state.cameraPosition);
         viewer.camera.rotation.copy(state.cameraRotation);
-        
+
         // Restore transparency
         viewer.currentTransparencyIndex = state.transparency;
-        
+
         // Restore shadows
         viewer.renderer.shadowMap.enabled = state.shadows;
-        
+
         // Restore tools visibility
         const boundingBox = viewer.scene.children.find(child => child.userData && child.userData.isBoundingBoxHelper);
         if (boundingBox) boundingBox.visible = state.toolsVisible.boundingBox;
-        
+
         const axis = viewer.scene.children.find(child => child.userData && child.userData.isAxisHelper);
         if (axis) axis.visible = state.toolsVisible.axis;
-        
+
         const grid = viewer.scene.children.find(child => child.userData && child.userData.isGridHelper);
         if (grid) grid.visible = state.toolsVisible.grid;
-        
+
         if (viewer.render) viewer.render();
     },
-    
-    changeModelColor: function(viewerType) { 
+
+    changeModelColor: function(viewerType) {
         console.log('🎨 Change model color');
-        const viewer = viewerType ? (viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral) 
+        const viewer = viewerType ? (viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral)
                                   : (window.viewerGeneral || window.viewerMedical);
-        
+
         if (!viewer || !viewer.scene) {
             showToolbarNotification('Please wait for the 3D model to load', 'warning');
             return;
         }
-        
+
         // Create color picker dialog
         const colors = ['#0047AD', '#ffffff', '#2c3e50', '#3498db', '#e74c3c', '#2ecc71', '#f39c12', '#9b59b6', '#1abc9c', '#34495e'];
-        
+
         const existingPicker = document.getElementById('modelColorPicker');
         if (existingPicker) {
             existingPicker.remove();
             return;
         }
-        
+
         const picker = document.createElement('div');
         picker.id = 'modelColorPicker';
         picker.style.cssText = 'position: fixed; top: 140px; right: 20px; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); z-index: 9998;';
@@ -4762,19 +4685,19 @@ window.toolbarHandler = {
             <div style="font-weight: 600; margin-bottom: 10px; color: #2c3e50;">Select Model Color</div>
             <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px;">
                 ${colors.map(color => `
-                    <button class="model-color-option" data-color="${color}" 
+                    <button class="model-color-option" data-color="${color}"
                             style="width: 36px; height: 36px; border: 2px solid #ddd; border-radius: 6px; background: ${color}; cursor: pointer; transition: all 0.2s;"
                             onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
                     </button>
                 `).join('')}
             </div>
-            <button onclick="document.getElementById('modelColorPicker').remove()" 
+            <button onclick="document.getElementById('modelColorPicker').remove()"
                     style="margin-top: 10px; width: 100%; padding: 8px; border: none; background: #f1f3f5; border-radius: 6px; cursor: pointer; font-size: 0.85rem;">
                 Close
             </button>
         `;
         document.body.appendChild(picker);
-        
+
         // Add click handlers
         picker.querySelectorAll('.model-color-option').forEach(btn => {
             btn.addEventListener('click', function() {
@@ -4791,26 +4714,26 @@ window.toolbarHandler = {
             });
         });
     },
-    
-    changeBackgroundColor: function(viewerType) { 
+
+    changeBackgroundColor: function(viewerType) {
         console.log('🌈 Change background color');
-        const viewer = viewerType ? (viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral) 
+        const viewer = viewerType ? (viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral)
                                   : (window.viewerGeneral || window.viewerMedical);
-        
+
         if (!viewer || !viewer.scene) {
             showToolbarNotification('Please wait for the 3D viewer to load', 'warning');
             return;
         }
-        
+
         // Create color picker dialog
         const colors = ['#ffffff', '#f8f9fa', '#e9ecef', '#dee2e6', '#2c3e50', '#34495e', '#1a1a1a', '#000000', '#e3f2fd', '#fce4ec'];
-        
+
         const existingPicker = document.getElementById('bgColorPicker');
         if (existingPicker) {
             existingPicker.remove();
             return;
         }
-        
+
         const picker = document.createElement('div');
         picker.id = 'bgColorPicker';
         picker.style.cssText = 'position: fixed; top: 140px; right: 20px; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); z-index: 9998;';
@@ -4818,19 +4741,19 @@ window.toolbarHandler = {
             <div style="font-weight: 600; margin-bottom: 10px; color: #2c3e50;">Select Background Color</div>
             <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px;">
                 ${colors.map(color => `
-                    <button class="bg-color-option" data-color="${color}" 
+                    <button class="bg-color-option" data-color="${color}"
                             style="width: 36px; height: 36px; border: 2px solid #ddd; border-radius: 6px; background: ${color}; cursor: pointer; transition: all 0.2s;"
                             onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
                     </button>
                 `).join('')}
             </div>
-            <button onclick="document.getElementById('bgColorPicker').remove()" 
+            <button onclick="document.getElementById('bgColorPicker').remove()"
                     style="margin-top: 10px; width: 100%; padding: 8px; border: none; background: #f1f3f5; border-radius: 6px; cursor: pointer; font-size: 0.85rem;">
                 Close
             </button>
         `;
         document.body.appendChild(picker);
-        
+
         // Add click handlers
         picker.querySelectorAll('.bg-color-option').forEach(btn => {
             btn.addEventListener('click', function() {
@@ -5038,27 +4961,27 @@ document.addEventListener('DOMContentLoaded', function() {
  */
 (function() {
     console.log('🏥 Starting Viewer Health Check System...');
-    
+
     const healthCheck = {
         checkInterval: null,
         repairAttempts: 0,
         maxRepairAttempts: 3,
-        
+
         /**
          * Start monitoring viewer health
          */
         start() {
             // Initial check after 2 seconds
             setTimeout(() => this.performHealthCheck(), 2000);
-            
+
             // Periodic check every 10 seconds
             this.checkInterval = setInterval(() => {
                 this.performHealthCheck();
             }, 10000);
-            
+
             console.log('✅ Health check system started');
         },
-        
+
         /**
          * Perform comprehensive health check
          */
@@ -5069,9 +4992,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 toolbarHandler: this.checkToolbarHandler(),
                 saveCalculate: this.checkSaveCalculate()
             };
-            
+
             const allHealthy = Object.values(results).every(r => r === true);
-            
+
             if (allHealthy) {
                 console.log('✅ All systems healthy');
                 this.repairAttempts = 0;
@@ -5079,10 +5002,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.warn('⚠️ Health check failed:', results);
                 this.attemptRepair(results);
             }
-            
+
             return results;
         },
-        
+
         /**
          * Check individual viewer health
          */
@@ -5091,7 +5014,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.warn(`❌ ${name} viewer not found`);
                 return false;
             }
-            
+
             const checks = {
                 initialized: !!viewer.initialized,
                 scene: !!viewer.scene,
@@ -5101,16 +5024,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 render: typeof viewer.render === 'function',
                 calculateVolume: typeof viewer.calculateVolume === 'function'
             };
-            
+
             const healthy = Object.values(checks).every(c => c === true);
-            
+
             if (!healthy) {
                 console.warn(`❌ ${name} viewer unhealthy:`, checks);
             }
-            
+
             return healthy;
         },
-        
+
         /**
          * Check toolbar handler
          */
@@ -5119,7 +5042,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.warn('❌ toolbarHandler not found');
                 return false;
             }
-            
+
             const requiredMethods = [
                 'toggleBoundingBox',
                 'toggleAxis',
@@ -5133,19 +5056,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 'changeModelColor',
                 'changeBackgroundColor'
             ];
-            
-            const missing = requiredMethods.filter(method => 
+
+            const missing = requiredMethods.filter(method =>
                 typeof window.toolbarHandler[method] !== 'function'
             );
-            
+
             if (missing.length > 0) {
                 console.warn('❌ Toolbar handler missing methods:', missing);
                 return false;
             }
-            
+
             return true;
         },
-        
+
         /**
          * Check save & calculate system
          */
@@ -5154,15 +5077,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.warn('❌ EnhancedSaveCalculate not found');
                 return false;
             }
-            
+
             if (typeof window.EnhancedSaveCalculate.execute !== 'function') {
                 console.warn('❌ EnhancedSaveCalculate.execute not a function');
                 return false;
             }
-            
+
             return true;
         },
-        
+
         /**
          * Attempt to repair issues
          */
@@ -5171,10 +5094,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.error('❌ Max repair attempts reached. Manual intervention required.');
                 return;
             }
-            
+
             this.repairAttempts++;
             console.log(`🔧 Attempting repair (attempt ${this.repairAttempts}/${this.maxRepairAttempts})...`);
-            
+
             // Repair toolbar handler if missing
             if (!results.toolbarHandler) {
                 console.log('🔧 Attempting to reload toolbar handler...');
@@ -5184,19 +5107,19 @@ document.addEventListener('DOMContentLoaded', function() {
                     alert('Critical Error: Toolbar not loaded. Please refresh the page.');
                 }
             }
-            
+
             // Ensure viewers have required methods
             if (window.viewerGeneral && !window.viewerGeneral.calculateVolume) {
                 console.log('🔧 Adding fallback calculateVolume to viewerGeneral...');
                 this.addFallbackVolumeCalculation(window.viewerGeneral);
             }
-            
+
             if (window.viewerMedical && !window.viewerMedical.calculateVolume) {
                 console.log('🔧 Adding fallback calculateVolume to viewerMedical...');
                 this.addFallbackVolumeCalculation(window.viewerMedical);
             }
         },
-        
+
         /**
          * Add fallback volume calculation to viewer
          */
@@ -5206,41 +5129,41 @@ document.addEventListener('DOMContentLoaded', function() {
                     console.warn('Invalid mesh for volume calculation');
                     return { cm3: 0, mm3: 0 };
                 }
-                
+
                 const geometry = mesh.geometry;
                 if (!geometry.attributes || !geometry.attributes.position) {
                     console.warn('Invalid geometry attributes');
                     return { cm3: 0, mm3: 0 };
                 }
-                
+
                 const position = geometry.attributes.position;
                 const vertices = position.array;
                 let volume = 0;
-                
+
                 // Calculate signed volume
                 for (let i = 0; i < vertices.length; i += 9) {
                     const v1x = vertices[i], v1y = vertices[i + 1], v1z = vertices[i + 2];
                     const v2x = vertices[i + 3], v2y = vertices[i + 4], v2z = vertices[i + 5];
                     const v3x = vertices[i + 6], v3y = vertices[i + 7], v3z = vertices[i + 8];
-                    
+
                     volume += (v1x * v2y * v3z + v2x * v3y * v1z + v3x * v1y * v2z -
                               v1x * v3y * v2z - v2x * v1y * v3z - v3x * v2y * v1z) / 6.0;
                 }
-                
+
                 const volumeMm3 = Math.abs(volume);
                 const volumeCm3 = volumeMm3 / 1000;
-                
+
                 console.log(`📐 Calculated volume: ${volumeCm3.toFixed(2)} cm³`);
-                
+
                 return {
                     cm3: volumeCm3,
                     mm3: volumeMm3
                 };
             };
-            
+
             console.log('✅ Fallback calculateVolume added to viewer');
         },
-        
+
         /**
          * Stop health check system
          */
@@ -5252,13 +5175,13 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     };
-    
+
     // Start health check system
     healthCheck.start();
-    
+
     // Make it globally accessible
     window.viewerHealthCheck = healthCheck;
-    
+
     console.log('✅ Viewer Health Check System initialized');
     console.log('💡 TIP: Run window.viewerHealthCheck.performHealthCheck() to manually check system health');
 })();

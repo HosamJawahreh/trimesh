@@ -1,0 +1,92 @@
+version: '3.8'
+
+services:
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: trimesh_mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-secret}
+      MYSQL_DATABASE: ${DB_DATABASE:-trimesh}
+      MYSQL_USER: ${DB_USERNAME:-trimesh_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-secret}
+    ports:
+      - "${DB_PORT:-3306}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - trimesh_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Laravel Application
+  laravel:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: trimesh_laravel
+    depends_on:
+      mysql:
+        condition: service_healthy
+      mesh-repair:
+        condition: service_started
+    environment:
+      APP_ENV: ${APP_ENV:-production}
+      APP_DEBUG: ${APP_DEBUG:-false}
+      APP_URL: ${APP_URL:-http://localhost}
+      DB_CONNECTION: mysql
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_DATABASE: ${DB_DATABASE:-trimesh}
+      DB_USERNAME: ${DB_USERNAME:-trimesh_user}
+      DB_PASSWORD: ${DB_PASSWORD:-secret}
+      MESH_REPAIR_SERVICE_URL: http://mesh-repair:8001
+    ports:
+      - "${APP_PORT:-80}:80"
+    volumes:
+      - ./storage:/var/www/html/storage
+      - ./public:/var/www/html/public
+    networks:
+      - trimesh_network
+
+  # Python Mesh Repair Microservice
+  mesh-repair:
+    build:
+      context: ./python-mesh-service
+      dockerfile: Dockerfile
+    container_name: trimesh_mesh_repair
+    ports:
+      - "8001:8001"
+    volumes:
+      - mesh_uploads:/app/uploads
+      - mesh_repaired:/app/repaired
+    networks:
+      - trimesh_network
+    environment:
+      MAX_FILE_SIZE: 104857600  # 100MB
+      WORKERS: 2
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '2'
+
+networks:
+  trimesh_network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+    driver: local
+  mesh_uploads:
+    driver: local
+  mesh_repaired:
+    driver: local

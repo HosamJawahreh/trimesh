@@ -81,5 +81,18 @@ Route::post('/set-currency', function (Request $request) {
 // Maintenance mode route
 Route::get('/maintenance', fn()=> cache()->get('setting')?->maintenance_status == 0  ? redirect()->route('home') : view('frontend.pages.maintenance'))->name('maintenance');
 
+// Admin Mesh Repair Routes
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'checkAdmin'])->group(function () {
+    Route::prefix('mesh-repair')->name('mesh-repair.')->group(function () {
+        Route::get('/dashboard', [\App\Http\Controllers\Admin\MeshRepairAdminController::class, 'dashboard'])->name('dashboard');
+        Route::get('/logs', [\App\Http\Controllers\Admin\MeshRepairAdminController::class, 'logs'])->name('logs');
+        Route::get('/settings', [\App\Http\Controllers\Admin\MeshRepairAdminController::class, 'settings'])->name('settings');
+        Route::post('/settings', [\App\Http\Controllers\Admin\MeshRepairAdminController::class, 'updateSettings'])->name('settings.update');
+        Route::get('/show/{id}', [\App\Http\Controllers\Admin\MeshRepairAdminController::class, 'show'])->name('show');
+        Route::delete('/destroy/{id}', [\App\Http\Controllers\Admin\MeshRepairAdminController::class, 'destroy'])->name('destroy');
+        Route::get('/export', [\App\Http\Controllers\Admin\MeshRepairAdminController::class, 'export'])->name('export');
+    });
+});
+
 require __DIR__ .'/auth.php';
 require __DIR__ .'/user.php';

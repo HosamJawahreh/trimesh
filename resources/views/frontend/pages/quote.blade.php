@@ -1427,77 +1427,187 @@
 
         // Repair & Fill functionality is now integrated into Save & Calculate button
 
-        // Save & Calculate button - Now includes auto-repair and solid volume calculation
+        // Save & Calculate button - Enhanced with proper validation and feedback
         const saveBtn = document.getElementById('saveCalculationsBtnMain');
         if (saveBtn) {
-            saveBtn.addEventListener('click', function() {
+            saveBtn.addEventListener('click', async function() {
+                console.log('💾 Save & Calculate clicked');
+                
+                // Check if viewer exists
                 const viewer = window.viewerGeneral || window.viewerMedical;
                 if (!viewer) {
-                    console.log('⚠️ No viewer available');
+                    alert('⚠️ 3D viewer not initialized. Please refresh the page.');
+                    console.error('❌ No viewer available');
                     return;
                 }
 
-                console.log('💾 Save & Calculate clicked - Starting auto-repair...');
+                // Check if files are uploaded
+                if (!viewer.uploadedFiles || viewer.uploadedFiles.length === 0) {
+                    alert('⚠️ Please upload at least one 3D file first.');
+                    console.warn('⚠️ No files uploaded');
+                    return;
+                }
+
+                // Check if fileManager exists, create if needed
+                if (!window.fileManagerGeneral) {
+                    console.log('⚠️ fileManagerGeneral not found, creating it...');
+                    if (window.FileManager && window.viewerGeneral) {
+                        window.fileManagerGeneral = new window.FileManager('General', window.viewerGeneral);
+                        console.log('✅ fileManagerGeneral created');
+                    } else {
+                        alert('❌ Error: File manager system not loaded. Please refresh the page.');
+                        console.error('❌ FileManager class not available');
+                        return;
+                    }
+                }
+
+                // Start processing
                 const originalBtn = this.innerHTML;
                 this.innerHTML = '<svg width="16" height="16" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="7" stroke="currentColor" stroke-width="1.5" class="spinning"/></svg><span>Processing...</span>';
                 this.style.pointerEvents = 'none';
 
-                // Step 1: Repair model if not already done
-                setTimeout(() => {
-                    if (!modelRepaired) {
+                try {
+                    // Step 1: Repair model if available
+                    if (typeof viewer.repairModel === 'function' && !modelRepaired) {
                         console.log('🔧 Step 1: Repairing model...');
-                        const repairSuccess = viewer.repairModel();
-                        if (repairSuccess) {
-                            modelRepaired = true;
-                            console.log('✅ Model repaired');
-                        } else {
-                            console.log('⚠️ Repair failed, continuing with original mesh');
-                        }
+                        await new Promise(resolve => {
+                            const repairSuccess = viewer.repairModel();
+                            if (repairSuccess) {
+                                modelRepaired = true;
+                                console.log('✅ Model repaired');
+                            } else {
+                                console.log('⚠️ Repair not needed or failed');
+                            }
+                            setTimeout(resolve, 300);
+                        });
                     } else {
-                        console.log('✅ Model already repaired');
+                        console.log('⏭️ Skipping repair (already done or not available)');
                     }
 
-                    // Step 2: Fill holes if not already done
-                    setTimeout(() => {
-                        if (!holesFilled) {
-                            console.log('🔧 Step 2: Filling holes...');
+                    // Step 2: Fill holes if available
+                    if (typeof viewer.fillHoles === 'function' && !holesFilled) {
+                        console.log('🔧 Step 2: Filling holes...');
+                        await new Promise(resolve => {
                             const fillSuccess = viewer.fillHoles();
                             if (fillSuccess) {
                                 holesFilled = true;
                                 console.log('✅ Holes filled - mesh is now solid');
                             } else {
-                                console.log('⚠️ Fill holes failed, using repaired mesh');
+                                console.log('⚠️ Fill not needed or failed');
                             }
-                        } else {
-                            console.log('✅ Holes already filled');
-                        }
+                            setTimeout(resolve, 300);
+                        });
+                    } else {
+                        console.log('⏭️ Skipping fill holes (already done or not available)');
+                    }
 
-                        // Step 3: Update dimensions with solid volume
-                        setTimeout(() => {
-                            console.log('📐 Step 3: Calculating solid volume...');
-                            updateModelDimensions();
+                    // Step 3: Update dimensions
+                    console.log('📐 Step 3: Updating dimensions...');
+                    if (typeof updateModelDimensions === 'function') {
+                        updateModelDimensions();
+                    } else {
+                        console.warn('⚠️ updateModelDimensions function not found');
+                    }
+                    await new Promise(resolve => setTimeout(resolve, 300));
 
-                            // Step 4: Calculate pricing based on solid volume
-                            setTimeout(() => {
-                                console.log('💰 Step 4: Calculating price...');
-                                if (window.fileManagerGeneral) {
-                                    window.fileManagerGeneral.updateQuote();
-                                }
+                    // Step 4: Calculate pricing
+                    console.log('💰 Step 4: Calculating pricing...');
+                    window.fileManagerGeneral.updateQuote();
+                    
+                    // Show individual file prices
+                    if (typeof window.showAllFilePrices === 'function') {
+                        window.showAllFilePrices('General');
+                        console.log('✅ Individual file prices displayed');
+                    }
 
-                                // Show success message
-                                this.innerHTML = '<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M5 9L8 12L13 6" stroke="currentColor" stroke-width="2"/></svg><span>Saved! ✓</span>';
+                    // Show price summary in sidebar
+                    const priceSummary = document.getElementById('priceSummaryGeneral');
+                    if (priceSummary) {
+                        priceSummary.style.display = 'block';
+                        console.log('✅ Price summary shown');
+                    }
 
-                                setTimeout(() => {
-                                    this.innerHTML = originalBtn;
-                                    this.style.pointerEvents = '';
-                                    console.log('✅ Save & Calculate complete - price updated with solid volume');
-                                }, 2000);
-                            }, 300);
-                        }, 300);
-                    }, 300);
-                }, 300);
+                    // Show volume and price in sidebar
+                    const totalVolume = document.getElementById('quoteTotalVolumeGeneral');
+                    const totalPrice = document.getElementById('quoteTotalPriceGeneral');
+                    if (totalVolume) {
+                        totalVolume.style.display = 'block';
+                    }
+                    if (totalPrice) {
+                        totalPrice.style.display = 'block';
+                    }
+
+                    // Show success message
+                    this.innerHTML = '<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M5 9L8 12L13 6" stroke="currentColor" stroke-width="2"/></svg><span>Saved! ✓</span>';
+                    
+                    // Reset button after 2 seconds
+                    setTimeout(() => {
+                        this.innerHTML = originalBtn;
+                        this.style.pointerEvents = '';
+                        console.log('✅ Save & Calculate complete - pricing displayed');
+                    }, 2000);
+
+                } catch (error) {
+                    console.error('❌ Error during Save & Calculate:', error);
+                    console.error('Error stack:', error.stack);
+                    alert('❌ An error occurred during calculation. Please check the console (F12) for details.');
+                    this.innerHTML = originalBtn;
+                    this.style.pointerEvents = '';
+                }
             });
+            
+            console.log('✅ Save & Calculate button handler attached');
+        } else {
+            console.error('❌ Save button not found: #saveCalculationsBtnMain');
         }
+
+        // System health check - runs after page load
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                console.log('\n🔍 ========== SYSTEM HEALTH CHECK ==========');
+                console.log('📋 Core Components:');
+                console.log('   ✓ viewerGeneral:', !!window.viewerGeneral);
+                console.log('   ✓ viewerMedical:', !!window.viewerMedical);
+                console.log('   ✓ fileManagerGeneral:', !!window.fileManagerGeneral);
+                console.log('   ✓ FileManager class:', !!window.FileManager);
+                
+                console.log('\n📋 Functions Available:');
+                console.log('   ✓ showAllFilePrices:', !!window.showAllFilePrices);
+                console.log('   ✓ calculateFilePrice:', !!window.calculateFilePrice);
+                console.log('   ✓ updateModelDimensions:', !!updateModelDimensions);
+                
+                console.log('\n📋 UI Elements:');
+                console.log('   ✓ Save button:', !!document.getElementById('saveCalculationsBtnMain'));
+                console.log('   ✓ Price summary:', !!document.getElementById('priceSummaryGeneral'));
+                console.log('   ✓ Total volume:', !!document.getElementById('quoteTotalVolumeGeneral'));
+                console.log('   ✓ Total price:', !!document.getElementById('quoteTotalPriceGeneral'));
+                
+                // Check if viewer has required methods
+                const viewer = window.viewerGeneral || window.viewerMedical;
+                if (viewer) {
+                    console.log('\n📋 Viewer Methods:');
+                    console.log('   ✓ calculatePrice:', typeof viewer.calculatePrice === 'function');
+                    console.log('   ✓ calculateVolume:', typeof viewer.calculateVolume === 'function');
+                    console.log('   ✓ repairModel:', typeof viewer.repairModel === 'function');
+                    console.log('   ✓ fillHoles:', typeof viewer.fillHoles === 'function');
+                }
+                
+                console.log('==========================================\n');
+                
+                // Warn about missing components
+                const issues = [];
+                if (!window.FileManager) issues.push('FileManager class missing - check if 3d-file-manager.js is loaded');
+                if (!window.viewerGeneral && !window.viewerMedical) issues.push('No viewer initialized');
+                if (viewer && typeof viewer.calculatePrice !== 'function') issues.push('viewer.calculatePrice() method missing');
+                
+                if (issues.length > 0) {
+                    console.warn('⚠️ ISSUES DETECTED:');
+                    issues.forEach(issue => console.warn('   - ' + issue));
+                } else {
+                    console.log('✅ All systems ready! Upload a file and click "Save & Calculate"');
+                }
+            }, 1500);
+        });
 
         // Helper functions for THREE.JS
         function setCameraView(view) {
