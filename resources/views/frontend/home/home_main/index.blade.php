@@ -13,14 +13,13 @@
 
     @php
         $slugs = [
-            'hero', 'about', 'process', 'services', 'text-slider',
+            'hero', 'about', 'services', 'text-slider',
             'portfolio', 'team', 'brand', 'testimonial', 'blog'
         ];
     @endphp
 
     @foreach ($slugs as $slug)
         @php $section = $sections[$slug] ?? null; @endphp
-
 
         @if ($section?->status)
             @includeIf('frontend.home.home_main.sections.' . $slug, [
