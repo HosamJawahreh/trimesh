@@ -287,10 +287,10 @@ window.EnhancedSaveCalculate = {
                 for (const fileData of viewer.uploadedFiles) {
                     // Get file ID from storage or generate one
                     let fileId = fileData.storageId || fileData.id;
-                    
+
                     if (!fileId || !fileId.startsWith('file_')) {
                         console.warn('⚠️ File missing storage ID, attempting to get from storage manager...');
-                        
+
                         // Try to get from file storage manager
                         if (window.fileStorageManager && window.fileStorageManager.currentFileId) {
                             fileId = window.fileStorageManager.currentFileId;
@@ -721,16 +721,16 @@ window.EnhancedSaveCalculate = {
 
             // Step 6: Save Quote to Database
             await this.updateProgress('Saving quote...', 95);
-            
+
             try {
                 console.log('💾 Saving quote to database...');
                 const quoteData = await this.saveQuoteToDatabase(viewer, viewerId, totalVolume, totalPrice);
-                
+
                 if (quoteData && quoteData.success) {
                     console.log('✅ Quote saved successfully:', quoteData.data);
                     console.log('🔗 Viewer Link:', quoteData.data.viewer_link);
                     console.log('📋 Quote Number:', quoteData.data.quote_number);
-                    
+
                     // Show success notification with quote number
                     this.showNotification(
                         `Quote ${quoteData.data.quote_number} saved successfully!<br>View in <a href="${quoteData.data.viewer_link}" target="_blank">viewer</a>`,

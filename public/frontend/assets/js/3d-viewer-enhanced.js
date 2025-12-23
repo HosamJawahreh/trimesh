@@ -147,15 +147,15 @@ class Enhanced3DViewer {
 
         // Add controls with enhanced settings for better model manipulation
         this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
-        
+
         // Damping for smooth, realistic movement
         this.controls.enableDamping = true;
         this.controls.dampingFactor = 0.08; // Slightly more damping for smoother feel
-        
+
         // Distance constraints
         this.controls.minDistance = 5; // Allow closer zoom
         this.controls.maxDistance = 2000; // Allow further zoom out
-        
+
         // Zoom settings
         this.controls.zoomSpeed = 1.2; // Faster zoom response
         this.controls.mouseButtons = {
@@ -163,12 +163,12 @@ class Enhanced3DViewer {
             MIDDLE: THREE.MOUSE.DOLLY,
             RIGHT: THREE.MOUSE.PAN
         };
-        
+
         // Pan and rotate settings
         this.controls.panSpeed = 0.8; // Smooth panning
         this.controls.rotateSpeed = 1.0; // Standard rotation speed
         this.controls.screenSpacePanning = true; // Pan in screen space
-        
+
         // Smooth keyboard controls
         this.controls.keys = {
             LEFT: 37,  // Arrow Left
@@ -177,11 +177,11 @@ class Enhanced3DViewer {
             BOTTOM: 40 // Arrow Down
         };
         this.controls.enableKeys = true;
-        
+
         // Auto-rotation feature (disabled by default, can be toggled)
         this.controls.autoRotate = false;
         this.controls.autoRotateSpeed = 2.0;
-        
+
         // Prevent camera from going below ground
         this.controls.maxPolarAngle = Math.PI * 0.95;
         this.controls.minPolarAngle = Math.PI * 0.05;
@@ -209,7 +209,7 @@ class Enhanced3DViewer {
 
         // Setup keyboard shortcuts
         this.setupKeyboardControls();
-        
+
         // Add controls info display
         this.addControlsInfo();
 
@@ -229,7 +229,7 @@ class Enhanced3DViewer {
          */
         document.addEventListener('keydown', (event) => {
             // Only respond if viewer is active and no input is focused
-            if (document.activeElement.tagName === 'INPUT' || 
+            if (document.activeElement.tagName === 'INPUT' ||
                 document.activeElement.tagName === 'TEXTAREA') {
                 return;
             }
@@ -243,18 +243,18 @@ class Enhanced3DViewer {
                         this.showNotification(`Auto-rotation ${this.controls.autoRotate ? 'enabled' : 'disabled'}`);
                     }
                     break;
-                
+
                 case 'f':
                     // Fit camera to model
                     this.fitCameraToModel();
                     this.showNotification('Camera fitted to model');
                     break;
-                
+
                 case 'h':
                     // Toggle help
                     this.toggleControlsInfo();
                     break;
-                
+
                 case '+':
                 case '=':
                     // Zoom in
@@ -264,7 +264,7 @@ class Enhanced3DViewer {
                         this.controls.update();
                     }
                     break;
-                
+
                 case '-':
                 case '_':
                     // Zoom out
@@ -274,7 +274,7 @@ class Enhanced3DViewer {
                         this.controls.update();
                     }
                     break;
-                
+
                 case ' ':
                     // Reset camera (spacebar)
                     event.preventDefault();
@@ -310,7 +310,7 @@ class Enhanced3DViewer {
             max-width: 280px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
         `;
-        
+
         infoDiv.innerHTML = `
             <div style="font-weight: bold; font-size: 14px; margin-bottom: 10px; color: #667eea;">
                 🎮 3D Viewer Controls
@@ -335,7 +335,7 @@ class Enhanced3DViewer {
                 </div>
             </div>
         `;
-        
+
         this.container.style.position = 'relative';
         this.container.appendChild(infoDiv);
     }
@@ -368,10 +368,10 @@ class Enhanced3DViewer {
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
             animation: fadeInOut ${duration}ms ease-in-out;
         `;
-        
+
         notifDiv.textContent = message;
         this.container.appendChild(notifDiv);
-        
+
         setTimeout(() => {
             notifDiv.remove();
         }, duration);

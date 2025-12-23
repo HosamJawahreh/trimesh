@@ -35,7 +35,7 @@ echo "3️⃣ Checking enhanced-save-calculate.js..."
 if [ -f "public/frontend/assets/js/enhanced-save-calculate.js" ]; then
     SIZE=$(stat -f%z "public/frontend/assets/js/enhanced-save-calculate.js" 2>/dev/null || stat -c%s "public/frontend/assets/js/enhanced-save-calculate.js" 2>/dev/null)
     echo "   ✅ File exists (Size: $SIZE bytes)"
-    
+
     # Check version
     if grep -q "version: '4.0'" public/frontend/assets/js/enhanced-save-calculate.js; then
         echo "   ✅ Version 4.0 confirmed"

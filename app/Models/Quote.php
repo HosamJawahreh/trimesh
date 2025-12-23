@@ -76,7 +76,7 @@ class Quote extends Model
 
         // Create comma-separated file IDs for multi-file support
         $filesParam = implode(',', $this->file_ids);
-        
+
         return route('quote') . '?files=' . $filesParam;
     }
 

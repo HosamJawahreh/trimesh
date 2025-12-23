@@ -83,11 +83,11 @@ class QuoteController extends Controller
             // Verify all files exist in database
             $fileIds = $request->file_ids;
             $existingFiles = ThreeDFile::whereIn('file_id', $fileIds)->get();
-            
+
             if ($existingFiles->count() !== count($fileIds)) {
                 $missingFiles = array_diff($fileIds, $existingFiles->pluck('file_id')->toArray());
                 Log::error('Some files not found in database:', $missingFiles);
-                
+
                 return response()->json([
                     'success' => false,
                     'message' => 'Some files do not exist in the database',

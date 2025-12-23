@@ -1432,12 +1432,12 @@
         // SAVE & CALCULATE BUTTON - Connect to EnhancedSaveCalculate module
         // VERSION: DEC-23-2025-V2-CACHEBUSTER-{{ time() }}
         // ============================================
-        
+
         console.log('🔥🔥🔥 QUOTE.BLADE.PHP SCRIPT LOADED - NEW VERSION DEC-23-2025-V2 🔥🔥🔥');
         console.log('🔥 Timestamp:', new Date().toISOString());
         console.log('🔥 If you see this with V2, the NEW code is loaded!');
         console.log('🔥 If you do NOT see V2, press CTRL + SHIFT + DELETE and clear cache!');
-        
+
         // Wait for EnhancedSaveCalculate to be loaded
         function initSaveCalculateButton() {
             const saveBtn = document.getElementById('saveCalculationsBtnMain');
@@ -1454,17 +1454,17 @@
 
             console.log('✅ Connecting Save & Calculate button to EnhancedSaveCalculate module...');
             console.log('✅ EnhancedSaveCalculate version:', window.EnhancedSaveCalculate.version);
-            
+
             saveBtn.addEventListener('click', async function() {
                 console.log('💾💾💾 SAVE & CALCULATE CLICKED - NEW HANDLER V2 💾💾💾');
                 console.log('💾 Using EnhancedSaveCalculate v' + window.EnhancedSaveCalculate.version);
                 console.log('💾 This is the NEW code that calls EnhancedSaveCalculate.execute()');
-                
+
                 // Show loading state
                 const originalHTML = this.innerHTML;
                 this.innerHTML = '<svg width="18" height="18" viewBox="0 0 18 18" fill="none" class="spin-icon"><circle cx="9" cy="9" r="7" stroke="currentColor" stroke-width="1.5" stroke-dasharray="40"/></svg><span>Processing...</span>';
                 this.style.pointerEvents = 'none';
-                
+
                 try {
                     // Call the enhanced save & calculate
                     console.log('📞 Calling EnhancedSaveCalculate.execute("general")...');
@@ -1481,10 +1481,10 @@
                     }, 1000);
                 }
             });
-            
+
             console.log('✅✅✅ Save & Calculate button connected successfully to NEW handler! ✅✅✅');
         }
-        
+
         // Initialize when page loads
         initSaveCalculateButton();
 

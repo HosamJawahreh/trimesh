@@ -47,8 +47,8 @@ faces = np.array([
 
 print(f"Original vertices: {len(vertices)}")
 unique_vertices, inverse = np.unique(
-    np.round(vertices, decimals=6), 
-    axis=0, 
+    np.round(vertices, decimals=6),
+    axis=0,
     return_inverse=True
 )
 optimized_faces = inverse[faces]
