@@ -3022,12 +3022,15 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Save & Calculate - Main control bar
-    const saveCalculationsBtnMain = document.getElementById('saveCalculationsBtnMain');
-    if (saveCalculationsBtnMain) {
-        saveCalculationsBtnMain.addEventListener('click', function() {
-            saveCalculations(currentViewerId);
-        });
-    }
+    // NOTE: Button handler is now in quote.blade.php which calls EnhancedSaveCalculate.execute()
+    // This old handler is DISABLED to prevent conflicts
+    // const saveCalculationsBtnMain = document.getElementById('saveCalculationsBtnMain');
+    // if (saveCalculationsBtnMain) {
+    //     saveCalculationsBtnMain.addEventListener('click', function() {
+    //         saveCalculations(currentViewerId);
+    //     });
+    // }
+    console.log('ℹ️ Save & Calculate handler delegated to quote.blade.php (EnhancedSaveCalculate module)');
 
     // Inject Screenshot and Share buttons into bottom toolbar
     function injectToolbarButtons() {

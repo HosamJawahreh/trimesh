@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ThreeDFileController;
 use App\Http\Controllers\Api\MeshRepairController;
+use App\Http\Controllers\Api\QuoteController;
 
 /*
 |--------------------------------------------------------------------------
@@ -15,6 +16,15 @@ use App\Http\Controllers\Api\MeshRepairController;
 | be assigned to the "api" middleware group. Make something great!
 |
 */
+
+// Quote API Routes
+Route::prefix('quotes')->name('quotes.')->group(function () {
+    Route::get('/', [QuoteController::class, 'index'])->name('index');
+    Route::post('/store', [QuoteController::class, 'store'])->name('store');
+    Route::get('/{id}', [QuoteController::class, 'show'])->name('show');
+    Route::put('/{id}', [QuoteController::class, 'update'])->name('update');
+    Route::delete('/{id}', [QuoteController::class, 'destroy'])->name('destroy');
+});
 
 // 3D File Sharing API Routes (no CSRF protection)
 Route::prefix('3d-files')->name('3d-files.')->group(function () {

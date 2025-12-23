@@ -1429,18 +1429,64 @@
         }
 
         // ============================================
-        // NOTE: Save & Calculate button handler is now managed by
-        // enhanced-save-calculate.js (loaded from quote-viewer.blade.php)
-        // This provides:
-        // - Server-side mesh repair (Python service with pymeshfix)
-        // - Client-side mesh repair (JavaScript fallback)
-        // - Automatic hole filling
-        // - Volume calculation
-        // - Pricing calculation
-        // - Progress feedback
+        // SAVE & CALCULATE BUTTON - Connect to EnhancedSaveCalculate module
+        // VERSION: DEC-23-2025-V2-CACHEBUSTER-{{ time() }}
         // ============================================
+        
+        console.log('🔥🔥🔥 QUOTE.BLADE.PHP SCRIPT LOADED - NEW VERSION DEC-23-2025-V2 🔥🔥🔥');
+        console.log('🔥 Timestamp:', new Date().toISOString());
+        console.log('🔥 If you see this with V2, the NEW code is loaded!');
+        console.log('🔥 If you do NOT see V2, press CTRL + SHIFT + DELETE and clear cache!');
+        
+        // Wait for EnhancedSaveCalculate to be loaded
+        function initSaveCalculateButton() {
+            const saveBtn = document.getElementById('saveCalculationsBtnMain');
+            if (!saveBtn) {
+                console.warn('⚠️ Save & Calculate button not found');
+                return;
+            }
 
-        console.log('✅ Save & Calculate delegated to enhanced-save-calculate.js');
+            if (!window.EnhancedSaveCalculate) {
+                console.warn('⚠️ EnhancedSaveCalculate not loaded yet, will retry...');
+                setTimeout(initSaveCalculateButton, 500);
+                return;
+            }
+
+            console.log('✅ Connecting Save & Calculate button to EnhancedSaveCalculate module...');
+            console.log('✅ EnhancedSaveCalculate version:', window.EnhancedSaveCalculate.version);
+            
+            saveBtn.addEventListener('click', async function() {
+                console.log('💾💾💾 SAVE & CALCULATE CLICKED - NEW HANDLER V2 💾💾💾');
+                console.log('💾 Using EnhancedSaveCalculate v' + window.EnhancedSaveCalculate.version);
+                console.log('💾 This is the NEW code that calls EnhancedSaveCalculate.execute()');
+                
+                // Show loading state
+                const originalHTML = this.innerHTML;
+                this.innerHTML = '<svg width="18" height="18" viewBox="0 0 18 18" fill="none" class="spin-icon"><circle cx="9" cy="9" r="7" stroke="currentColor" stroke-width="1.5" stroke-dasharray="40"/></svg><span>Processing...</span>';
+                this.style.pointerEvents = 'none';
+                
+                try {
+                    // Call the enhanced save & calculate
+                    console.log('📞 Calling EnhancedSaveCalculate.execute("general")...');
+                    await window.EnhancedSaveCalculate.execute('general');
+                    console.log('✅ EnhancedSaveCalculate.execute() completed successfully');
+                } catch (error) {
+                    console.error('❌ Save & Calculate error:', error);
+                    console.error('❌ Error stack:', error.stack);
+                } finally {
+                    // Restore button
+                    setTimeout(() => {
+                        this.innerHTML = originalHTML;
+                        this.style.pointerEvents = '';
+                    }, 1000);
+                }
+            });
+            
+            console.log('✅✅✅ Save & Calculate button connected successfully to NEW handler! ✅✅✅');
+        }
+        
+        // Initialize when page loads
+        initSaveCalculateButton();
 
         // System health check - runs after page load
         window.addEventListener('load', function() {

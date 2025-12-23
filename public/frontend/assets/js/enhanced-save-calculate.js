@@ -62,7 +62,7 @@ window.EnhancedSaveCalculate = {
             // If file is NOT in database yet, upload it first
             if (!fileId || !fileId.startsWith('file_')) {
                 console.log('📤 File not in database yet, uploading first...');
-                
+
                 // Convert file to base64
                 const arrayBuffer = await fileData.file.arrayBuffer();
                 const bytes = new Uint8Array(arrayBuffer);
@@ -71,7 +71,7 @@ window.EnhancedSaveCalculate = {
                     binary += String.fromCharCode(bytes[i]);
                 }
                 const base64Data = btoa(binary);
-                
+
                 // Upload to server
                 const uploadResponse = await fetch('/api/3d-files/store', {
                     method: 'POST',
@@ -89,20 +89,20 @@ window.EnhancedSaveCalculate = {
                         })
                     })
                 });
-                
+
                 if (!uploadResponse.ok) {
                     throw new Error('Failed to upload file to server');
                 }
-                
+
                 const uploadResult = await uploadResponse.json();
                 if (!uploadResult.success) {
                     throw new Error(uploadResult.message || 'Upload failed');
                 }
-                
+
                 fileId = uploadResult.fileId;
                 fileData.storageId = fileId; // Store for future use
                 console.log('✅ File uploaded to server with ID:', fileId);
-                
+
                 // Update URL to include this file
                 if (window.fileStorageManager) {
                     window.fileStorageManager.updateURL(fileId);
@@ -113,15 +113,15 @@ window.EnhancedSaveCalculate = {
             this.updateProgress('Analyzing mesh on server...', 30);
 
             let analyzeResponse;
-            
+
             if (fileId && fileId.startsWith('file_')) {
                 // File is already in database - use file_id parameter
                 console.log('💾 Using file ID from database:', fileId);
-                
+
                 const formData = new FormData();
                 formData.append('file_id', fileId);
                 formData.append('aggressive', 'true');
-                
+
                 analyzeResponse = await fetch('/api/mesh/analyze', {
                     method: 'POST',
                     body: formData,
@@ -132,11 +132,11 @@ window.EnhancedSaveCalculate = {
             } else {
                 // File needs to be uploaded - use file upload
                 console.log('📤 Uploading file to server:', fileData.file.name, 'size:', fileData.file.size);
-                
+
                 const formData = new FormData();
                 formData.append('file', fileData.file);
                 formData.append('aggressive', 'true');
-                
+
                 analyzeResponse = await fetch('/api/mesh/analyze', {
                     method: 'POST',
                     body: formData,
@@ -178,11 +178,11 @@ window.EnhancedSaveCalculate = {
             this.updateProgress(`Repairing mesh (${analysis.analysis.holes_count} holes)...`, 50);
 
             let repairResponse;
-            
+
             if (fileId && fileId.startsWith('file_')) {
                 // File is already in database - use file_id parameter
                 console.log('💾 Repairing using file ID from database:', fileId);
-                
+
                 const repairFormData = new FormData();
                 repairFormData.append('file_id', fileId);
                 repairFormData.append('aggressive', 'true');
@@ -195,7 +195,7 @@ window.EnhancedSaveCalculate = {
             } else {
                 // File needs to be uploaded - use file upload
                 console.log('📤 Repairing by uploading file:', fileData.file.name);
-                
+
                 const repairFormData = new FormData();
                 repairFormData.append('file', fileData.file);
                 repairFormData.append('aggressive', 'true');
@@ -270,6 +270,109 @@ window.EnhancedSaveCalculate = {
         if (score >= 70) return 'Good';
         if (score >= 50) return 'Fair';
         return 'Poor';
+    },
+
+    /**
+     * Save quote to database with file IDs and pricing
+     */
+    async saveQuoteToDatabase(viewer, viewerId, totalVolume, totalPrice) {
+        try {
+            console.log('📊 Preparing quote data for database...');
+
+            // Get file IDs from viewer's uploaded files
+            const fileIds = [];
+            const pricingBreakdown = [];
+
+            if (viewer.uploadedFiles && viewer.uploadedFiles.length > 0) {
+                for (const fileData of viewer.uploadedFiles) {
+                    // Get file ID from storage or generate one
+                    let fileId = fileData.storageId || fileData.id;
+                    
+                    if (!fileId || !fileId.startsWith('file_')) {
+                        console.warn('⚠️ File missing storage ID, attempting to get from storage manager...');
+                        
+                        // Try to get from file storage manager
+                        if (window.fileStorageManager && window.fileStorageManager.currentFileId) {
+                            fileId = window.fileStorageManager.currentFileId;
+                        } else {
+                            console.error('❌ Cannot save quote - files not properly stored');
+                            throw new Error('Files must be saved to storage before creating quote');
+                        }
+                    }
+
+                    fileIds.push(fileId);
+
+                    // Add pricing breakdown for this file
+                    pricingBreakdown.push({
+                        file_id: fileId,
+                        file_name: fileData.file?.name || 'Unknown',
+                        volume_cm3: fileData.volume || 0,
+                        price: fileData.price || 0,
+                    });
+                }
+            }
+
+            if (fileIds.length === 0) {
+                throw new Error('No files with valid IDs found');
+            }
+
+            console.log('📋 File IDs for quote:', fileIds);
+
+            // Get current settings (material, color, quality, etc.)
+            const viewerSuffix = viewerId === 'general' ? '' : 'Medical';
+            const material = document.getElementById(`quoteMaterial${viewerSuffix}`)?.value || 'PLA';
+            const color = document.getElementById(`quoteColor${viewerSuffix}`)?.value || 'White';
+            const quality = document.getElementById(`quoteQuality${viewerSuffix}`)?.value || 'Standard';
+            const quantity = parseInt(document.getElementById(`quoteQuantity${viewerSuffix}`)?.value || '1');
+
+            // Get customer info if available (from form)
+            const customerName = document.getElementById(`customerName${viewerSuffix}`)?.value || null;
+            const customerEmail = document.getElementById(`customerEmail${viewerSuffix}`)?.value || null;
+            const customerPhone = document.getElementById(`customerPhone${viewerSuffix}`)?.value || null;
+
+            // Prepare quote data
+            const quoteData = {
+                file_ids: fileIds,
+                total_volume_cm3: totalVolume,
+                total_price: totalPrice,
+                material: material,
+                color: color,
+                quality: quality,
+                quantity: quantity,
+                pricing_breakdown: pricingBreakdown,
+                customer_name: customerName,
+                customer_email: customerEmail,
+                customer_phone: customerPhone,
+                form_type: viewerId,
+                notes: 'Auto-saved from Save & Calculate'
+            };
+
+            console.log('📤 Sending quote data to server:', quoteData);
+
+            // Send to API
+            const response = await fetch('/api/quotes/store', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify(quoteData)
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`API error: ${response.status} - ${errorText}`);
+            }
+
+            const result = await response.json();
+            console.log('✅ Quote API response:', result);
+
+            return result;
+
+        } catch (error) {
+            console.error('❌ Error saving quote to database:', error);
+            throw error;
+        }
     },
 
     async execute(viewerId = 'general') {
@@ -616,7 +719,33 @@ window.EnhancedSaveCalculate = {
             console.log(`   Volume: ${totalVolume.toFixed(2)} cm³`);
             console.log(`   Price: $${totalPrice.toFixed(2)}`);
 
-            // Step 6: Complete
+            // Step 6: Save Quote to Database
+            await this.updateProgress('Saving quote...', 95);
+            
+            try {
+                console.log('💾 Saving quote to database...');
+                const quoteData = await this.saveQuoteToDatabase(viewer, viewerId, totalVolume, totalPrice);
+                
+                if (quoteData && quoteData.success) {
+                    console.log('✅ Quote saved successfully:', quoteData.data);
+                    console.log('🔗 Viewer Link:', quoteData.data.viewer_link);
+                    console.log('📋 Quote Number:', quoteData.data.quote_number);
+                    
+                    // Show success notification with quote number
+                    this.showNotification(
+                        `Quote ${quoteData.data.quote_number} saved successfully!<br>View in <a href="${quoteData.data.viewer_link}" target="_blank">viewer</a>`,
+                        'success'
+                    );
+                } else {
+                    console.warn('⚠️ Quote save returned non-success:', quoteData);
+                }
+            } catch (saveError) {
+                console.error('❌ Failed to save quote to database:', saveError);
+                // Don't fail the whole process if quote save fails
+                this.showNotification('Calculation complete, but failed to save to logs', 'warning');
+            }
+
+            // Step 7: Complete
             await this.updateProgress('Complete!', 100);
 
             setTimeout(() => {

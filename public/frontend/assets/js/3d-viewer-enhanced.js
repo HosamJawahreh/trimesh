@@ -3,6 +3,21 @@
  * Supports STL, OBJ, PLY files with Three.js
  */
 
+// Add CSS animations for notifications
+if (!document.getElementById('viewer-animations-style')) {
+    const style = document.createElement('style');
+    style.id = 'viewer-animations-style';
+    style.textContent = `
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateX(-50%) translateY(10px); }
+            10% { opacity: 1; transform: translateX(-50%) translateY(0); }
+            90% { opacity: 1; transform: translateX(-50%) translateY(0); }
+            100% { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+        }
+    `;
+    document.head.appendChild(style);
+}
+
 // Check if Three.js is already loaded
 let threeLoaded = false;
 let loadersLoaded = false;
@@ -130,12 +145,46 @@ class Enhanced3DViewer {
         this.renderer.setPixelRatio(window.devicePixelRatio);
         this.container.appendChild(this.renderer.domElement);
 
-        // Add controls
+        // Add controls with enhanced settings for better model manipulation
         this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
+        
+        // Damping for smooth, realistic movement
         this.controls.enableDamping = true;
-        this.controls.dampingFactor = 0.05;
-        this.controls.minDistance = 10;
-        this.controls.maxDistance = 1000;
+        this.controls.dampingFactor = 0.08; // Slightly more damping for smoother feel
+        
+        // Distance constraints
+        this.controls.minDistance = 5; // Allow closer zoom
+        this.controls.maxDistance = 2000; // Allow further zoom out
+        
+        // Zoom settings
+        this.controls.zoomSpeed = 1.2; // Faster zoom response
+        this.controls.mouseButtons = {
+            LEFT: THREE.MOUSE.ROTATE,
+            MIDDLE: THREE.MOUSE.DOLLY,
+            RIGHT: THREE.MOUSE.PAN
+        };
+        
+        // Pan and rotate settings
+        this.controls.panSpeed = 0.8; // Smooth panning
+        this.controls.rotateSpeed = 1.0; // Standard rotation speed
+        this.controls.screenSpacePanning = true; // Pan in screen space
+        
+        // Smooth keyboard controls
+        this.controls.keys = {
+            LEFT: 37,  // Arrow Left
+            UP: 38,    // Arrow Up
+            RIGHT: 39, // Arrow Right
+            BOTTOM: 40 // Arrow Down
+        };
+        this.controls.enableKeys = true;
+        
+        // Auto-rotation feature (disabled by default, can be toggled)
+        this.controls.autoRotate = false;
+        this.controls.autoRotateSpeed = 2.0;
+        
+        // Prevent camera from going below ground
+        this.controls.maxPolarAngle = Math.PI * 0.95;
+        this.controls.minPolarAngle = Math.PI * 0.05;
 
         // Add lights
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
@@ -158,8 +207,174 @@ class Enhanced3DViewer {
         this.initialized = true;
         console.log('✓ Viewer initialized:', this.containerId);
 
+        // Setup keyboard shortcuts
+        this.setupKeyboardControls();
+        
+        // Add controls info display
+        this.addControlsInfo();
+
         // Start animation loop
         this.animate();
+    }
+
+    setupKeyboardControls() {
+        /**
+         * Enhanced keyboard controls for model manipulation
+         * R - Toggle auto-rotation
+         * F - Fit camera to model
+         * H - Toggle controls help
+         * + - Zoom in
+         * - - Zoom out
+         * Space - Reset camera
+         */
+        document.addEventListener('keydown', (event) => {
+            // Only respond if viewer is active and no input is focused
+            if (document.activeElement.tagName === 'INPUT' || 
+                document.activeElement.tagName === 'TEXTAREA') {
+                return;
+            }
+
+            switch(event.key.toLowerCase()) {
+                case 'r':
+                    // Toggle auto-rotation
+                    if (this.controls) {
+                        this.controls.autoRotate = !this.controls.autoRotate;
+                        console.log(`Auto-rotate: ${this.controls.autoRotate ? 'ON' : 'OFF'}`);
+                        this.showNotification(`Auto-rotation ${this.controls.autoRotate ? 'enabled' : 'disabled'}`);
+                    }
+                    break;
+                
+                case 'f':
+                    // Fit camera to model
+                    this.fitCameraToModel();
+                    this.showNotification('Camera fitted to model');
+                    break;
+                
+                case 'h':
+                    // Toggle help
+                    this.toggleControlsInfo();
+                    break;
+                
+                case '+':
+                case '=':
+                    // Zoom in
+                    if (this.camera && this.controls) {
+                        const zoomFactor = 0.9;
+                        this.camera.position.multiplyScalar(zoomFactor);
+                        this.controls.update();
+                    }
+                    break;
+                
+                case '-':
+                case '_':
+                    // Zoom out
+                    if (this.camera && this.controls) {
+                        const zoomFactor = 1.1;
+                        this.camera.position.multiplyScalar(zoomFactor);
+                        this.controls.update();
+                    }
+                    break;
+                
+                case ' ':
+                    // Reset camera (spacebar)
+                    event.preventDefault();
+                    this.fitCameraToModel();
+                    if (this.controls) {
+                        this.controls.autoRotate = false;
+                    }
+                    this.showNotification('Camera reset');
+                    break;
+            }
+        });
+    }
+
+    addControlsInfo() {
+        /**
+         * Add a controls info overlay that can be toggled with 'H'
+         */
+        const infoDiv = document.createElement('div');
+        infoDiv.id = `controls-info-${this.containerId}`;
+        infoDiv.style.cssText = `
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 13px;
+            line-height: 1.6;
+            z-index: 1000;
+            display: none;
+            max-width: 280px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        `;
+        
+        infoDiv.innerHTML = `
+            <div style="font-weight: bold; font-size: 14px; margin-bottom: 10px; color: #667eea;">
+                🎮 3D Viewer Controls
+            </div>
+            <div style="margin-bottom: 8px;">
+                <strong>Mouse:</strong>
+                <div style="margin-left: 12px; margin-top: 4px;">
+                    • Left: Rotate<br>
+                    • Right: Pan<br>
+                    • Wheel: Zoom
+                </div>
+            </div>
+            <div>
+                <strong>Keyboard:</strong>
+                <div style="margin-left: 12px; margin-top: 4px;">
+                    • <code style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 3px;">R</code> - Auto-rotate<br>
+                    • <code style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 3px;">F</code> - Fit camera<br>
+                    • <code style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 3px;">H</code> - Toggle help<br>
+                    • <code style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 3px;">+/-</code> - Zoom in/out<br>
+                    • <code style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 3px;">Space</code> - Reset<br>
+                    • <code style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 3px;">Arrows</code> - Navigate
+                </div>
+            </div>
+        `;
+        
+        this.container.style.position = 'relative';
+        this.container.appendChild(infoDiv);
+    }
+
+    toggleControlsInfo() {
+        const infoDiv = document.getElementById(`controls-info-${this.containerId}`);
+        if (infoDiv) {
+            infoDiv.style.display = infoDiv.style.display === 'none' ? 'block' : 'none';
+        }
+    }
+
+    showNotification(message, duration = 2000) {
+        /**
+         * Show a temporary notification overlay
+         */
+        const notifDiv = document.createElement('div');
+        notifDiv.style.cssText = `
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(102, 126, 234, 0.95);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 1001;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            animation: fadeInOut ${duration}ms ease-in-out;
+        `;
+        
+        notifDiv.textContent = message;
+        this.container.appendChild(notifDiv);
+        
+        setTimeout(() => {
+            notifDiv.remove();
+        }, duration);
     }
 
     async loadSTL(file) {
