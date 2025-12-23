@@ -130,6 +130,13 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'checkAdmin'])->grou
         Route::delete('/destroy/{id}', [\App\Http\Controllers\Admin\MeshRepairAdminController::class, 'destroy'])->name('destroy');
         Route::get('/export', [\App\Http\Controllers\Admin\MeshRepairAdminController::class, 'export'])->name('export');
     });
+    
+    // Repair Logs Routes
+    Route::prefix('repair-logs')->name('repair-logs.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\RepairLogAdminController::class, 'index'])->name('index');
+        Route::get('/{id}', [\App\Http\Controllers\Admin\RepairLogAdminController::class, 'show'])->name('show');
+        Route::delete('/{id}', [\App\Http\Controllers\Admin\RepairLogAdminController::class, 'destroy'])->name('destroy');
+    });
 });
 
 require __DIR__ .'/auth.php';

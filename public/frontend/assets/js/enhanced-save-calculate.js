@@ -50,185 +50,345 @@ window.EnhancedSaveCalculate = {
 
     /**
      * Repair mesh using server-side Python service (production-grade)
+     * Uses the comprehensive /repair-and-calculate endpoint that:
+     * 1. Repairs mesh and closes all holes
+     * 2. Calculates accurate volume AFTER repair using NumPy
+     * 3. Returns the repaired mesh file for visualization
      */
-    async repairMeshServerSide(fileData, viewerId = 'general') {
+    async repairMeshServerSide(fileData, viewerId = 'general', viewer = null) {
         try {
-            console.log(`🌐 Server-side repair starting for: ${fileData.file.name}`);
+            console.log(`🌐 Server-side repair + volume calculation for: ${fileData.file.name}`);
 
-            // Check if file has a storage ID (already uploaded to database)
-            let fileId = fileData.storageId || fileData.id;
-            console.log('📋 File ID:', fileId);
+            // Prepare form data with the file
+            const formData = new FormData();
+            formData.append('file', fileData.file);
+            formData.append('aggressive', 'true'); // Use aggressive repair to fill all holes
 
-            // If file is NOT in database yet, upload it first
-            if (!fileId || !fileId.startsWith('file_')) {
-                console.log('📤 File not in database yet, uploading first...');
+            // Call the comprehensive repair-and-calculate endpoint
+            console.log('🔧 Sending to Python service for repair + volume calculation...');
+            const response = await fetch('http://localhost:8001/repair-and-calculate', {
+                method: 'POST',
+                body: formData
+            });
 
-                // Convert file to base64
-                const arrayBuffer = await fileData.file.arrayBuffer();
-                const bytes = new Uint8Array(arrayBuffer);
-                let binary = '';
-                for (let i = 0; i < bytes.length; i++) {
-                    binary += String.fromCharCode(bytes[i]);
-                }
-                const base64Data = btoa(binary);
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('❌ Server repair failed:', response.status, errorText);
+                throw new Error(`Server repair failed: ${response.status} ${response.statusText}`);
+            }
 
-                // Upload to server
-                const uploadResponse = await fetch('/api/3d-files/store', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        file: base64Data,
-                        fileName: fileData.file.name,
-                        metadata: JSON.stringify({
-                            size: fileData.file.size,
-                            type: fileData.file.type,
-                            uploadedFrom: 'enhanced-save-calculate'
-                        })
-                    })
-                });
+            const result = await response.json();
+            console.log('✅ Server repair complete:', result);
 
-                if (!uploadResponse.ok) {
-                    throw new Error('Failed to upload file to server');
-                }
+            if (!result.success) {
+                throw new Error(result.message || 'Repair failed');
+            }
 
-                const uploadResult = await uploadResponse.json();
-                if (!uploadResult.success) {
-                    throw new Error(uploadResult.message || 'Upload failed');
-                }
+            // Decode the repaired mesh file from base64
+            console.log('📥 Decoding repaired mesh file...');
+            const repairedBytes = atob(result.repaired_file_base64);
+            const repairedArray = new Uint8Array(repairedBytes.length);
+            for (let i = 0; i < repairedBytes.length; i++) {
+                repairedArray[i] = repairedBytes.charCodeAt(i);
+            }
+            const repairedBlob = new Blob([repairedArray], { type: 'application/octet-stream' });
+            const repairedFile = new File([repairedBlob], result.repaired_filename, {
+                type: fileData.file.type
+            });
 
-                fileId = uploadResult.fileId;
-                fileData.storageId = fileId; // Store for future use
-                console.log('✅ File uploaded to server with ID:', fileId);
+            // Store the repaired file and volume
+            fileData.repairedFile = repairedFile;
+            fileData.serverVolume = result.repaired_volume_cm3;
+            fileData.volume = {
+                cm3: result.repaired_volume_cm3,
+                mm3: result.repaired_volume_mm3
+            };
+            fileData.pythonVolume = result.repaired_volume_cm3;
 
-                // Update URL to include this file
-                if (window.fileStorageManager) {
-                    window.fileStorageManager.updateURL(fileId);
+            // Update in viewer if available
+            if (viewer && viewer.uploadedFiles) {
+                const viewerFileIndex = viewer.uploadedFiles.findIndex(f => f.file?.name === fileData.file?.name);
+                if (viewerFileIndex !== -1) {
+                    viewer.uploadedFiles[viewerFileIndex].repairedFile = repairedFile;
+                    viewer.uploadedFiles[viewerFileIndex].serverVolume = result.repaired_volume_cm3;
+                    viewer.uploadedFiles[viewerFileIndex].volume = fileData.volume;
+                    viewer.uploadedFiles[viewerFileIndex].pythonVolume = result.repaired_volume_cm3;
+                    console.log(`✅ Updated repaired mesh in viewer.uploadedFiles[${viewerFileIndex}]`);
                 }
             }
 
-            // Analyze mesh first
-            this.updateProgress('Analyzing mesh on server...', 30);
+            console.log(`🎯 ACCURATE VOLUME (After Repair): ${result.repaired_volume_cm3.toFixed(4)} cm³`);
+            console.log(`   Holes filled: ${result.holes_filled}`);
+            console.log(`   Watertight: ${result.repaired_watertight}`);
+            console.log(`   Volume change: ${result.volume_change_cm3.toFixed(4)} cm³ (${result.volume_change_percent.toFixed(2)}%)`);
 
-            let analyzeResponse;
-
-            if (fileId && fileId.startsWith('file_')) {
-                // File is already in database - use file_id parameter
-                console.log('💾 Using file ID from database:', fileId);
-
-                const formData = new FormData();
-                formData.append('file_id', fileId);
-                formData.append('aggressive', 'true');
-
-                analyzeResponse = await fetch('/api/mesh/analyze', {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'Accept': 'application/json',
-                    }
-                });
+            // Load and display the repaired mesh in the viewer
+            if (viewer && typeof THREE !== 'undefined') {
+                console.log('🎨 Loading repaired mesh into viewer...');
+                await this.loadRepairedMeshToViewer(viewer, fileData, repairedFile, result);
             } else {
-                // File needs to be uploaded - use file upload
-                console.log('📤 Uploading file to server:', fileData.file.name, 'size:', fileData.file.size);
-
-                const formData = new FormData();
-                formData.append('file', fileData.file);
-                formData.append('aggressive', 'true');
-
-                analyzeResponse = await fetch('/api/mesh/analyze', {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'Accept': 'application/json',
-                    }
-                });
+                console.warn('⚠️ Viewer or THREE.js not available, skipping visualization');
             }
 
-            console.log('📥 Analyze response status:', analyzeResponse.status, analyzeResponse.statusText);
-
-            if (!analyzeResponse.ok) {
-                const errorData = await analyzeResponse.json().catch(() => ({}));
-                console.error('❌ Analysis error response:', errorData);
-                throw new Error(`Analysis failed: ${analyzeResponse.statusText} - ${JSON.stringify(errorData)}`);
+            // Save repair log to database for admin dashboard (don't block on failure)
+            try {
+                await this.saveRepairLog(result, fileData);
+            } catch (logError) {
+                console.error('⚠️ Failed to save repair log (non-critical):', logError);
+                // Don't throw - this is non-critical, repair already succeeded
             }
-
-            const analysis = await analyzeResponse.json();
-            console.log('📊 Server analysis result:', analysis);
-
-            // Show recommendations if any
-            if (analysis.recommendations && analysis.recommendations.length > 0) {
-                console.log('💡 Recommendations:', analysis.recommendations);
-            }
-
-            // Check if repair is needed
-            if (analysis.analysis.is_watertight) {
-                console.log('✓ Mesh is already watertight - no repair needed');
-                return {
-                    repaired: false,
-                    watertight: true,
-                    volume_cm3: analysis.analysis.volume_cm3,
-                    quality_score: 100,
-                    server_side: true
-                };
-            }
-
-            // Perform repair
-            this.updateProgress(`Repairing mesh (${analysis.analysis.holes_count} holes)...`, 50);
-
-            let repairResponse;
-
-            if (fileId && fileId.startsWith('file_')) {
-                // File is already in database - use file_id parameter
-                console.log('💾 Repairing using file ID from database:', fileId);
-
-                const repairFormData = new FormData();
-                repairFormData.append('file_id', fileId);
-                repairFormData.append('aggressive', 'true');
-                repairFormData.append('save_result', 'true'); // Save to database for admin logs
-
-                repairResponse = await fetch('/api/mesh/repair', {
-                    method: 'POST',
-                    body: repairFormData
-                });
-            } else {
-                // File needs to be uploaded - use file upload
-                console.log('📤 Repairing by uploading file:', fileData.file.name);
-
-                const repairFormData = new FormData();
-                repairFormData.append('file', fileData.file);
-                repairFormData.append('aggressive', 'true');
-                repairFormData.append('save_result', 'true'); // Save to database for admin logs
-
-                repairResponse = await fetch('/api/mesh/repair', {
-                    method: 'POST',
-                    body: repairFormData
-                });
-            }
-
-            if (!repairResponse.ok) {
-                throw new Error(`Repair failed: ${repairResponse.statusText}`);
-            }
-
-            const repairResult = await repairResponse.json();
-            console.log('✅ Server repair complete:', repairResult);
 
             return {
                 repaired: true,
-                original_volume_cm3: repairResult.original_stats.volume_cm3,
-                repaired_volume_cm3: repairResult.repaired_stats.volume_cm3,
-                holes_filled: repairResult.repair_summary.holes_filled,
-                quality_score: repairResult.quality_score,
-                volume_change_cm3: repairResult.volume_change_cm3,
-                volume_change_percent: repairResult.volume_change_percent,
-                watertight: repairResult.repaired_stats.is_watertight,
-                server_side: true
+                original_volume_cm3: result.original_volume_cm3,
+                repaired_volume_cm3: result.repaired_volume_cm3,
+                volume_cm3: result.repaired_volume_cm3, // Use repaired volume
+                holes_filled: result.holes_filled,
+                watertight: result.repaired_watertight,
+                volume_change_cm3: result.volume_change_cm3,
+                volume_change_percent: result.volume_change_percent,
+                server_side: true,
+                method: result.method
             };
 
         } catch (error) {
             console.error('❌ Server-side repair error:', error);
             throw error;
+        }
+    },
+
+    /**
+     * Load repaired mesh into the viewer and show repaired areas in gray
+     */
+    async loadRepairedMeshToViewer(viewer, fileData, repairedFile, repairResult) {
+        try {
+            console.log('🎨 Loading repaired mesh for visualization...');
+
+            // Create a URL for the repaired file
+            const repairedUrl = URL.createObjectURL(repairedFile);
+
+            // Load the repaired mesh using STLLoader
+            const loader = new THREE.STLLoader();
+            
+            return new Promise((resolve, reject) => {
+                loader.load(repairedUrl, (geometry) => {
+                    try {
+                        console.log('✅ Repaired mesh loaded, adding to scene...');
+
+                        // Remove old mesh if exists
+                        if (fileData.mesh && viewer.scene) {
+                            viewer.scene.remove(fileData.mesh);
+                            console.log('   Removed old mesh from scene');
+                        }
+
+                        // Create material for MAIN mesh - slightly transparent to show repairs
+                        const mainMaterial = new THREE.MeshPhongMaterial({
+                            color: 0xCCCCCC, // Light gray for repaired mesh
+                            flatShading: false,
+                            side: THREE.DoubleSide,
+                            transparent: true,
+                            opacity: 0.95
+                        });
+
+                        // Create new mesh
+                        const mesh = new THREE.Mesh(geometry, mainMaterial);
+                        mesh.userData = {
+                            fileName: fileData.file.name,
+                            volume: repairResult.repaired_volume_cm3,
+                            repaired: true,
+                            holesFilledCount: repairResult.holes_filled,
+                            watertight: repairResult.repaired_watertight
+                        };
+
+                        // Add to scene
+                        viewer.scene.add(mesh);
+                        
+                        // Update fileData reference
+                        fileData.mesh = mesh;
+
+                        // Update viewer.uploadedFiles reference
+                        if (viewer.uploadedFiles) {
+                            const fileIndex = viewer.uploadedFiles.findIndex(f => f.file?.name === fileData.file?.name);
+                            if (fileIndex !== -1) {
+                                viewer.uploadedFiles[fileIndex].mesh = mesh;
+                            }
+                        }
+
+                        // Add visual indicators for repaired areas
+                        if (repairResult.repair_visualization && repairResult.repair_visualization.repair_vertices) {
+                            console.log('🔴 Adding repair visualization markers...');
+                            this.addRepairVisualization(viewer, repairResult.repair_visualization);
+                        }
+
+                        // Add info box to indicate repaired mesh
+                        if (viewer.showInfoBox) {
+                            viewer.showInfoBox(
+                                `<div style="background: linear-gradient(135deg, #4CAF50, #45a049); color: white; padding: 15px; border-radius: 8px;">
+                                    <strong>🔧 MESH REPAIRED</strong><br>
+                                    <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.3);">
+                                        <div><strong>File:</strong> ${fileData.file.name}</div>
+                                        <div><strong>Holes Filled:</strong> ${repairResult.holes_filled}</div>
+                                        <div><strong>Volume:</strong> ${repairResult.repaired_volume_cm3.toFixed(4)} cm³</div>
+                                        <div><strong>Faces Added:</strong> ${repairResult.faces_added}</div>
+                                        <div style="margin-top: 8px; padding: 5px; background: rgba(255,255,255,0.2); border-radius: 4px;">
+                                            <span style="color: #CCCCCC;">█</span> Light Gray = Repaired Mesh<br>
+                                            <span style="color: #FF4444;">●</span> Red Dots = Repaired Areas
+                                        </div>
+                                    </div>
+                                </div>`,
+                                'success'
+                            );
+                        }
+
+                        console.log('✅ Repaired mesh displayed with visual markers');
+                        console.log(`   Holes filled: ${repairResult.holes_filled}`);
+                        console.log(`   Volume: ${repairResult.repaired_volume_cm3.toFixed(4)} cm³`);
+
+                        // Clean up URL
+                        URL.revokeObjectURL(repairedUrl);
+
+                        resolve();
+                    } catch (err) {
+                        console.error('❌ Error adding repaired mesh to scene:', err);
+                        URL.revokeObjectURL(repairedUrl);
+                        reject(err);
+                    }
+                }, undefined, (error) => {
+                    console.error('❌ Error loading repaired mesh:', error);
+                    URL.revokeObjectURL(repairedUrl);
+                    reject(error);
+                });
+            });
+
+        } catch (error) {
+            console.error('❌ Error in loadRepairedMeshToViewer:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Add visual markers for repaired areas (red dots)
+     */
+    addRepairVisualization(viewer, visualizationData) {
+        try {
+            if (!visualizationData.repair_vertices || visualizationData.repair_vertices.length === 0) {
+                console.log('   No repair vertices to visualize');
+                return;
+            }
+
+            const repairVertices = visualizationData.repair_vertices;
+            console.log(`   Adding ${repairVertices.length} repair markers...`);
+
+            // Create geometry for repair markers
+            const pointsGeometry = new THREE.BufferGeometry();
+            const positions = new Float32Array(repairVertices.length * 3);
+
+            for (let i = 0; i < repairVertices.length; i++) {
+                positions[i * 3] = repairVertices[i][0];
+                positions[i * 3 + 1] = repairVertices[i][1];
+                positions[i * 3 + 2] = repairVertices[i][2];
+            }
+
+            pointsGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+            // Create material for repair markers - BRIGHT RED
+            const pointsMaterial = new THREE.PointsMaterial({
+                color: 0xFF4444,
+                size: 2.0,
+                sizeAttenuation: true,
+                transparent: true,
+                opacity: 0.8
+            });
+
+            // Create points mesh
+            const repairMarkers = new THREE.Points(pointsGeometry, pointsMaterial);
+            repairMarkers.userData = {
+                type: 'repair_visualization',
+                count: repairVertices.length
+            };
+
+            // Add to scene
+            viewer.scene.add(repairMarkers);
+
+            // Store reference for cleanup
+            if (!viewer.repairVisualizations) {
+                viewer.repairVisualizations = [];
+            }
+            viewer.repairVisualizations.push(repairMarkers);
+
+            console.log(`✅ Added ${repairVertices.length} red markers for repaired areas`);
+
+        } catch (error) {
+            console.error('❌ Error adding repair visualization:', error);
+        }
+    },
+
+    /**
+     * Save repair log to database for admin dashboard
+     */
+    async saveRepairLog(repairResult, fileData) {
+        console.log('💾 Saving repair log to database...');
+        
+        try {
+            const storageId = fileData?.storageId || repairResult?.storage_id || fileData?.id || null;
+            const originalPath = repairResult.original_file_path
+                || (storageId ? `shared-3d-files://${storageId}` : 'client-storage');
+            const repairedPath = repairResult.repaired_file_path
+                || (storageId ? `shared-3d-files://${storageId}-repaired` : 'client-storage');
+
+            // Prepare payload
+            const payload = {
+                filename: repairResult.filename || fileData?.file?.name || fileData?.name || 'unknown',
+                original_file_path: originalPath,
+                repaired_file_path: repairedPath,
+                holes_filled: repairResult.holes_filled || 0,
+                original_volume_cm3: repairResult.original_volume_cm3 || 0,
+                repaired_volume_cm3: repairResult.repaired_volume_cm3 || 0,
+                volume_change_cm3: repairResult.volume_change_cm3 || 0,
+                volume_change_percent: repairResult.volume_change_percent || 0,
+                original_vertices: repairResult.original_vertices || 0,
+                repaired_vertices: repairResult.repaired_vertices || 0,
+                original_faces: repairResult.original_faces || 0,
+                repaired_faces: repairResult.repaired_faces || 0,
+                watertight_achieved: repairResult.repaired_watertight || false,
+                repair_method: 'pymeshfix',
+                repair_notes: `Holes: ${repairResult.holes_filled || 0}, Volume change: ${(repairResult.volume_change_percent || 0).toFixed(2)}%`
+            };
+
+            console.log('   Sending payload:', payload);
+
+            const response = await fetch('/api/repair-logs', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const responseText = await response.text();
+            console.log('   Response status:', response.status);
+            console.log('   Response body:', responseText);
+
+            if (response.ok) {
+                try {
+                    const result = JSON.parse(responseText);
+                    console.log('✅ Repair log saved to database:', result);
+                    return result;
+                } catch (e) {
+                    console.log('✅ Repair log saved (response not JSON)');
+                }
+            } else {
+                console.warn('⚠️ Failed to save repair log');
+                console.warn('   Status:', response.status);
+                console.warn('   Response:', responseText);
+                if (response.status === 422) {
+                    console.warn('   ⚠️ Validation errors likely due to missing required fields.');
+                }
+            }
+        } catch (error) {
+            console.error('❌ Error saving repair log:', error);
+            console.error('   Error details:', error.message);
         }
     },
 
@@ -273,6 +433,70 @@ window.EnhancedSaveCalculate = {
     },
 
     /**
+     * Ensure a viewer file has a valid storage ID by saving it via FileStorageManager on demand
+     */
+    async ensureStorageIdForFile(fileData, viewer) {
+        if (!window.fileStorageManager || !fileData || !fileData.file) {
+            console.warn('⚠️ Cannot ensure storage ID - missing storage manager or file data');
+            return null;
+        }
+
+        // Avoid duplicate save attempts
+        if (fileData.storageId && String(fileData.storageId).startsWith('file_')) {
+            return fileData.storageId;
+        }
+        if (fileData._storagePromise) {
+            console.log('⏳ Awaiting existing storage save promise for file:', fileData.file.name);
+            return await fileData._storagePromise;
+        }
+
+        try {
+            fileData._storagePromise = (async () => {
+                try {
+                    console.log('💾 Saving file on-demand via FileStorageManager:', fileData.file.name);
+                    const arrayBuffer = fileData.file.arrayBuffer ? await fileData.file.arrayBuffer() : null;
+
+                    if (!arrayBuffer) {
+                        console.error('❌ Failed to obtain ArrayBuffer for file storage');
+                        return null;
+                    }
+
+                    const storageId = await window.fileStorageManager.saveFile(
+                        arrayBuffer,
+                        fileData.file.name || `model_${Date.now()}`,
+                        fileData.geometry,
+                        fileData.mesh
+                    );
+
+                    if (storageId && String(storageId).startsWith('file_')) {
+                        console.log('✅ On-demand storage complete:', storageId);
+                        fileData.storageId = storageId;
+
+                        if (viewer && Array.isArray(viewer.uploadedFiles)) {
+                            const fileIndex = viewer.uploadedFiles.indexOf(fileData);
+                            if (fileIndex !== -1) {
+                                viewer.uploadedFiles[fileIndex].storageId = storageId;
+                            }
+                        }
+
+                        return storageId;
+                    }
+
+                    console.warn('⚠️ Storage manager returned invalid ID:', storageId);
+                    return null;
+                } catch (error) {
+                    console.error('❌ On-demand file storage failed:', error);
+                    return null;
+                }
+            })();
+
+            return await fileData._storagePromise;
+        } finally {
+            delete fileData._storagePromise;
+        }
+    },
+
+    /**
      * Save quote to database with file IDs and pricing
      */
     async saveQuoteToDatabase(viewer, viewerId, totalVolume, totalPrice) {
@@ -287,26 +511,60 @@ window.EnhancedSaveCalculate = {
                 for (const fileData of viewer.uploadedFiles) {
                     // Get file ID from storage or generate one
                     let fileId = fileData.storageId || fileData.id;
+                    let fileIdStr = String(fileId || '');
 
-                    if (!fileId || !fileId.startsWith('file_')) {
-                        console.warn('⚠️ File missing storage ID, attempting to get from storage manager...');
+                    if (!fileId || !fileIdStr.startsWith('file_')) {
+                        console.warn('⚠️ File missing storage ID, attempting on-demand save...');
 
-                        // Try to get from file storage manager
-                        if (window.fileStorageManager && window.fileStorageManager.currentFileId) {
+                        // Attempt to save the file via storage manager right now
+                        if (window.fileStorageManager) {
+                            const ensuredId = await this.ensureStorageIdForFile(fileData, viewer);
+                            if (ensuredId) {
+                                fileId = ensuredId;
+                                fileIdStr = String(fileId);
+                            }
+                        }
+
+                        // Fallback: try using the most recent storage ID tracked globally
+                        if ((!fileId || !fileIdStr.startsWith('file_')) && window.fileStorageManager?.currentFileId) {
+                            console.log('🔄 Using currentFileId from storage manager as fallback');
                             fileId = window.fileStorageManager.currentFileId;
-                        } else {
+                            fileIdStr = String(fileId || '');
+                        }
+
+                        if (!fileId || !fileIdStr.startsWith('file_')) {
                             console.error('❌ Cannot save quote - files not properly stored');
                             throw new Error('Files must be saved to storage before creating quote');
                         }
                     }
 
+                    // Persist the resolved storage ID back onto the viewer's file record for future operations
+                    try {
+                        fileData.storageId = fileId;
+                        console.log('   storageId confirmed for file:', fileId);
+                    } catch (persistError) {
+                        console.warn('⚠️ Could not persist storageId on file record:', persistError);
+                    }
+
                     fileIds.push(fileId);
 
                     // Add pricing breakdown for this file
+                    // Handle volume being either a number or an object {cm3, mm3}
+                    const volumeCm3 = typeof fileData.volume === 'object' && fileData.volume !== null
+                        ? (fileData.volume.cm3 || 0)
+                        : (fileData.volume || 0);
+
+                    console.log('🔍 VOLUME DEBUG:', {
+                        fileId,
+                        volumeType: typeof fileData.volume,
+                        volumeRaw: fileData.volume,
+                        volumeCm3: volumeCm3
+                    });
+
                     pricingBreakdown.push({
                         file_id: fileId,
                         file_name: fileData.file?.name || 'Unknown',
-                        volume_cm3: fileData.volume || 0,
+                        volume_cm3: volumeCm3,
                         price: fileData.price || 0,
                     });
                 }
@@ -427,7 +685,7 @@ window.EnhancedSaveCalculate = {
                 console.log('🌐 Using server-side mesh repair (production-grade)');
                 try {
                     for (const fileData of viewer.uploadedFiles) {
-                        const serverResult = await this.repairMeshServerSide(fileData, viewerId);
+                        const serverResult = await this.repairMeshServerSide(fileData, viewerId, viewer);
                         repairResults.push({
                             fileName: fileData.file.name,
                             ...serverResult
@@ -560,74 +818,70 @@ window.EnhancedSaveCalculate = {
                 }
             }
 
-            // Step 3: Calculate volumes (AFTER repair, using server volume if available)
-            await this.updateProgress('Calculating volumes...', 60);
+            // Step 3: Calculate volumes USING PYTHON ONLY (NO client-side calculation)
+            await this.updateProgress('Calculating accurate volumes with Python/NumPy...', 60);
             let totalVolume = 0;
 
-            console.log('📐 Starting volume calculation (AFTER repair)...');
+            console.log('🐍 VOLUME CALCULATION - PYTHON ONLY (No client-side approximations)');
+            console.log('   Reason: Client-side calculations are inaccurate for PLY/OBJ files');
+            console.log('   Method: Python trimesh + NumPy (production-grade)');
 
-            for (const fileData of viewer.uploadedFiles) {
-                try {
-                    let volume = 0;
-
-                    // PRIORITY: Use server-calculated volume if available (most accurate)
-                    if (fileData.serverVolume) {
-                        console.log(`📐 Using server-calculated volume for: ${fileData.file?.name}`);
-                        volume = fileData.serverVolume;
-                        fileData.volume = { cm3: volume, mm3: volume * 1000 };
-                        totalVolume += volume;
-                        console.log(`   ✅ Server volume: ${volume.toFixed(4)} cm³ (production-grade)`);
-                        continue;
-                    }
-
-                    // FALLBACK: Calculate from geometry (client-side or original)
-                    const geometry = fileData.geometry || (fileData.mesh && fileData.mesh.geometry);
-
-                    if (!geometry) {
-                        console.warn(`⚠️ No geometry found for ${fileData.file?.name || 'unknown file'}`);
-                        continue;
-                    }
-
-                    console.log(`📐 Calculating volume for: ${fileData.file?.name}`);
-                    console.log(`   🔍 DEBUGGING GEOMETRY SOURCE:`);
-                    console.log(`      fileData.geometry exists: ${!!fileData.geometry}`);
-                    console.log(`      Using repaired geometry: ${!!fileData.geometry}`);
-                    console.log(`   Geometry has ${geometry.attributes.position.count} vertices`);
-                    console.log(`   Indexed: ${!!geometry.index}`);
-
-                    // Try using viewer's calculateVolume method (pass GEOMETRY, not mesh!)
-                    if (viewer.calculateVolume && typeof viewer.calculateVolume === 'function') {
-                        console.log(`   Using viewer.calculateVolume method`);
-                        volume = viewer.calculateVolume(geometry);
-                    }
-                    // Fallback: Calculate volume directly from geometry
-                    else {
-                        console.log(`   Using fallback volume calculation method`);
-                        volume = this.calculateMeshVolume(geometry);
-                    }
-
-                    // Handle return value - could be object {cm3, mm3} or just number
-                    if (typeof volume === 'object' && volume !== null) {
-                        if (volume.cm3) {
-                            fileData.volume = volume;
-                            totalVolume += volume.cm3;
-                            console.log(`   ✅ Volume: ${volume.cm3.toFixed(2)} cm³ (${volume.mm3.toFixed(2)} mm³)`);
+            // CRITICAL: ALWAYS calculate accurate volume using Python/NumPy
+            // This ensures maximum accuracy regardless of repair method or file format
+            console.log('🐍 Calculating ACCURATE volume with Python/NumPy (production-grade)...');
+            
+            try {
+                await this.updateProgress('Calculating accurate volume...', 70);
+                
+                // Reset total volume - we'll use Python result only
+                totalVolume = 0;
+                
+                // Send ALL files to Python service for accurate volume calculation
+                for (const fileData of viewer.uploadedFiles) {
+                    if (fileData.file) {
+                        console.log(`🐍 Sending ${fileData.file.name} to Python for volume calculation...`);
+                        
+                        const formData = new FormData();
+                        formData.append('file', fileData.file);
+                        
+                        const volumeResponse = await fetch('http://localhost:8001/calculate-volume', {
+                            method: 'POST',
+                            body: formData
+                        });
+                        
+                        if (volumeResponse.ok) {
+                            const volumeResult = await volumeResponse.json();
+                            console.log(`✅ Python volume result:`, volumeResult);
+                            
+                            // Use Python-calculated volume (most accurate - NumPy precision)
+                            const pythonVolume = volumeResult.volume_cm3;
+                            fileData.volume = { cm3: pythonVolume, mm3: volumeResult.volume_mm3 };
+                            fileData.pythonVolume = pythonVolume;
+                            
+                            // Add to total
+                            totalVolume += pythonVolume;
+                            
+                            // Update viewer.uploadedFiles array
+                            const viewerFileIndex = viewer.uploadedFiles.findIndex(f => f.file?.name === fileData.file?.name);
+                            if (viewerFileIndex !== -1) {
+                                viewer.uploadedFiles[viewerFileIndex].volume = fileData.volume;
+                                viewer.uploadedFiles[viewerFileIndex].pythonVolume = pythonVolume;
+                                console.log(`✅ Updated Python volume in viewer.uploadedFiles[${viewerFileIndex}]: ${pythonVolume.toFixed(4)} cm³`);
+                            }
+                            
+                            console.log(`🎯 ACCURATE VOLUME (Python/NumPy): ${pythonVolume.toFixed(4)} cm³`);
                         } else {
-                            console.warn(`   ⚠️ Invalid volume object:`, volume);
+                            console.error(`❌ Python volume calculation failed for ${fileData.file.name}`);
+                            const errorText = await volumeResponse.text();
+                            console.error(`   Server response: ${errorText}`);
+                            // NO fallback to client-side - throw error instead
+                            throw new Error(`Python volume calculation failed: ${errorText}`);
                         }
-                    } else if (typeof volume === 'number' && !isNaN(volume)) {
-                        fileData.volume = { cm3: volume, mm3: volume * 1000 };
-                        totalVolume += volume;
-                        console.log(`   ✅ Volume: ${volume.toFixed(2)} cm³ (${(volume * 1000).toFixed(2)} mm³)`);
-                    } else {
-                        console.warn(`   ⚠️ Invalid volume value:`, volume);
                     }
-
-                } catch (volumeError) {
-                    console.error(`❌ Error calculating volume for ${fileData.file?.name}:`, volumeError);
-                    console.error('Error stack:', volumeError.stack);
-                    // Continue with other files
                 }
+            } catch (pythonError) {
+                console.error('❌ Python volume calculation error:', pythonError);
+                throw new Error(`Volume calculation failed: ${pythonError.message}. Python service may be down.`);
             }
 
             console.log(`📊 Total volume calculated: ${totalVolume.toFixed(2)} cm³`);
@@ -731,11 +985,29 @@ window.EnhancedSaveCalculate = {
                     console.log('🔗 Viewer Link:', quoteData.data.viewer_link);
                     console.log('📋 Quote Number:', quoteData.data.quote_number);
 
-                    // Show success notification with quote number
-                    this.showNotification(
-                        `Quote ${quoteData.data.quote_number} saved successfully!<br>View in <a href="${quoteData.data.viewer_link}" target="_blank">viewer</a>`,
-                        'success'
-                    );
+                    // CRITICAL: Update browser URL to match the viewer link (without reload)
+                    // This ensures the URL shows the same file IDs as the share link
+                    if (quoteData.data.viewer_link) {
+                        try {
+                            const url = new URL(quoteData.data.viewer_link);
+                            const filesParam = url.searchParams.get('files');
+                            if (filesParam) {
+                                // Update URL without reload to show file IDs
+                                const newUrl = `${window.location.pathname}?files=${filesParam}`;
+                                window.history.pushState({}, '', newUrl);
+                                console.log('✅ Updated browser URL to match viewer link:', newUrl);
+                                
+                                // Dispatch event to enable share button
+                                window.dispatchEvent(new Event('urlUpdated'));
+                                console.log('✅ Dispatched urlUpdated event - Share button should be enabled');
+                            }
+                        } catch (urlError) {
+                            console.warn('⚠️ Could not update URL:', urlError);
+                        }
+                    }
+
+                    // Success notification removed per user request (was causing unwanted alerts)
+                    console.log('✅ Quote saved successfully:', quoteData.data.quote_number);
                 } else {
                     console.warn('⚠️ Quote save returned non-success:', quoteData);
                 }

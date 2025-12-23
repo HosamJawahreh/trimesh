@@ -84,14 +84,20 @@ window.MeshRepairVisual = {
             if (mergedGeometry) {
                 fileData.geometry = mergedGeometry;
                 fileData.mesh.geometry = mergedGeometry;
+                fileData.hasRepairVisualization = true; // Mark that repairs are visible
                 console.log('✅ Updated fileData.geometry and mesh.geometry to repaired version');
                 console.log(`   Original geometry: ${geometry.attributes.position.count} vertices`);
                 console.log(`   New geometry: ${mergedGeometry.attributes.position.count} vertices`);
 
                 // Calculate volume AFTER repair for comparison
                 const repairedVolumeMm3 = this.calculateGeometryVolume(mergedGeometry);
-                console.log(`📊 Volume AFTER repair: ${(repairedVolumeMm3 / 1000).toFixed(2)} cm³`);
+                const repairedVolumeCm3 = repairedVolumeMm3 / 1000;
+                console.log(`📊 Volume AFTER repair: ${repairedVolumeCm3.toFixed(2)} cm³`);
                 console.log(`📊 Volume DIFFERENCE: ${((repairedVolumeMm3 - originalVolumeMm3) / 1000).toFixed(2)} cm³`);
+                
+                // CRITICAL: Store repaired volume in fileData for immediate use
+                fileData.repairedVolume = { cm3: repairedVolumeCm3, mm3: repairedVolumeMm3 };
+                console.log(`✅ Stored repaired volume in fileData:`, fileData.repairedVolume);
             } else {
                 console.warn('⚠️ Failed to get merged geometry');
             }
@@ -591,16 +597,18 @@ window.MeshRepairVisual = {
 
         console.log(`🎨 Adding repair visualization for ${repairGeometries.length} repaired areas`);
 
-        // Create special material for repaired areas (bright green/cyan)
+        // Create material for repaired areas (GRAY - to show what changed)
         const repairMaterial = new THREE.MeshPhongMaterial({
-            color: 0x00ff88,  // Bright cyan-green
-            emissive: 0x00aa44,  // Glowing effect
-            shininess: 100,
+            color: 0x808080,  // Medium gray
+            emissive: 0x404040,  // Subtle darker gray glow
+            shininess: 30,
             side: THREE.DoubleSide,
             transparent: false,
             opacity: 1.0,
             wireframe: false
         });
+
+        console.log('   Repair areas will be shown in GRAY color for clear visibility');
 
         // Merge all repair geometries
         const mergedRepairGeometry = new THREE.BufferGeometry();
@@ -622,6 +630,8 @@ window.MeshRepairVisual = {
         const repairMesh = new THREE.Mesh(mergedRepairGeometry, repairMaterial);
         repairMesh.userData.isRepairVisualization = true;
         repairMesh.userData.originalMesh = originalMesh;
+        repairMesh.userData.persistent = true; // Mark as persistent - don't remove
+        repairMesh.name = 'RepairVisualization_' + (originalMesh.name || 'mesh');
 
         // Position it at the same location as original mesh
         repairMesh.position.copy(originalMesh.position);
@@ -635,7 +645,13 @@ window.MeshRepairVisual = {
             viewer.scene.add(repairMesh);
         }
 
+        // CRITICAL: Store reference to repair mesh so it persists
+        if (!viewer.repairMeshes) {
+            viewer.repairMeshes = [];
+        }
+        viewer.repairMeshes.push(repairMesh);
         console.log('   ✅ Added visual repair mesh to scene (bright cyan-green)');
+        console.log('   ✅ Repair mesh stored in viewer.repairMeshes (persistent)');
 
         // CRITICAL: Merge the original and repair geometries for volume calculation
         let mergedGeometry = null;

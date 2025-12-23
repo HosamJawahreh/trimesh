@@ -1829,6 +1829,24 @@
             console.log('✅ File saved to browser storage:', fileId);
             console.log('   Storage ID set as currentFileId');
 
+            // Ensure the viewer's uploaded file entry knows its storage ID
+            try {
+                if (uploadedFile) {
+                    uploadedFile.storageId = fileId;
+
+                    if (viewer && Array.isArray(viewer.uploadedFiles)) {
+                        const fileIndex = viewer.uploadedFiles.indexOf(uploadedFile);
+                        if (fileIndex !== -1) {
+                            viewer.uploadedFiles[fileIndex].storageId = fileId;
+                        }
+                    }
+
+                    console.log('   storageId attached to uploaded file:', fileId);
+                }
+            } catch (attachError) {
+                console.warn('⚠️ Could not attach storageId to uploaded file:', attachError);
+            }
+
             // Show success notification
             showNotification('✅ File saved successfully!', 'success');
 
@@ -1844,70 +1862,30 @@
     // Share button functionality
     const shareBtnMain = document.getElementById('shareBtnMain');
     if (shareBtnMain) {
+        // Initially disable share button until file is saved via Save & Calculate
+        shareBtnMain.disabled = true;
+        shareBtnMain.style.opacity = '0.5';
+        shareBtnMain.style.cursor = 'not-allowed';
+        shareBtnMain.title = 'Save & Calculate first to enable sharing';
+        
         shareBtnMain.addEventListener('click', async function() {
             try {
-                // Check if file is uploaded (either in storage or viewer)
-                const viewer = window.viewerGeneral || window.viewerMedical;
-                const hasUploadedFile = viewer && viewer.uploadedFiles && viewer.uploadedFiles.length > 0;
-                let fileId = window.fileStorageManager?.currentFileId;
+                // Get file ID from URL (set by Save & Calculate)
+                const urlParams = new URLSearchParams(window.location.search);
+                let fileId = urlParams.get('files');
+                
+                console.log('🔍 Share button clicked - File ID from URL:', fileId);
 
-                console.log('🔍 Share button clicked - Current file ID:', fileId);
-                console.log('   Has uploaded file:', hasUploadedFile);
-
-                if (!fileId && !hasUploadedFile) {
-                    showNotification('⚠️ Please upload a 3D model first', 'warning');
-                    return;
-                }
-
-                // If file is uploaded but not saved yet, trigger save and wait
-                if (hasUploadedFile && !fileId) {
-                    showNotification('💾 Preparing file for sharing...', 'info');
-
-                    // Get the uploaded file from viewer
-                    const uploadedFile = viewer.uploadedFiles[0];
-                    if (!uploadedFile || !uploadedFile.file) {
-                        showNotification('❌ Failed to access file data', 'error');
-                        return;
-                    }
-
-                    try {
-                        // Convert File to ArrayBuffer
-                        const arrayBuffer = await uploadedFile.file.arrayBuffer();
-
-                        // Save file to IndexedDB
-                        fileId = await window.fileStorageManager.saveFile(
-                            arrayBuffer,
-                            uploadedFile.file.name,
-                            uploadedFile.geometry,
-                            uploadedFile.mesh
-                        );
-
-                        console.log('✅ File saved with ID:', fileId);
-                    } catch (saveError) {
-                        console.error('❌ Failed to save file:', saveError);
-                        showNotification('❌ Failed to save file: ' + saveError.message, 'error');
-                        return;
-                    }
-                }
-
-                // Final validation before opening modal
+                // Validate file ID
                 if (!fileId || fileId === 'null' || fileId === 'undefined' || !fileId.startsWith('file_')) {
-                    showNotification('❌ Invalid file ID. Please try uploading the file again.', 'error');
-                    console.error('❌ Invalid file ID:', fileId);
-                    return;
-                }
-
-                // Verify file exists in storage
-                const fileRecord = await window.fileStorageManager.loadFile(fileId);
-                if (!fileRecord) {
-                    showNotification('❌ File not found in storage. Please upload again.', 'error');
+                    showNotification('⚠️ Please click "Save & Calculate" first to enable sharing', 'warning');
                     return;
                 }
 
                 // Save current camera state before sharing
                 await saveCameraState();
 
-                // Open share modal with validated file ID
+                // Open share modal with file ID from URL (no duplicate save)
                 if (window.shareModal && typeof window.shareModal.open === 'function') {
                     await window.shareModal.open(fileId);
                     console.log('🔗 Share modal opened with file ID:', fileId);
@@ -1918,6 +1896,20 @@
             } catch (error) {
                 console.error('❌ Share button error:', error);
                 showNotification('❌ Failed to share: ' + error.message, 'error');
+            }
+        });
+        
+        // Listen for URL changes to enable/disable share button
+        window.addEventListener('urlUpdated', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const fileId = urlParams.get('files');
+            
+            if (fileId && fileId.startsWith('file_')) {
+                shareBtnMain.disabled = false;
+                shareBtnMain.style.opacity = '1';
+                shareBtnMain.style.cursor = 'pointer';
+                shareBtnMain.title = 'Share this 3D model';
+                console.log('✅ Share button enabled with file ID:', fileId);
             }
         });
     }
@@ -2011,7 +2003,8 @@
 
             // Trigger file upload
             console.log('📤 Loading file into viewer...');
-            await viewer.loadFile(file, fileRecord.fileName);
+            const storageId = fileRecord.id || fileId;
+            await viewer.loadFile(file, storageId);
 
             // Wait for model to be fully loaded
             await new Promise(resolve => setTimeout(resolve, 1000));
@@ -2029,14 +2022,14 @@
             }
 
             // Set current file ID
-            window.fileStorageManager.currentFileId = fileId;
+            window.fileStorageManager.currentFileId = storageId;
 
             showNotification('✅ Shared model loaded successfully!', 'success');
             console.log('✅ Shared file loaded successfully');
-            console.log('   Current file ID set to:', fileId);
+            console.log('   Current file ID set to:', storageId);
 
             // Restart auto-save
-            startAutoSave(fileId);
+            startAutoSave(storageId);
         } catch (error) {
             console.error('❌ Failed to load shared file:', error);
             showNotification('❌ Failed to load shared file: ' + error.message, 'error');
@@ -2151,7 +2144,7 @@
 
             // Trigger file upload
             console.log('📤 Loading file into viewer...');
-            await viewer.loadFile(file, lastFile.fileName);
+            await viewer.loadFile(file, lastFile.id);
 
             // Wait for model to be fully loaded
             await new Promise(resolve => setTimeout(resolve, 1000));

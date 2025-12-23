@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ThreeDFileController;
 use App\Http\Controllers\Api\MeshRepairController;
 use App\Http\Controllers\Api\QuoteController;
+use App\Http\Controllers\Api\RepairLogController;
 
 /*
 |--------------------------------------------------------------------------
@@ -42,4 +43,11 @@ Route::prefix('mesh')->name('mesh.')->group(function () {
     Route::post('/repair', [MeshRepairController::class, 'repair'])->name('repair');
     Route::post('/repair-download', [MeshRepairController::class, 'repairAndDownload'])->name('repair-download');
     Route::get('/history/{fileId}', [MeshRepairController::class, 'history'])->name('history');
+});
+
+// Repair Logs API Routes (for admin dashboard)
+Route::prefix('repair-logs')->name('repair-logs.')->group(function () {
+    Route::post('/', [RepairLogController::class, 'store'])->name('store');
+    Route::get('/', [RepairLogController::class, 'index'])->name('index');
+    Route::get('/{id}', [RepairLogController::class, 'show'])->name('show');
 });
