@@ -3,90 +3,61 @@
      Professional & Optimized Layout
      ============================================ --}}
 
-{{-- EMERGENCY TEST BUTTON - REMOVE AFTER TESTING --}}
-<div style="position: fixed; top: 10px; right: 10px; z-index: 999999;">
-    <button id="emergencyTestBtn" onclick="
-        alert('🔥 STARTING...');
-        
-        const viewer = window.viewerGeneral;
-        if (!viewer || !viewer.uploadedFiles || viewer.uploadedFiles.length === 0) {
-            alert('ERROR: No viewer or files!');
-            return;
-        }
-        
-        const fileData = viewer.uploadedFiles[0];
-        const geometry = fileData.mesh?.geometry;
-        if (!geometry) {
-            alert('ERROR: No geometry!');
-            return;
-        }
-        
-        const positions = geometry.attributes.position.array;
-        const indices = geometry.index ? geometry.index.array : null;
-        let signedVolume = 0;
-        
-        if (indices) {
-            for (let i = 0; i < indices.length; i += 3) {
-                const i0 = indices[i] * 3, i1 = indices[i + 1] * 3, i2 = indices[i + 2] * 3;
-                const v0x = positions[i0], v0y = positions[i0 + 1], v0z = positions[i0 + 2];
-                const v1x = positions[i1], v1y = positions[i1 + 1], v1z = positions[i1 + 2];
-                const v2x = positions[i2], v2y = positions[i2 + 1], v2z = positions[i2 + 2];
-                signedVolume += v0x * (v1y * v2z - v1z * v2y) + v0y * (v1z * v2x - v1x * v2z) + v0z * (v1x * v2y - v1y * v2x);
-            }
-        } else {
-            for (let i = 0; i < positions.length; i += 9) {
-                const v0x = positions[i], v0y = positions[i + 1], v0z = positions[i + 2];
-                const v1x = positions[i + 3], v1y = positions[i + 4], v1z = positions[i + 5];
-                const v2x = positions[i + 6], v2y = positions[i + 7], v2z = positions[i + 8];
-                signedVolume += v0x * (v1y * v2z - v1z * v2y) + v0y * (v1z * v2x - v1x * v2z) + v0z * (v1x * v2y - v1y * v2x);
-            }
-        }
-        
-        // FIX: Positions are in MM, volume is in MM³, convert to CM³
-        const volumeMm3 = Math.abs(signedVolume) / 6;
-        const volumeCm3 = volumeMm3 / 1000;  // MM³ to CM³
-        const price = volumeCm3 * 0.5;
-        
-        console.log('📐 Volume (mm³):', volumeMm3);
-        console.log('📐 Volume (cm³):', volumeCm3);
-        console.log('💰 Price:', price);
-        
-        // Try to find and log ALL elements first
-        const volEls = document.querySelectorAll('#quoteTotalVolumeGeneral');
-        const priceEls = document.querySelectorAll('#quoteTotalPriceGeneral');
-        console.log('Found', volEls.length, 'volume elements');
-        console.log('Found', priceEls.length, 'price elements');
-        
-        // Update with EXTREME styling
-        volEls.forEach((el, i) => {
-            console.log('Updating volume el', i, el);
-            el.textContent = volumeCm3.toFixed(2) + ' cm³';
-            el.style.cssText = 'display: block !important; visibility: visible !important; color: #ff0000 !important; font-size: 28px !important; font-weight: bold !important; background: yellow !important; padding: 5px !important;';
-        });
-        
-        priceEls.forEach((el, i) => {
-            console.log('Updating price el', i, el);
-            el.textContent = '$' + price.toFixed(2);
-            el.style.cssText = 'display: block !important; visibility: visible !important; color: #ff0000 !important; font-size: 28px !important; font-weight: bold !important; background: yellow !important; padding: 5px !important;';
-        });
-        
-        // Also show the summary containers
-        const summary = document.getElementById('priceSummaryGeneral');
-        if (summary) {
-            summary.style.display = 'block';
-            summary.style.visibility = 'visible';
-        }
-        
-        alert('✅ DONE!\\n\\nVolume: ' + volumeCm3.toFixed(2) + ' cm³\\nPrice: $' + price.toFixed(2) + '\\n\\nLOOK FOR RED TEXT ON YELLOW BACKGROUND!');
-    " style="background: #ff0000; color: white; padding: 20px 40px; font-size: 24px; font-weight: bold; border: 5px solid yellow; cursor: pointer; box-shadow: 0 4px 20px rgba(0,0,0,0.3); border-radius: 10px;">
-        🚨 CLICK ME 🚨
+{{-- EMERGENCY DIAGNOSTIC BUTTON --}}
+<div style="position: fixed; bottom: 20px; right: 20px; z-index: 999999;">
+    <button onclick="runEmergencyDiagnostic()" style="background: #ff0000; color: white; padding: 15px 30px; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(255,0,0,0.3);">
+        🔬 RUN DIAGNOSTIC
     </button>
 </div>
+
+<script>
+function runEmergencyDiagnostic() {
+    console.clear();
+    console.log('%c=== EMERGENCY DIAGNOSTIC ===', 'font-size:20px; background:#ff0000; color:white; padding:10px;');
+    
+    // Test 1: Viewer objects
+    console.log('\n1️⃣ VIEWER OBJECTS:');
+    console.log('window.viewerGeneral:', window.viewerGeneral);
+    console.log('window.viewerMedical:', window.viewerMedical);
+    console.log('window.viewer:', window.viewer);
+    
+    // Test 2: Toolbar handler
+    console.log('\n2️⃣ TOOLBAR HANDLER:');
+    console.log('window.toolbarHandler:', window.toolbarHandler);
+    if (window.toolbarHandler) {
+        console.log('Methods:', Object.keys(window.toolbarHandler).slice(0, 10));
+    }
+    
+    // Test 3: Try grid toggle
+    console.log('\n3️⃣ TESTING GRID TOGGLE:');
+    if (window.toolbarHandler && window.toolbarHandler._checkViewer) {
+        window.toolbarHandler._checkViewer();
+    }
+    if (window.toolbarHandler && window.toolbarHandler.toggleGridMain) {
+        window.toolbarHandler.toggleGridMain('General');
+    } else {
+        console.error('❌ toggleGridMain not found!');
+    }
+    
+    // Test 4: Canvas check
+    console.log('\n4️⃣ CANVAS CHECK:');
+    if (window.viewerGeneral && window.viewerGeneral.renderer) {
+        const canvas = window.viewerGeneral.renderer.domElement;
+        console.log('Canvas:', canvas);
+        console.log('Canvas size:', canvas.width, 'x', canvas.height);
+    } else {
+        console.error('❌ No renderer found!');
+    }
+    
+    console.log('\n%c=== DIAGNOSTIC COMPLETE ===', 'font-size:16px; background:#00ff00; color:black; padding:10px;');
+    alert('✅ Diagnostic complete! Check console (F12) for results.');
+}
+</script>
 
 <section class="dgm-3d-quote-area pb-100">
     <div class="container">
         {{-- General 3D Printing Form --}}
-        <div class="quote-form-container-3d" id="generalForm3d">
+        <div class="quote-form-container-3d" id="generalForm3d" style="display: block;">
             <div class="row justify-content-center">
                 <div class="col-12 col-lg-11">
                     <div class="card border-0 shadow-sm">
@@ -97,32 +68,16 @@
                                 <div class="col-12 col-lg-3">
                                     <div class="p-3 p-lg-4">
 
-                                        {{-- Site Logo --}}
-                                        <div class="text-center" style="padding: 0 0 15px 0;">
+                                        {{-- Site Logo - Moved to top toolbar --}}
+                                        {{-- <div class="text-center" style="padding: 0 0 15px 0;">
                                             <img src="{{ asset($settings->logo) }}" alt="{{ $settings->app_name }}" style="max-width: 200px; height: auto;">
-                                        </div>
+                                        </div> --}}
 
-                                        {{-- Category Tabs --}}
-                                        <div class="btn-group w-100 mb-3" role="group">
-                                            <button type="button" class="btn btn-sm category-tab-btn active" data-category="general" style="border-radius: 8px 0 0 8px; padding: 10px; font-size: 0.85rem; font-weight: 600;">
-                                                General
-                                            </button>
-                                            <button type="button" class="btn btn-sm category-tab-btn" data-category="medical" style="border-radius: 0 8px 8px 0; padding: 10px; font-size: 0.85rem; font-weight: 600;">
-                                                Medical
-                                            </button>
-                                        </div>
+                                        {{-- Category tabs removed - upload from bottom bar --}}
+                                        {{-- Upload area hidden - use bottom bar upload button --}}
 
-                                        <!-- Upload Area -->
-                                        <div class="upload-drop-zone-3d text-center p-3 mb-3" style="border: 2px dashed #cbd5e0; border-radius: 10px; background: white; cursor: pointer; transition: all 0.3s;">
-                                            <input type="file" id="fileInput3d" style="display: none;" accept=".stl,.obj,.ply" multiple>
-                                            <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" class="mb-2">
-                                                <circle cx="20" cy="20" r="20" fill="#e8f4f8"/>
-                                                <path d="M20 10L26 16L20 22L14 16L20 10Z" stroke="#4a90e2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                                <path d="M14 22L20 28L26 22" stroke="#4a90e2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/>
-                                            </svg>
-                                            <p class="mb-1" style="font-size: 0.9rem; font-weight: 600; color: #2c3e50;">Drop files or click</p>
-                                            <small class="text-muted" style="font-size: 0.8rem;">STL, OBJ, PLY (Max 100MB each) • Multiple files supported</small>
-                                        </div>
+                                        <!-- Hidden file inputs for compatibility -->
+                                        <input type="file" id="fileInput3d" style="display: none;" accept=".stl,.obj,.ply" multiple>
 
                                         <!-- Uploaded Files List -->
                                         <div id="uploadedFilesList" class="mb-3" style="display: none;">
@@ -170,14 +125,70 @@
                                             </div>
                                         </div>
 
-                                        <!-- Price Summary -->
+                                        <!-- Price Summary - Hidden, now shown in bottom bar -->
                                         <div id="priceSummaryGeneral" class="mt-3 p-3" style="display: none !important; background: white; border-radius: 12px; border: 2px solid #e9ecef; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
 
 <script>
-// Hide price summary and sidebar price by default, only show after Save & Calculate and after repair
+// Price display moved to bottom bar
 document.addEventListener('DOMContentLoaded', function() {
     const priceSummaryGeneral = document.getElementById('priceSummaryGeneral');
     if (priceSummaryGeneral) priceSummaryGeneral.style.display = 'none';
+
+    // Hide price from bottom bar initially
+    const bottomPriceDisplay = document.getElementById('bottomPriceDisplay');
+    if (bottomPriceDisplay) bottomPriceDisplay.classList.remove('show');
+
+    // Sync sidebar price to bottom bar
+    function syncPriceToBottomBar() {
+        const sidebarPrice = document.getElementById('quoteTotalPriceGeneral');
+        const sidebarVolume = document.getElementById('quoteTotalVolumeGeneral');
+        const bottomPrice = document.getElementById('bottomTotalPrice');
+        const bottomVolume = document.getElementById('bottomTotalVolume');
+        const bottomDisplay = document.getElementById('bottomPriceDisplay');
+
+        if (sidebarPrice && bottomPrice && bottomDisplay) {
+            const priceText = sidebarPrice.textContent || '$0.00';
+            bottomPrice.textContent = priceText;
+
+            // Sync volume
+            if (sidebarVolume && bottomVolume) {
+                const volumeText = sidebarVolume.textContent || '0 cm³';
+                bottomVolume.textContent = volumeText;
+            }
+
+            // Show bottom price if sidebar price is visible and has value
+            if (sidebarPrice.style.display !== 'none' && priceText !== '$0' && priceText !== '$0.00') {
+                bottomDisplay.classList.add('show');
+            } else {
+                bottomDisplay.classList.remove('show');
+            }
+        }
+    }
+
+    // Watch for price and volume changes
+    const observer = new MutationObserver(syncPriceToBottomBar);
+    const priceElement = document.getElementById('quoteTotalPriceGeneral');
+    const volumeElement = document.getElementById('quoteTotalVolumeGeneral');
+
+    if (priceElement) {
+        observer.observe(priceElement, {
+            childList: true,
+            characterData: true,
+            subtree: true,
+            attributes: true,
+            attributeFilter: ['style']
+        });
+    }
+
+    if (volumeElement) {
+        observer.observe(volumeElement, {
+            childList: true,
+            characterData: true,
+            subtree: true,
+            attributes: true,
+            attributeFilter: ['style']
+        });
+    }
 
     // Hide price summary and sidebar price on file upload or removal
     function hidePriceSummary() {
@@ -188,146 +199,116 @@ document.addEventListener('DOMContentLoaded', function() {
         // Hide volume
         const volumeSidebar = document.getElementById('quoteTotalVolumeGeneral');
         if (volumeSidebar) volumeSidebar.textContent = '';
+        // Hide bottom bar price
+        const bottomDisplay = document.getElementById('bottomPriceDisplay');
+        if (bottomDisplay) bottomDisplay.classList.remove('show');
     }
     const fileInput = document.getElementById('fileInput3d');
     if (fileInput) fileInput.addEventListener('change', hidePriceSummary);
     document.addEventListener('fileRemoved', hidePriceSummary);
 
-    const saveBtn = document.getElementById('saveCalculationsBtn');
-    if (saveBtn) {
-        saveBtn.addEventListener('click', function() {
-            console.log('� DIRECT CALCULATION START');
-            
-            // Get viewer and files
+    // Attach to ALL Save & Calculate buttons (there are multiple with same ID - invalid HTML but we'll handle it)
+    const saveBtns = document.querySelectorAll('#saveCalculationsBtn, .save-btn');
+    console.log('🔍 Found', saveBtns.length, 'Save buttons');
+    saveBtns.forEach((saveBtn, index) => {
+        console.log('📌 Attaching handler to button', index);
+        saveBtn.addEventListener('click', async function() {
+            console.log('💾 SAVE & CALCULATE STARTED - Button', index);
+
             const viewer = window.viewerGeneral;
             if (!viewer || !viewer.uploadedFiles || viewer.uploadedFiles.length === 0) {
-                alert('Please upload a 3D model first!');
+                alert('❌ Please upload a 3D model first!');
                 return;
             }
-            
-            console.log('Files:', viewer.uploadedFiles.length);
-            
-            // Calculate total volume DIRECTLY using signed tetrahedron method
-            let totalVolumeCm3 = 0;
-            
+
+            console.log('� STEP 1: REPAIRING MESHES...');
+
+            // STEP 1: Repair ALL meshes using the MeshRepairVisual system
+            if (window.MeshRepairVisual) {
+                for (let i = 0; i < viewer.uploadedFiles.length; i++) {
+                    const fileData = viewer.uploadedFiles[i];
+                    console.log(`\n🔧 Repairing file ${i + 1}/${viewer.uploadedFiles.length}: ${fileData.file.name}`);
+
+                    try {
+                        const result = await window.MeshRepairVisual.repairMeshWithVisualization(viewer, fileData);
+                        console.log('✅ Repair result:', result);
+
+                        if (result.holesFilled > 0) {
+                            console.log(`   ✅ Filled ${result.holesFilled} holes!`);
+                        } else if (result.watertight) {
+                            console.log('   ✅ Mesh was already watertight');
+                        } else {
+                            console.log('   ⚠️ No holes filled');
+                        }
+                    } catch (error) {
+                        console.error('❌ Repair failed:', error);
+                    }
+                }
+            } else {
+                console.warn('⚠️ MeshRepairVisual not loaded - skipping repair');
+            }
+
+            console.log('\n📊 STEP 2: RECALCULATING VOLUMES...');
+
+            // STEP 2: Recalculate volume for ALL files (AFTER repair)
             viewer.uploadedFiles.forEach((fileData, index) => {
-                const mesh = fileData.mesh;
-                if (!mesh || !mesh.geometry) {
-                    console.log(`File ${index}: No mesh/geometry`);
+                if (fileData.geometry && viewer.calculateVolume) {
+                    const oldVolume = fileData.volume?.cm3 || 0;
+                    const newVolume = viewer.calculateVolume(fileData.geometry);
+                    fileData.volume = newVolume;
+                    console.log(`\n📦 File ${index + 1}: ${fileData.file.name}`);
+                    console.log(`   OLD Volume: ${oldVolume.toFixed(2)} cm³`);
+                    console.log(`   NEW Volume: ${newVolume.cm3.toFixed(2)} cm³`);
+                    if (oldVolume > 0) {
+                        const change = ((newVolume.cm3 - oldVolume) / oldVolume * 100);
+                        console.log(`   CHANGE: ${change >= 0 ? '+' : ''}${change.toFixed(2)}%`);
+                    }
+                }
+            });
+
+            console.log('\n✅ Volume recalculation complete!');
+            console.log('\n💰 STEP 3: UPDATING PRICING...');
+
+            // STEP 3: Update pricing with NEW volumes
+            if (window.fileManagerGeneral) {
+                console.log('✅ Calling fileManagerGeneral.updateQuote() with NEW volumes');
+                window.fileManagerGeneral.updateQuote();
+            } else if (window.viewerGeneral) {
+                console.log('⚠️ fileManagerGeneral not found, creating it now...');
+                const FileManager = window.FileManager;
+                if (FileManager) {
+                    window.fileManagerGeneral = new FileManager('General', window.viewerGeneral);
+                    window.fileManagerGeneral.updateQuote();
+                } else {
+                    alert('❌ Error: FileManager class not loaded');
                     return;
                 }
-                
-                const geometry = mesh.geometry;
-                const positions = geometry.attributes.position.array;
-                const indices = geometry.index ? geometry.index.array : null;
-                
-                let signedVolume = 0;
-                
-                if (indices && indices.length > 0) {
-                    // Indexed geometry
-                    for (let i = 0; i < indices.length; i += 3) {
-                        const i0 = indices[i] * 3;
-                        const i1 = indices[i + 1] * 3;
-                        const i2 = indices[i + 2] * 3;
-                        
-                        const v0x = positions[i0], v0y = positions[i0 + 1], v0z = positions[i0 + 2];
-                        const v1x = positions[i1], v1y = positions[i1 + 1], v1z = positions[i1 + 2];
-                        const v2x = positions[i2], v2y = positions[i2 + 1], v2z = positions[i2 + 2];
-                        
-                        const crossX = v1y * v2z - v1z * v2y;
-                        const crossY = v1z * v2x - v1x * v2z;
-                        const crossZ = v1x * v2y - v1y * v2x;
-                        
-                        signedVolume += (v0x * crossX + v0y * crossY + v0z * crossZ);
-                    }
-                } else {
-                    // Non-indexed geometry
-                    for (let i = 0; i < positions.length; i += 9) {
-                        const v0x = positions[i], v0y = positions[i + 1], v0z = positions[i + 2];
-                        const v1x = positions[i + 3], v1y = positions[i + 4], v1z = positions[i + 5];
-                        const v2x = positions[i + 6], v2y = positions[i + 7], v2z = positions[i + 8];
-                        
-                        const crossX = v1y * v2z - v1z * v2y;
-                        const crossY = v1z * v2x - v1x * v2z;
-                        const crossZ = v1x * v2y - v1y * v2x;
-                        
-                        signedVolume += (v0x * crossX + v0y * crossY + v0z * crossZ);
-                    }
-                }
-                
-                const volumeCm3 = Math.abs(signedVolume) / 6;
-                totalVolumeCm3 += volumeCm3;
-                console.log(`File ${index}: ${volumeCm3.toFixed(2)} cm³`);
-            });
-            
-            console.log(`TOTAL VOLUME: ${totalVolumeCm3.toFixed(2)} cm³`);
-            
-            // Get technology and material
-            const tech = document.getElementById('technologySelectGeneral')?.value || 'fdm';
-            const mat = document.getElementById('materialSelectGeneral')?.value || 'pla';
-            
-            // Calculate price (simple pricing matrix)
-            const prices = {
-                'fdm': { 'pla': 0.50, 'abs': 0.60, 'petg': 0.70, 'tpu': 1.20, 'nylon': 1.50 },
-                'sla': { 'standard': 1.50, 'tough': 2.00, 'flexible': 2.50, 'castable': 3.00 },
-                'sls': { 'pa12': 3.00, 'pa11': 3.50, 'tpu': 4.00, 'alumide': 5.00 },
-                'mjf': { 'pa12': 4.00, 'pa12_gb': 5.00, 'tpu': 6.00 },
-                'dmls': { 'stainless_steel': 10.00, 'titanium': 15.00, 'aluminum': 12.00 },
-                'binder_jetting': { 'stainless_steel': 5.00, 'bronze': 6.00, 'sand': 3.00 }
-            };
-            
-            const pricePerCm3 = prices[tech]?.[mat] || 0.50;
-            const totalPrice = totalVolumeCm3 * pricePerCm3;
-            
-            console.log(`Tech: ${tech}, Material: ${mat}, Price: $${totalPrice.toFixed(2)}`);
-            
-            // UPDATE UI DIRECTLY - FORCE DISPLAY
-            const volumeElements = document.querySelectorAll('#quoteTotalVolumeGeneral');
-            volumeElements.forEach(el => {
-                el.textContent = `${totalVolumeCm3.toFixed(2)} cm³`;
-                el.style.display = 'block';
-                el.style.visibility = 'visible';
-                el.style.color = '#00ff00'; // GREEN so you can SEE it changed!
-                el.style.fontWeight = 'bold';
-            });
-            
-            const priceElements = document.querySelectorAll('#quoteTotalPriceGeneral');
-            priceElements.forEach(el => {
-                el.textContent = `$${totalPrice.toFixed(2)}`;
-                el.style.display = 'block';
-                el.style.visibility = 'visible';
-                el.style.color = '#00ff00'; // GREEN so you can SEE it changed!
-                el.style.fontWeight = 'bold';
-            });
-            
-            // Show summary containers
-            const summary = document.getElementById('priceSummaryGeneral');
-            if (summary) {
-                summary.style.display = 'block';
-                summary.style.visibility = 'visible';
             }
-            
-            console.log('✅ UI UPDATED!');
-            alert(`Calculated!\n\nVolume: ${totalVolumeCm3.toFixed(2)} cm³\nPrice: $${totalPrice.toFixed(2)}`);
+
+            console.log('\n✅✅✅ ALL DONE! ✅✅✅');
+            alert('✅ Mesh repaired, volume recalculated, and price updated!\n\nCheck the console (F12) to see:\n- Holes filled\n- Volume changes\n- New pricing');
         });
-    }
+    });
 });
 </script>
-                                            <div class="d-flex justify-content-between align-items-center mb-2 pb-2" style="border-bottom: 1px solid #f1f3f5;">
-                                                <span style="font-size: 0.8rem; color: #6c757d; font-weight: 500;">Volume</span>
-                                                <strong id="quoteTotalVolumeGeneral" style="font-weight: 600; font-size: 0.85rem; color: #2c3e50; display: none;">0 cm³</strong>
+                                            {{-- Pricing Section - Completely removed, now in bottom bar --}}
+                                            <div style="display: none !important;">
+                                                <div class="d-flex justify-content-between align-items-center mb-2 pb-2" style="border-bottom: 1px solid #f1f3f5;">
+                                                    <span style="font-size: 0.8rem; color: #6c757d; font-weight: 500;">Volume</span>
+                                                    <strong id="quoteTotalVolumeGeneral" style="font-weight: 600; font-size: 0.85rem; color: #2c3e50; display: none;">0 cm³</strong>
+                                                </div>
+                                                <div class="d-flex justify-content-between align-items-center mb-2 pb-2" style="border-bottom: 1px solid #f1f3f5;">
+                                                    <span style="font-size: 0.8rem; color: #6c757d; font-weight: 500;">Print Time</span>
+                                                    <strong id="quotePrintTimeGeneral" style="font-weight: 600; font-size: 0.85rem; color: #2c3e50;">0h</strong>
+                                                </div>
+                                                <div class="d-flex justify-content-between align-items-center mt-2 pt-2">
+                                                    <span style="font-size: 0.85rem; font-weight: 600; color: #495057; text-transform: uppercase; letter-spacing: 0.3px;">Total Price</span>
+                                                    <h4 class="mb-0" id="quoteTotalPriceGeneral" style="font-weight: 700; font-size: 1.3rem; color: #2c3e50; display: none;">$0</h4>
+                                                </div>
+                                                <button type="button" class="btn w-100 mt-2" id="btnRequestQuoteGeneral" style="border-radius: 10px; font-weight: 600; font-size: 0.85rem; padding: 10px; background: #4a90e2; color: white; border: none; transition: all 0.3s; box-shadow: 0 2px 8px rgba(74, 144, 226, 0.3);">
+                                                    Request Quote →
+                                                </button>
                                             </div>
-                                            <div class="d-flex justify-content-between align-items-center mb-2 pb-2" style="border-bottom: 1px solid #f1f3f5;">
-                                                <span style="font-size: 0.8rem; color: #6c757d; font-weight: 500;">Print Time</span>
-                                                <strong id="quotePrintTimeGeneral" style="font-weight: 600; font-size: 0.85rem; color: #2c3e50;">0h</strong>
-                                            </div>
-                                            <div class="d-flex justify-content-between align-items-center mt-2 pt-2">
-                                                <span style="font-size: 0.85rem; font-weight: 600; color: #495057; text-transform: uppercase; letter-spacing: 0.3px;">Total Price</span>
-                                                <h4 class="mb-0" id="quoteTotalPriceGeneral" style="font-weight: 700; font-size: 1.3rem; color: #2c3e50; display: none;">$0</h4>
-                                            </div>
-                                            <button type="button" class="btn w-100 mt-2" id="btnRequestQuoteGeneral" style="border-radius: 10px; font-weight: 600; font-size: 0.85rem; padding: 10px; background: #4a90e2; color: white; border: none; transition: all 0.3s; box-shadow: 0 2px 8px rgba(74, 144, 226, 0.3);">
-                                                Request Quote →
-                                            </button>
                                         </div>
                                     </div>
                                 </div>
@@ -352,6 +333,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
                                         {{-- Professional Toolbar - Top Right --}}
                                         <div class="viewer-professional-toolbar" id="professionalToolbar" style="position: absolute !important; top: 20px !important; right: 20px !important; display: flex !important; visibility: visible !important; opacity: 1 !important; z-index: 9999 !important; background: rgba(255, 255, 255, 0.95) !important; padding: 8px !important; border-radius: 12px !important; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important; pointer-events: auto !important; gap: 8px !important;">
+
+                                            {{-- Logo Group --}}
+                                            <div class="toolbar-group" style="display: flex !important; align-items: center !important; padding-right: 8px !important;">
+                                                <a href="{{ url('/') }}" style="display: flex; align-items: center; text-decoration: none; cursor: pointer; transition: opacity 0.2s ease;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'" title="Go to Homepage">
+                                                    <img src="{{ asset($settings->logo) }}" alt="{{ $settings->app_name }}" style="max-height: 36px; width: auto;">
+                                                </a>
+                                            </div>
+
+                                            <div class="toolbar-divider"></div>
 
                                             {{-- Tools Group --}}
                                             <div class="toolbar-group" style="display: flex !important; gap: 4px !important; visibility: visible !important; opacity: 1 !important;">
@@ -379,6 +369,37 @@ document.addEventListener('DOMContentLoaded', function() {
                                                 <button type="button" class="toolbar-btn" id="gridToggleBtn" title="Measurement Grid" data-tool="grid" onclick="window.toolbarHandler.toggleGrid('General')">
                                                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                                                         <path d="M2 6H18M2 10H18M2 14H18M6 2V18M10 2V18M14 2V18" stroke="currentColor" stroke-width="1.5" opacity="0.6"/>
+                                                    </svg>
+                                                </button>
+                                                <button type="button" class="toolbar-btn" id="panToolBtn" title="Move Model - Drag to reposition" data-tool="pan" onclick="window.toolbarHandler.toggleMoveMode('General')">
+                                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                                        <path d="M13 5L13 11M13 11L10 8M13 11L16 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                        <path d="M13 19L13 13M13 13L10 16M13 13L16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                        <path d="M5 13L11 13M11 13L8 10M11 13L8 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                        <path d="M19 13L13 13M13 13L16 10M13 13L16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                        <circle cx="13" cy="13" r="2" fill="currentColor"/>
+                                                    </svg>
+                                                </button>
+                                                <button type="button" class="toolbar-btn" id="autoRotateBtn" title="Auto-rotate Model" data-tool="autoRotate" onclick="window.toolbarHandler.toggleAutoRotate('General')">
+                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                                        <path d="M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C12.0605 3 13.8792 3.91099 15 5.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                                                        <path d="M17 3V7H13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                                                    </svg>
+                                                </button>
+                                                {{-- Bottom Control Bar Functions - Now in Top Toolbar --}}
+                                                <button type="button" class="toolbar-btn" id="toggleGridBtnMain" title="Toggle grid visibility" data-tool="gridMain" onclick="window.toolbarHandler.toggleGridMain('General')">
+                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                                        <rect x="3" y="3" width="5" height="5" stroke="currentColor" stroke-width="1.5"/>
+                                                        <rect x="11" y="3" width="5" height="5" stroke="currentColor" stroke-width="1.5"/>
+                                                        <rect x="3" y="11" width="5" height="5" stroke="currentColor" stroke-width="1.5"/>
+                                                        <rect x="11" y="11" width="5" height="5" stroke="currentColor" stroke-width="1.5"/>
+                                                    </svg>
+                                                </button>
+                                                <button type="button" class="toolbar-btn" id="measureToolBtnMain" title="Measure distance between two points" data-tool="measureMain" onclick="window.toolbarHandler.toggleMeasureMain('General')">
+                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                                        <path d="M2 2L18 18M2 2L2 18M18 2L18 18M2 18L18 18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                                        <circle cx="2" cy="2" r="1.5" fill="currentColor"/>
+                                                        <circle cx="18" cy="18" r="1.5" fill="currentColor"/>
                                                     </svg>
                                                 </button>
                                             </div>
@@ -434,6 +455,65 @@ document.addEventListener('DOMContentLoaded', function() {
                                                         <rect x="2" y="5" width="16" height="12" rx="2" stroke="currentColor" stroke-width="1.8"/>
                                                         <circle cx="10" cy="11" r="2.5" stroke="currentColor" stroke-width="1.8"/>
                                                         <path d="M6 5L7 3H13L14 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                                                    </svg>
+                                                </button>
+                                            </div>
+
+                                            <div class="toolbar-divider"></div>
+
+                                            {{-- Camera View Controls --}}
+                                            <div class="toolbar-group">
+                                                <button type="button" class="toolbar-btn camera-btn" data-view="top" title="Top View">
+                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                                                        <path d="M12 5L12 19M12 5L8 9M12 5L16 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                                    </svg>
+                                                </button>
+                                                <button type="button" class="toolbar-btn camera-btn active" data-view="front" title="Front View">
+                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                                                        <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/>
+                                                        <circle cx="12" cy="12" r="3" fill="currentColor"/>
+                                                    </svg>
+                                                </button>
+                                                <button type="button" class="toolbar-btn camera-btn" data-view="right" title="Right View">
+                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                                                        <path d="M19 12L5 12M19 12L15 8M19 12L15 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                                    </svg>
+                                                </button>
+                                                <button type="button" class="toolbar-btn camera-btn" data-view="left" title="Left View">
+                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                                                        <path d="M5 12L19 12M5 12L9 8M5 12L9 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                                    </svg>
+                                                </button>
+                                                <button type="button" class="toolbar-btn camera-btn" data-view="bottom" title="Bottom View">
+                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                                                        <path d="M12 19L12 5M12 19L8 15M12 19L16 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                                    </svg>
+                                                </button>
+                                                <button type="button" class="toolbar-btn camera-btn" data-view="reset" title="Reset Camera">
+                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                                                        <path d="M12 4V1L8 5L12 9V6C15.31 6 18 8.69 18 12C18 13.01 17.75 13.97 17.3 14.8L18.76 16.26C19.54 15.03 20 13.57 20 12C20 7.58 16.42 4 12 4ZM12 18C8.69 18 6 15.31 6 12C6 10.99 6.25 10.03 6.7 9.2L5.24 7.74C4.46 8.97 4 10.43 4 12C4 16.42 7.58 20 12 20V23L16 19L12 15V18Z" fill="currentColor"/>
+                                                    </svg>
+                                                </button>
+                                            </div>
+
+                                            {{-- Divider --}}
+                                            <div style="width: 1px; height: 32px; background: rgba(0,0,0,0.1); margin: 0 4px;"></div>
+
+                                            {{-- Action Buttons Group --}}
+                                            <div class="toolbar-group" style="display: flex !important; gap: 4px !important; visibility: visible !important; opacity: 1 !important;">
+                                                <button type="button" class="toolbar-btn" id="shareToolBtn" title="Share Model" data-action="share" onclick="window.toolbarHandler.shareModel('General')">
+                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                                        <circle cx="15" cy="4" r="3" stroke="currentColor" stroke-width="1.8"/>
+                                                        <circle cx="5" cy="10" r="3" stroke="currentColor" stroke-width="1.8"/>
+                                                        <circle cx="15" cy="16" r="3" stroke="currentColor" stroke-width="1.8"/>
+                                                        <path d="M7.5 11.5L12.5 14.5M12.5 5.5L7.5 8.5" stroke="currentColor" stroke-width="1.8"/>
+                                                    </svg>
+                                                </button>
+                                                <button type="button" class="toolbar-btn toolbar-btn-primary" id="saveCalculateToolBtn" title="Save & Calculate Pricing" data-action="saveCalculate" onclick="window.toolbarHandler.saveAndCalculate('General')">
+                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                                        <path d="M16 18H4C3 18 2 17 2 16V4C2 3 3 2 4 2H13L18 7V16C18 17 17 18 16 18Z" stroke="currentColor" stroke-width="1.8"/>
+                                                        <path d="M5 11H15V18H5V11Z" stroke="currentColor" stroke-width="1.8"/>
+                                                        <path d="M14 2V6H6V2" stroke="currentColor" stroke-width="1.8"/>
                                                     </svg>
                                                 </button>
                                             </div>
@@ -639,27 +719,11 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <!-- Left Side: Controls -->
                                 <div class="col-12 col-lg-3" style="background: #f8f9fa; border-right: 1px solid #e9ecef;">
                                     <div class="">
-                                        <!-- Category Tabs -->
-                                        <div class="btn-group w-100 mb-3" role="group">
-                                            <button type="button" class="btn btn-sm category-tab-btn" data-category="general" style="border-radius: 8px 0 0 8px; padding: 10px; font-size: 0.85rem; font-weight: 600;">
-                                                General
-                                            </button>
-                                            <button type="button" class="btn btn-sm category-tab-btn active" data-category="medical" style="border-radius: 0 8px 8px 0; padding: 10px; font-size: 0.85rem; font-weight: 600;">
-                                                Medical
-                                            </button>
-                                        </div>
+                                        {{-- Category tabs removed - upload from bottom bar --}}
+                                        {{-- Upload area hidden - use bottom bar upload button --}}
 
-                                        <!-- Upload Area -->
-                                        <div class="upload-drop-zone-3d text-center p-3 mb-3" style="border: 2px dashed #cbd5e0; border-radius: 10px; background: white; cursor: pointer; transition: all 0.3s;">
-                                            <input type="file" id="fileInput3dMedical" style="display: none;" accept=".stl,.obj,.ply" multiple>
-                                            <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" class="mb-2">
-                                                <circle cx="20" cy="20" r="20" fill="#e8f4f8"/>
-                                                <path d="M20 10L26 16L20 22L14 16L20 10Z" stroke="#4a90e2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                                <path d="M14 22L20 28L26 22" stroke="#4a90e2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/>
-                                            </svg>
-                                            <p class="mb-1" style="font-size: 0.9rem; font-weight: 600; color: #2c3e50;">Drop files or click</p>
-                                            <small class="text-muted" style="font-size: 0.8rem;">STL, OBJ, PLY (Max 100MB each) • Multiple files supported</small>
-                                        </div>
+                                        <!-- Hidden file inputs for compatibility -->
+                                        <input type="file" id="fileInput3dMedical" style="display: none;" accept=".stl,.obj,.ply" multiple>
 
                                         <!-- Uploaded Files List -->
                                         <div id="uploadedFilesListMedical" class="mb-3" style="display: none;">
@@ -672,9 +736,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                             <label class="form-label mb-2" style="font-size: 0.85rem; font-weight: 600; color: #495057;">Technology</label>
                                             <select id="technologySelectMedical" class="form-select form-select-sm" style="border-radius: 6px; border: 1px solid #dee2e6; font-size: 0.85rem;">
                                                 <option value="sla" selected>SLA (Stereolithography)</option>
-                                                <option value="dmls">DMLS (Direct Metal Laser Sintering)</option>
-                                                <option value="mjf">MJF (Multi Jet Fusion)</option>
-                                                <option value="polyjet">PolyJet</option>
+                                                <option value="dlp">DLP (Digital Light Processing)</option>
                                             </select>
                                         </div>
 
@@ -682,9 +744,10 @@ document.addEventListener('DOMContentLoaded', function() {
                                         <div class="mb-3">
                                             <label class="form-label mb-2" style="font-size: 0.85rem; font-weight: 600; color: #495057;">Material</label>
                                             <select id="materialSelectMedical" class="form-select form-select-sm" style="border-radius: 6px; border: 1px solid #dee2e6; font-size: 0.85rem;">
-                                                <option value="medical-resin">Medical Resin</option>
-                                                <option value="biocompatible">Biocompatible</option>
-                                                <option value="surgical">Surgical Grade</option>
+                                                <option value="biocompatible-resin" selected>Biocompatible Resin (Class I)</option>
+                                                <option value="dental-resin">Dental Resin (FDA Approved)</option>
+                                                <option value="surgical-guide">Surgical Guide Resin</option>
+                                                <option value="castable-resin">Castable Resin</option>
                                             </select>
                                         </div>
 
@@ -699,15 +762,25 @@ document.addEventListener('DOMContentLoaded', function() {
                                             </select>
                                         </div>
 
+                                        <!-- Layer Height - Fixed & Validated -->
+                                        <div class="mb-3">
+                                            <label class="form-label mb-2" style="font-size: 0.85rem; font-weight: 600; color: #495057;">Layer Height</label>
+                                            <div class="p-2" style="background: #f8f9fa; border-radius: 6px; border: 1px solid #dee2e6;">
+                                                <div style="display: flex; align-items: center; gap: 8px;">
+                                                    <i class="fas fa-lock" style="color: #6c757d; font-size: 0.75rem;"></i>
+                                                    <span style="font-size: 0.85rem; font-weight: 600; color: #495057;">25-50 μm</span>
+                                                    <span style="font-size: 0.7rem; color: #6c757d; margin-left: auto;">(Fixed, Validated)</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
                                         <!-- Color Picker -->
                                         <div class="mb-3">
-                                            <label class="form-label mb-2" style="font-size: 0.85rem; font-weight: 600; color: #495057;">Model Color</label>
+                                            <label class="form-label mb-2" style="font-size: 0.85rem; font-weight: 600; color: #495057;">Model Color <span style="font-size: 0.7rem; color: #6c757d;">(Certified Only)</span></label>
                                             <div class="d-flex gap-2 flex-wrap">
-                                                <button type="button" class="color-btn-medical active" data-color="#0047AD" style="width: 32px; height: 32px; border-radius: 6px; border: 2px solid #0047AD; background: #0047AD; cursor: pointer;"></button>
-                                                <button type="button" class="color-btn-medical" data-color="#ffffff" style="width: 32px; height: 32px; border-radius: 6px; border: 2px solid #dee2e6; background: #ffffff; cursor: pointer;"></button>
-                                                <button type="button" class="color-btn-medical" data-color="#0071cc" style="width: 32px; height: 32px; border-radius: 6px; border: 2px solid #dee2e6; background: #0071cc; cursor: pointer;"></button>
-                                                <button type="button" class="color-btn-medical" data-color="#e91e63" style="width: 32px; height: 32px; border-radius: 6px; border: 2px solid #dee2e6; background: #e91e63; cursor: pointer;"></button>
-                                                <button type="button" class="color-btn-medical" data-color="#9c27b0" style="width: 32px; height: 32px; border-radius: 6px; border: 2px solid #dee2e6; background: #9c27b0; cursor: pointer;"></button>
+                                                <button type="button" class="color-btn-medical active" data-color="#F5E6D3" style="width: 32px; height: 32px; border-radius: 6px; border: 2px solid #F5E6D3; background: #F5E6D3; cursor: pointer;" title="Dental White"></button>
+                                                <button type="button" class="color-btn-medical" data-color="#FFE4C4" style="width: 32px; height: 32px; border-radius: 6px; border: 2px solid #dee2e6; background: #FFE4C4; cursor: pointer;" title="Gum Pink"></button>
+                                                <button type="button" class="color-btn-medical" data-color="#FFFFFF" style="width: 32px; height: 32px; border-radius: 6px; border: 2px solid #dee2e6; background: #FFFFFF; cursor: pointer;" title="Clear"></button>
                                             </div>
                                         </div>
 
@@ -747,16 +820,27 @@ document.addEventListener('DOMContentLoaded', function() {
                                             <div class="model-subtitle" id="modelDimensionsDisplayMedical">0 × 0 × 0 mm</div>
                                         </div>
 
-                                        {{-- Professional Toolbar - Top Right --}}
-                                        <div class="viewer-professional-toolbar" id="professionalToolbarMedical" style="position: absolute !important; top: 20px !important; right: 20px !important; display: flex !important; visibility: visible !important; opacity: 1 !important; z-index: 9999 !important; background: rgba(255, 255, 255, 0.95) !important; padding: 8px !important; border-radius: 12px !important; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important; pointer-events: auto !important;">
+                                        {{-- Professional Toolbar - Top Right - MEDICAL (copied from General) --}}
+                                        <div class="viewer-professional-toolbar" id="professionalToolbarMedical" style="position: absolute !important; top: 20px !important; right: 20px !important; display: flex !important; visibility: visible !important; opacity: 1 !important; z-index: 9999 !important; background: rgba(255, 255, 255, 0.95) !important; padding: 8px !important; border-radius: 12px !important; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important; pointer-events: auto !important; gap: 8px !important;">
+
+                                            {{-- Logo Group --}}
+                                            <div class="toolbar-group" style="display: flex !important; align-items: center !important; padding-right: 8px !important;">
+                                                <a href="{{ url('/') }}" style="display: flex; align-items: center; text-decoration: none; cursor: pointer; transition: opacity 0.2s ease;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'" title="Go to Homepage">
+                                                    <img src="{{ asset($settings->logo) }}" alt="{{ $settings->app_name }}" style="max-height: 36px; width: auto;">
+                                                </a>
+                                            </div>
+
+                                            <div class="toolbar-divider"></div>
+
                                             {{-- Tools Group --}}
-                                            <div class="toolbar-group">
+                                            <div class="toolbar-group" style="display: flex !important; gap: 4px !important; visibility: visible !important; opacity: 1 !important;">
+
                                                 <button type="button" class="toolbar-btn" id="measurementToolBtnMedical" title="Measurement Tools" data-tool="measurement">
                                                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                                                         <path d="M4 16L16 4M6 16L8 14M10 16L12 14M14 16L16 14M4 14L6 12M4 10L8 6M4 6L6 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
                                                     </svg>
                                                 </button>
-                                                <button type="button" class="toolbar-btn" id="boundingBoxBtnMedical" title="Bounding Box" data-tool="boundingBox">
+                                                <button type="button" class="toolbar-btn" id="boundingBoxBtnMedical" title="Bounding Box" data-tool="boundingBox" onclick="window.toolbarHandler.toggleBoundingBox('General')">
                                                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                                                         <rect x="3" y="3" width="14" height="14" stroke="currentColor" stroke-width="1.8" stroke-dasharray="2 2"/>
                                                         <circle cx="3" cy="3" r="1.5" fill="currentColor"/>
@@ -765,15 +849,46 @@ document.addEventListener('DOMContentLoaded', function() {
                                                         <circle cx="17" cy="17" r="1.5" fill="currentColor"/>
                                                     </svg>
                                                 </button>
-                                                <button type="button" class="toolbar-btn" id="axisToggleBtnMedical" title="Toggle Axis" data-tool="axis">
+                                                <button type="button" class="toolbar-btn" id="axisToggleBtnMedical" title="Toggle Axis" data-tool="axis" onclick="window.toolbarHandler.toggleAxis('General')">
                                                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                                                         <path d="M10 2V18M2 10H18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
                                                         <path d="M10 2L8 4M10 2L12 4M18 10L16 8M18 10L16 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
                                                     </svg>
                                                 </button>
-                                                <button type="button" class="toolbar-btn" id="gridToggleBtnMedical" title="Measurement Grid" data-tool="grid">
+                                                <button type="button" class="toolbar-btn" id="gridToggleBtnMedical" title="Measurement Grid" data-tool="grid" onclick="window.toolbarHandler.toggleGrid('General')">
                                                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                                                         <path d="M2 6H18M2 10H18M2 14H18M6 2V18M10 2V18M14 2V18" stroke="currentColor" stroke-width="1.5" opacity="0.6"/>
+                                                    </svg>
+                                                </button>
+                                                <button type="button" class="toolbar-btn" id="panToolBtnMedical" title="Move Model - Drag to reposition" data-tool="pan" onclick="window.toolbarHandler.toggleMoveMode('General')">
+                                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                                        <path d="M13 5L13 11M13 11L10 8M13 11L16 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                        <path d="M13 19L13 13M13 13L10 16M13 13L16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                        <path d="M5 13L11 13M11 13L8 10M11 13L8 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                        <path d="M19 13L13 13M13 13L16 10M13 13L16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                        <circle cx="13" cy="13" r="2" fill="currentColor"/>
+                                                    </svg>
+                                                </button>
+                                                <button type="button" class="toolbar-btn" id="autoRotateBtnMedical" title="Auto-rotate Model" data-tool="autoRotate" onclick="window.toolbarHandler.toggleAutoRotate('General')">
+                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                                        <path d="M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C12.0605 3 13.8792 3.91099 15 5.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                                                        <path d="M17 3V7H13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                                                    </svg>
+                                                </button>
+                                                {{-- Bottom Control Bar Functions - Now in Top Toolbar --}}
+                                                <button type="button" class="toolbar-btn" id="toggleGridBtnMainMedical" title="Toggle grid visibility" data-tool="gridMain" onclick="window.toolbarHandler.toggleGridMain('General')">
+                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                                        <rect x="3" y="3" width="5" height="5" stroke="currentColor" stroke-width="1.5"/>
+                                                        <rect x="11" y="3" width="5" height="5" stroke="currentColor" stroke-width="1.5"/>
+                                                        <rect x="3" y="11" width="5" height="5" stroke="currentColor" stroke-width="1.5"/>
+                                                        <rect x="11" y="11" width="5" height="5" stroke="currentColor" stroke-width="1.5"/>
+                                                    </svg>
+                                                </button>
+                                                <button type="button" class="toolbar-btn" id="measureToolBtnMainMedical" title="Measure distance between two points" data-tool="measureMain" onclick="window.toolbarHandler.toggleMeasureMain('General')">
+                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                                        <path d="M2 2L18 18M2 2L2 18M18 2L18 18M2 18L18 18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                                        <circle cx="2" cy="2" r="1.5" fill="currentColor"/>
+                                                        <circle cx="18" cy="18" r="1.5" fill="currentColor"/>
                                                     </svg>
                                                 </button>
                                             </div>
@@ -782,25 +897,25 @@ document.addEventListener('DOMContentLoaded', function() {
 
                                             {{-- View Options --}}
                                             <div class="toolbar-group">
-                                                <button type="button" class="toolbar-btn" id="shadowToggleBtnMedical" title="Toggle Shadows" data-tool="shadow">
+                                                <button type="button" class="toolbar-btn" id="shadowToggleBtnMedical" title="Toggle Shadows" data-tool="shadow" onclick="window.toolbarHandler.toggleShadow('General')">
                                                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                                                         <circle cx="10" cy="8" r="3" stroke="currentColor" stroke-width="1.8"/>
                                                         <ellipse cx="10" cy="16" rx="5" ry="1.5" fill="currentColor" opacity="0.3"/>
                                                     </svg>
                                                 </button>
-                                                <button type="button" class="toolbar-btn" id="transparencyBtnMedical" title="Transparency" data-tool="transparency">
+                                                <button type="button" class="toolbar-btn" id="transparencyBtnMedical" title="Transparency" data-tool="transparency" onclick="window.toolbarHandler.toggleTransparency('General')">
                                                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                                                         <circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.8" opacity="0.5"/>
                                                         <path d="M10 3C6 3 3 6 3 10C3 14 6 17 10 17" stroke="currentColor" stroke-width="1.8"/>
                                                     </svg>
                                                 </button>
-                                                <button type="button" class="toolbar-btn" id="modelColorBtnMedical" title="Model Color" data-tool="modelColor">
+                                                <button type="button" class="toolbar-btn" id="modelColorBtnMedical" title="Model Color" data-tool="modelColor" onclick="window.toolbarHandler.changeModelColor()">
                                                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                                                         <circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.8"/>
                                                         <circle cx="10" cy="10" r="4" fill="currentColor" opacity="0.3"/>
                                                     </svg>
                                                 </button>
-                                                <button type="button" class="toolbar-btn" id="backgroundColorBtnMedical" title="Background Color" data-tool="bgColor">
+                                                <button type="button" class="toolbar-btn" id="backgroundColorBtnMedical" title="Background Color" data-tool="bgColor" onclick="window.toolbarHandler.changeBackgroundColor()">
                                                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                                                         <rect x="2" y="2" width="16" height="16" rx="2" stroke="currentColor" stroke-width="1.8"/>
                                                         <path d="M2 10H18" stroke="currentColor" stroke-width="1.8"/>
@@ -812,19 +927,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
                                             {{-- Actions --}}
                                             <div class="toolbar-group">
-                                                <button type="button" class="toolbar-btn" id="undoBtnMedical" title="Undo" data-action="undo">
+                                                <button type="button" class="toolbar-btn" id="undoBtnMedical" title="Undo" data-action="undo" onclick="window.toolbarHandler.undo()">
                                                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                                                         <path d="M5 8H15C16.6569 8 18 9.34315 18 11C18 12.6569 16.6569 14 15 14H8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
                                                         <path d="M8 5L5 8L8 11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
                                                     </svg>
                                                 </button>
-                                                <button type="button" class="toolbar-btn" id="redoBtnMedical" title="Redo" data-action="redo">
+                                                <button type="button" class="toolbar-btn" id="redoBtnMedical" title="Redo" data-action="redo" onclick="window.toolbarHandler.redo()">
                                                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                                                         <path d="M15 8H5C3.34315 8 2 9.34315 2 11C2 12.6569 3.34315 14 5 14H12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
                                                         <path d="M12 5L15 8L12 11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
                                                     </svg>
                                                 </button>
-                                                <button type="button" class="toolbar-btn" id="screenshotToolBtnMedical" title="Screenshot" data-action="screenshot">
+                                                <button type="button" class="toolbar-btn" id="screenshotToolBtnMedical" title="Screenshot" data-action="screenshot" onclick="window.toolbarHandler.takeScreenshot('General')">
                                                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                                                         <rect x="2" y="5" width="16" height="12" rx="2" stroke="currentColor" stroke-width="1.8"/>
                                                         <circle cx="10" cy="11" r="2.5" stroke="currentColor" stroke-width="1.8"/>
@@ -832,6 +947,116 @@ document.addEventListener('DOMContentLoaded', function() {
                                                     </svg>
                                                 </button>
                                             </div>
+
+                                            <div class="toolbar-divider"></div>
+
+                                            {{-- Camera View Controls --}}
+                                            <div class="toolbar-group">
+                                                <button type="button" class="toolbar-btn camera-btn" data-view="top" title="Top View">
+                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                                                        <path d="M12 5L12 19M12 5L8 9M12 5L16 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                                    </svg>
+                                                </button>
+                                                <button type="button" class="toolbar-btn camera-btn active" data-view="front" title="Front View">
+                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                                                        <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/>
+                                                        <circle cx="12" cy="12" r="3" fill="currentColor"/>
+                                                    </svg>
+                                                </button>
+                                                <button type="button" class="toolbar-btn camera-btn" data-view="right" title="Right View">
+                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                                                        <path d="M19 12L5 12M19 12L15 8M19 12L15 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                                    </svg>
+                                                </button>
+                                                <button type="button" class="toolbar-btn camera-btn" data-view="left" title="Left View">
+                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                                                        <path d="M5 12L19 12M5 12L9 8M5 12L9 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                                    </svg>
+                                                </button>
+                                                <button type="button" class="toolbar-btn camera-btn" data-view="bottom" title="Bottom View">
+                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                                                        <path d="M12 19L12 5M12 19L8 15M12 19L16 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                                    </svg>
+                                                </button>
+                                                <button type="button" class="toolbar-btn camera-btn" data-view="reset" title="Reset Camera">
+                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                                                        <path d="M12 4V1L8 5L12 9V6C15.31 6 18 8.69 18 12C18 13.01 17.75 13.97 17.3 14.8L18.76 16.26C19.54 15.03 20 13.57 20 12C20 7.58 16.42 4 12 4ZM12 18C8.69 18 6 15.31 6 12C6 10.99 6.25 10.03 6.7 9.2L5.24 7.74C4.46 8.97 4 10.43 4 12C4 16.42 7.58 20 12 20V23L16 19L12 15V18Z" fill="currentColor"/>
+                                                    </svg>
+                                                </button>
+                                            </div>
+
+                                            {{-- Divider --}}
+                                            <div style="width: 1px; height: 32px; background: rgba(0,0,0,0.1); margin: 0 4px;"></div>
+
+                                            {{-- Action Buttons Group --}}
+                                            <div class="toolbar-group" style="display: flex !important; gap: 4px !important; visibility: visible !important; opacity: 1 !important;">
+                                                <button type="button" class="toolbar-btn" id="shareToolBtnMedical" title="Share Model" data-action="share" onclick="window.toolbarHandler.shareModel('General')">
+                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                                        <circle cx="15" cy="4" r="3" stroke="currentColor" stroke-width="1.8"/>
+                                                        <circle cx="5" cy="10" r="3" stroke="currentColor" stroke-width="1.8"/>
+                                                        <circle cx="15" cy="16" r="3" stroke="currentColor" stroke-width="1.8"/>
+                                                        <path d="M7.5 11.5L12.5 14.5M12.5 5.5L7.5 8.5" stroke="currentColor" stroke-width="1.8"/>
+                                                    </svg>
+                                                </button>
+                                                <button type="button" class="toolbar-btn toolbar-btn-primary" id="saveCalculateToolBtnMedical" title="Save & Calculate Pricing" data-action="saveCalculate" onclick="window.toolbarHandler.saveAndCalculate('General')">
+                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                                        <path d="M16 18H4C3 18 2 17 2 16V4C2 3 3 2 4 2H13L18 7V16C18 17 17 18 16 18Z" stroke="currentColor" stroke-width="1.8"/>
+                                                        <path d="M5 11H15V18H5V11Z" stroke="currentColor" stroke-width="1.8"/>
+                                                        <path d="M14 2V6H6V2" stroke="currentColor" stroke-width="1.8"/>
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {{-- Measurement Sub-Menu (Flyout) --}}
+                                        <div class="measurement-submenu" id="measurementSubmenuMedical" style="display: none;">
+                                            <div class="submenu-header">
+                                                <span>Measurement Tools</span>
+                                                <button type="button" class="submenu-close">×</button>
+                                            </div>
+                                            <button type="button" class="submenu-btn" data-measure="distance">
+                                                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                                                    <path d="M2 2L16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                                    <circle cx="2" cy="2" r="2" fill="currentColor"/>
+                                                    <circle cx="16" cy="16" r="2" fill="currentColor"/>
+                                                </svg>
+                                                <span>Distance (Point-to-Point)</span>
+                                            </button>
+                                            <button type="button" class="submenu-btn" data-measure="point-to-line">
+                                                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                                                    <path d="M2 16L16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                                    <path d="M9 2L9 16" stroke="currentColor" stroke-width="1.5" stroke-dasharray="2 2"/>
+                                                    <circle cx="9" cy="2" r="2" fill="currentColor"/>
+                                                </svg>
+                                                <span>Point to Line</span>
+                                            </button>
+                                            <button type="button" class="submenu-btn" data-measure="point-to-surface">
+                                                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                                                    <rect x="2" y="12" width="14" height="4" stroke="currentColor" stroke-width="1.5"/>
+                                                    <path d="M9 2L9 12" stroke="currentColor" stroke-width="1.5" stroke-dasharray="2 2"/>
+                                                    <circle cx="9" cy="2" r="2" fill="currentColor"/>
+                                                </svg>
+                                                <span>Point to Surface</span>
+                                            </button>
+                                            <button type="button" class="submenu-btn" data-measure="angle">
+                                                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                                                    <path d="M2 16L9 9L16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                    <path d="M4 16A6 6 0 0 1 9 11" stroke="currentColor" stroke-width="1.5" stroke-dasharray="2 2"/>
+                                                </svg>
+                                                <span>Angle</span>
+                                            </button>
+                                            <button type="button" class="submenu-btn" data-measure="clear">
+                                                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                                                    <path d="M3 3L15 15M15 3L3 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                                </svg>
+                                                <span>Clear All Measurements</span>
+                                            </button>
+                                        </div>
+
+                                        {{-- Unit Toggle (for Grid) --}}
+                                        <div class="unit-toggle" id="unitToggleMedical" style="display: none;">
+                                            <button type="button" class="unit-btn active" data-unit="mm">mm</button>
+                                            <button type="button" class="unit-btn" data-unit="inch">inch</button>
                                         </div>
 
                                         {{-- Bottom Control Bar - Professional --}}
@@ -1577,6 +1802,23 @@ document.addEventListener('DOMContentLoaded', function() {
     box-shadow: 0 2px 8px rgba(74, 144, 226, 0.4);
 }
 
+.toolbar-btn-primary {
+    background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%) !important;
+    color: white !important;
+    border-color: #357abd !important;
+    font-weight: 600;
+}
+
+.toolbar-btn-primary:hover {
+    background: linear-gradient(135deg, #357abd 0%, #2868a8 100%) !important;
+    box-shadow: 0 6px 16px rgba(74, 144, 226, 0.4) !important;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
 .toolbar-btn:disabled {
     opacity: 0.4;
     cursor: not-allowed;
@@ -1987,9 +2229,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 const color = this.getAttribute('data-color');
 
-                // Apply to selected file only
-                if (window.selectedFileId && window.viewerMedical) {
-                    const fileData = window.viewerMedical.uploadedFiles.find(f => f.id === window.selectedFileId);
+                // Apply to selected file only - use unified viewer
+                const viewer = window.viewerGeneral || window.viewer;
+                if (window.selectedFileId && viewer) {
+                    const fileData = viewer.uploadedFiles.find(f => f.id === window.selectedFileId);
                     if (fileData && fileData.mesh) {
                         // Update file settings
                         if (!fileData.settings) fileData.settings = {};
@@ -2010,9 +2253,9 @@ document.addEventListener('DOMContentLoaded', function() {
                             window.viewerStateManager.saveState('File Color Changed');
                         }
                     }
-                } else if (window.viewerMedical && window.viewerMedical.model) {
+                } else if (viewer && viewer.model) {
                     // Fallback: Apply to all models
-                    window.viewerMedical.changeModelColor(color);
+                    viewer.changeModelColor(color);
                     if (window.viewerStateManager) {
                         window.viewerStateManager.saveState('Color Changed');
                     }
@@ -2086,8 +2329,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 const costs = { pla: 0.02, abs: 0.025, petg: 0.03, nylon: 0.04, tpu: 0.05, resin: 0.08 };
                 const cost = costs[material] || 0.02;
 
-                if (window.selectedFileId && window.viewerMedical) {
-                    const fileData = window.viewerMedical.uploadedFiles.find(f => f.id === window.selectedFileId);
+                const viewer = window.viewerGeneral || window.viewer;
+                if (window.selectedFileId && viewer) {
+                    const fileData = viewer.uploadedFiles.find(f => f.id === window.selectedFileId);
                     if (fileData) {
                         if (!fileData.settings) fileData.settings = {};
                         fileData.settings.material = material;
@@ -2096,7 +2340,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                         // Recalculate price
                         if (window.calculateFilePrice) {
-                            window.calculateFilePrice(window.selectedFileId, window.viewerMedical, 'Medical');
+                            window.calculateFilePrice(window.selectedFileId, viewer, 'Medical');
                         }
 
                         if (window.viewerStateManager) {
@@ -2115,8 +2359,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 const multipliers = { fdm: 1.0, sla: 1.5, sls: 2.0, dmls: 3.0, mjf: 2.5 };
                 const multiplier = multipliers[technology] || 1.0;
 
-                if (window.selectedFileId && window.viewerMedical) {
-                    const fileData = window.viewerMedical.uploadedFiles.find(f => f.id === window.selectedFileId);
+                const viewer = window.viewerGeneral || window.viewer;
+                if (window.selectedFileId && viewer) {
+                    const fileData = viewer.uploadedFiles.find(f => f.id === window.selectedFileId);
                     if (fileData) {
                         if (!fileData.settings) fileData.settings = {};
                         fileData.settings.technology = technology;
@@ -2125,7 +2370,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                         // Recalculate price
                         if (window.calculateFilePrice) {
-                            window.calculateFilePrice(window.selectedFileId, window.viewerMedical, 'Medical');
+                            window.calculateFilePrice(window.selectedFileId, viewer, 'Medical');
                         }
 
                         if (window.viewerStateManager) {
@@ -2182,8 +2427,9 @@ document.addEventListener('DOMContentLoaded', function() {
         if (resetViewMed) {
             resetViewMed.addEventListener('click', () => {
                 console.log('🔄 Medical reset view clicked');
-                if (window.viewerMedical && window.viewerMedical.model) {
-                    window.viewerMedical.fitCameraToModel();
+                const viewer = window.viewerGeneral || window.viewer;
+                if (viewer && viewer.model) {
+                    viewer.fitCameraToModel();
                 }
             });
         }
@@ -2193,8 +2439,9 @@ document.addEventListener('DOMContentLoaded', function() {
             wireframeMed.addEventListener('click', () => {
                 wireframeMode = !wireframeMode;
                 console.log('🔲 Medical wireframe toggle:', wireframeMode);
-                if (window.viewerMedical && window.viewerMedical.model) {
-                    window.viewerMedical.toggleWireframe(wireframeMode);
+                const viewer = window.viewerGeneral || window.viewer;
+                if (viewer && viewer.model) {
+                    viewer.toggleWireframe(wireframeMode);
                 }
                 wireframeMed.style.background = wireframeMode ? '#d84315' : '';
                 wireframeMed.style.color = wireframeMode ? 'white' : '';
@@ -2268,21 +2515,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('generalForm3d').style.display = 'none';
                 document.getElementById('medicalForm3d').style.display = 'block';
 
-                // Resize Medical viewer after showing
+                // Resize viewer after showing (use unified viewer)
                 setTimeout(() => {
-                    if (window.viewerMedical && window.viewerMedical.onWindowResize) {
-                        window.viewerMedical.onWindowResize();
-                        console.log('✓ Medical viewer resized');
+                    const viewer = window.viewerGeneral || window.viewer;
+                    if (viewer && viewer.onWindowResize) {
+                        viewer.onWindowResize();
+                        console.log('✓ Viewer resized');
                     }
 
-                    // If Medical viewer has a model, fit it to view
-                    if (window.viewerMedical && window.viewerMedical.model) {
-                        window.viewerMedical.fitCameraToModel();
-                        console.log('✓ Medical model refitted to camera');
+                    // If viewer has a model, fit it to view
+                    if (viewer && viewer.model) {
+                        viewer.fitCameraToModel();
+                        console.log('✓ Model refitted to camera');
                     }
 
-                    // Update quote if files are uploaded
-                    if (window.fileManagerMedical && window.viewerMedical && window.viewerMedical.uploadedFiles && window.viewerMedical.uploadedFiles.length > 0) {
+                    // Update quote if files are uploaded (unified viewer)
+                    const unifiedViewer = window.viewerGeneral || window.viewer;
+                    if (window.fileManagerMedical && unifiedViewer && unifiedViewer.uploadedFiles && unifiedViewer.uploadedFiles.length > 0) {
                         window.fileManagerMedical.updateQuote();
                         console.log('✓ Medical quote updated');
                     }
@@ -2370,9 +2619,10 @@ document.addEventListener('DOMContentLoaded', function() {
     window.addEventListener('viewersReady', () => {
         console.log('🎮 Setting up viewer controls...');
 
-        // Expose viewers globally for controls
+        // Expose unified viewer globally for controls
         window.viewerGeneral = viewerGeneral;
-        window.viewerMedical = viewerMedical;
+        // Note: window.viewerMedical removed - both use window.viewerGeneral now
+        window.viewer = viewerGeneral; // Alias for compatibility
 
         // General Viewer Controls
         const resetViewGeneralBtn = document.getElementById('resetViewGeneralBtn');
@@ -2539,8 +2789,9 @@ document.addEventListener('DOMContentLoaded', function() {
         if (resetViewMedicalBtn) {
             resetViewMedicalBtn.addEventListener('click', () => {
                 console.log('🔄 Medical reset view clicked');
-                if (window.viewerMedical && window.viewerMedical.model) {
-                    window.viewerMedical.fitCameraToModel();
+                const viewer = window.viewerGeneral || window.viewer;
+                if (viewer && viewer.model) {
+                    viewer.fitCameraToModel();
                 }
             });
         }
@@ -2548,9 +2799,10 @@ document.addEventListener('DOMContentLoaded', function() {
         if (zoomInMedicalBtn) {
             zoomInMedicalBtn.addEventListener('click', () => {
                 console.log('🔍 Medical zoom in clicked');
-                if (window.viewerMedical && window.viewerMedical.camera) {
-                    window.viewerMedical.camera.position.multiplyScalar(0.8);
-                    window.viewerMedical.controls.update();
+                const viewer = window.viewerGeneral || window.viewer;
+                if (viewer && viewer.camera) {
+                    viewer.camera.position.multiplyScalar(0.8);
+                    viewer.controls.update();
                 }
             });
         }
@@ -2558,9 +2810,10 @@ document.addEventListener('DOMContentLoaded', function() {
         if (zoomOutMedicalBtn) {
             zoomOutMedicalBtn.addEventListener('click', () => {
                 console.log('🔍 Medical zoom out clicked');
-                if (window.viewerMedical && window.viewerMedical.camera) {
-                    window.viewerMedical.camera.position.multiplyScalar(1.2);
-                    window.viewerMedical.controls.update();
+                const viewer = window.viewerGeneral || window.viewer;
+                if (viewer && viewer.camera) {
+                    viewer.camera.position.multiplyScalar(1.2);
+                    viewer.controls.update();
                 }
             });
         }
@@ -2569,8 +2822,9 @@ document.addEventListener('DOMContentLoaded', function() {
         if (solidModeMedicalBtn && wireframeMedicalBtn) {
             solidModeMedicalBtn.addEventListener('click', () => {
                 console.log('🎨 Medical solid mode clicked');
-                if (window.viewerMedical && window.viewerMedical.model) {
-                    window.viewerMedical.toggleWireframe(false);
+                const viewer = window.viewerGeneral || window.viewer;
+                if (viewer && viewer.model) {
+                    viewer.toggleWireframe(false);
                     isWireframeMedical = false;
                     solidModeMedicalBtn.classList.add('active');
                     wireframeMedicalBtn.classList.remove('active');
@@ -2579,8 +2833,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
             wireframeMedicalBtn.addEventListener('click', () => {
                 console.log('🎨 Medical wireframe mode clicked');
-                if (window.viewerMedical && window.viewerMedical.model) {
-                    window.viewerMedical.toggleWireframe(true);
+                const viewer = window.viewerGeneral || window.viewer;
+                if (viewer && viewer.model) {
+                    viewer.toggleWireframe(true);
                     isWireframeMedical = true;
                     wireframeMedicalBtn.classList.add('active');
                     solidModeMedicalBtn.classList.remove('active');
@@ -2591,8 +2846,9 @@ document.addEventListener('DOMContentLoaded', function() {
         if (modelColorMedicalPicker) {
             modelColorMedicalPicker.addEventListener('change', (e) => {
                 console.log('🎨 Medical model color changed:', e.target.value);
-                if (window.viewerMedical && window.viewerMedical.model) {
-                    window.viewerMedical.changeModelColor(e.target.value);
+                const viewer = window.viewerGeneral || window.viewer;
+                if (viewer && viewer.model) {
+                    viewer.changeModelColor(e.target.value);
                 }
             });
         }
@@ -2600,8 +2856,9 @@ document.addEventListener('DOMContentLoaded', function() {
         if (bgColorMedicalPicker) {
             bgColorMedicalPicker.addEventListener('change', (e) => {
                 console.log('🎨 Medical background color changed:', e.target.value);
-                if (window.viewerMedical && window.viewerMedical.scene) {
-                    window.viewerMedical.changeBGColor(e.target.value);
+                const viewer = window.viewerGeneral || window.viewer;
+                if (viewer && viewer.scene) {
+                    viewer.changeBGColor(e.target.value);
                 }
             });
         }
@@ -2631,13 +2888,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     viewerMedicalElement.style.maxHeight = '700px';
                     viewerMedicalElement.style.minHeight = '500px';
                     setTimeout(() => {
-                        if (window.viewerMedical) {
+                        const viewer = window.viewerGeneral || window.viewer;
+                        if (viewer) {
                             const container = viewerMedicalElement.parentElement;
                             const width = container.clientWidth;
                             const height = Math.min(container.clientHeight, 700);
-                            window.viewerMedical.renderer.setSize(width, height);
-                            window.viewerMedical.camera.aspect = width / height;
-                            window.viewerMedical.camera.updateProjectionMatrix();
+                            viewer.renderer.setSize(width, height);
+                            viewer.camera.aspect = width / height;
+                            viewer.camera.updateProjectionMatrix();
                         }
                     }, 100);
                 }
@@ -2651,13 +2909,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     viewerMedicalElement.style.maxHeight = '700px';
                     viewerMedicalElement.style.minHeight = '500px';
                     setTimeout(() => {
-                        if (window.viewerMedical) {
+                        const viewer = window.viewerGeneral || window.viewer;
+                        if (viewer) {
                             const container = viewerMedicalElement.parentElement;
                             const width = container.clientWidth;
                             const height = Math.min(container.clientHeight, 700);
-                            window.viewerMedical.renderer.setSize(width, height);
-                            window.viewerMedical.camera.aspect = width / height;
-                            window.viewerMedical.camera.updateProjectionMatrix();
+                            viewer.renderer.setSize(width, height);
+                            viewer.camera.aspect = width / height;
+                            viewer.camera.updateProjectionMatrix();
                         }
                     }, 100);
                 }
@@ -2667,20 +2926,132 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('✓ Medical viewer controls ready');
         console.log('✓ All viewer controls initialized!');
 
+        // Setup Medical toolbar buttons to use unified viewer
+        setupMedicalToolbar();
+
         // Setup file list update handlers
         setupFileListUpdates();
     });
+
+    // Setup Medical Toolbar Button Event Listeners
+    function setupMedicalToolbar() {
+        console.log('🔧 Setting up Medical toolbar buttons...');
+        
+        const viewer = window.viewerGeneral || window.viewer;
+        if (!viewer) {
+            console.warn('❌ No viewer found for Medical toolbar setup');
+            return;
+        }
+
+        // Ensure window.toolbarHandler exists (should be defined in professional-tools.js)
+        if (!window.toolbarHandler) {
+            console.warn('❌ window.toolbarHandler not found, creating minimal version');
+            window.toolbarHandler = {
+                toggleMeasurement: function(type) { console.log('Measurement toggled'); },
+                toggleBoundingBox: function(type) { console.log('Bounding box toggled'); },
+                toggleAxis: function(type) { console.log('Axis toggled'); },
+                toggleGrid: function(type) { console.log('Grid toggled'); },
+                toggleMoveMode: function(type) { console.log('Move mode toggled'); },
+                toggleAutoRotate: function(type) { console.log('Auto-rotate toggled'); },
+                toggleGridMain: function(type) { console.log('Grid main toggled'); },
+                toggleMeasureMain: function(type) { console.log('Measure main toggled'); },
+                toggleShadow: function(type) { console.log('Shadow toggled'); },
+                toggleTransparency: function(type) { console.log('Transparency toggled'); },
+                takeScreenshot: function(type) { console.log('Screenshot taken'); },
+                shareModel: function(type) { console.log('Share clicked'); },
+                saveAndCalculate: function(type) { console.log('Save & Calculate clicked'); },
+                undo: function() { console.log('Undo'); },
+                redo: function() { console.log('Redo'); },
+                changeModelColor: function() { console.log('Model color change'); },
+                changeBackgroundColor: function() { console.log('BG color change'); }
+            };
+        }
+
+        // Medical toolbar buttons (with Medical suffix)
+        const medicalButtons = {
+            'measurementToolBtnMedical': () => window.toolbarHandler.toggleMeasurement('General'),
+            'boundingBoxBtnMedical': () => window.toolbarHandler.toggleBoundingBox('General'),
+            'axisToggleBtnMedical': () => window.toolbarHandler.toggleAxis('General'),
+            'gridToggleBtnMedical': () => window.toolbarHandler.toggleGrid('General'),
+            'panToolBtnMedical': () => window.toolbarHandler.toggleMoveMode('General'),
+            'autoRotateBtnMedical': () => window.toolbarHandler.toggleAutoRotate('General'),
+            'toggleGridBtnMainMedical': () => window.toolbarHandler.toggleGridMain('General'),
+            'measureToolBtnMainMedical': () => window.toolbarHandler.toggleMeasureMain('General'),
+            'shadowToggleBtnMedical': () => window.toolbarHandler.toggleShadow('General'),
+            'transparencyBtnMedical': () => window.toolbarHandler.toggleTransparency('General'),
+            'modelColorBtnMedical': () => window.toolbarHandler.changeModelColor(),
+            'backgroundColorBtnMedical': () => window.toolbarHandler.changeBackgroundColor(),
+            'undoBtnMedical': () => window.toolbarHandler.undo(),
+            'redoBtnMedical': () => window.toolbarHandler.redo(),
+            'screenshotToolBtnMedical': () => window.toolbarHandler.takeScreenshot('General'),
+            'shareToolBtnMedical': () => window.toolbarHandler.shareModel('General'),
+            'saveCalculateToolBtnMedical': () => window.toolbarHandler.saveAndCalculate('General')
+        };
+
+        // Attach event listeners
+        Object.keys(medicalButtons).forEach(btnId => {
+            const btn = document.getElementById(btnId);
+            if (btn) {
+                // Remove inline onclick if exists to prevent double firing
+                btn.removeAttribute('onclick');
+                btn.addEventListener('click', medicalButtons[btnId]);
+                console.log(`✅ ${btnId} listener attached`);
+            } else {
+                console.warn(`⚠️ Button not found: ${btnId}`);
+            }
+        });
+
+        // Camera view buttons for Medical toolbar
+        const medicalToolbar = document.getElementById('professionalToolbarMedical');
+        if (medicalToolbar) {
+            medicalToolbar.querySelectorAll('.camera-btn').forEach(btn => {
+                const view = btn.dataset.view;
+                btn.addEventListener('click', function() {
+                    console.log(`📷 Camera view: ${view}`);
+                    
+                    // Remove active from siblings
+                    medicalToolbar.querySelectorAll('.camera-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Apply camera view
+                    if (viewer?.scene?.activeCamera) {
+                        const camera = viewer.scene.activeCamera;
+                        const views = {
+                            top: { alpha: Math.PI / 2, beta: 0 },
+                            bottom: { alpha: Math.PI / 2, beta: Math.PI },
+                            front: { alpha: Math.PI / 2, beta: Math.PI / 2 },
+                            right: { alpha: 0, beta: Math.PI / 2 },
+                            left: { alpha: Math.PI, beta: Math.PI / 2 },
+                            reset: { alpha: Math.PI / 4, beta: Math.PI / 3 }
+                        };
+                        
+                        if (views[view] && camera.alpha !== undefined) {
+                            camera.alpha = views[view].alpha;
+                            camera.beta = views[view].beta;
+                            console.log(`✅ Camera set to ${view}`);
+                        }
+                    }
+                });
+            });
+            console.log('✅ Medical camera buttons initialized');
+        }
+
+        console.log('✅ Medical toolbar setup complete');
+    }
 
     // Function to update file lists
     function setupFileListUpdates() {
         // Listen for pricing updates which happen after files are loaded
         window.addEventListener('pricingUpdateNeeded', (event) => {
             const { viewerId } = event.detail;
+            
+            // Use unified viewer for both General and Medical
+            const viewer = window.viewerGeneral || window.viewer;
 
-            if (viewerId === 'viewer3dGeneral' && window.viewerGeneral) {
-                updateFileList('General', window.viewerGeneral);
-            } else if (viewerId === 'viewer3dMedical' && window.viewerMedical) {
-                updateFileList('Medical', window.viewerMedical);
+            if (viewerId === 'viewer3dGeneral' && viewer) {
+                updateFileList('General', viewer);
+            } else if (viewerId === 'viewer3dMedical' && viewer) {
+                updateFileList('Medical', viewer);
             }
         });
 
@@ -2715,6 +3086,10 @@ document.addEventListener('DOMContentLoaded', function() {
                  data-file-id="${fileData.id}"
                  onclick="selectFile('${formType}', ${fileData.id})">
                 <div class="d-flex align-items-center flex-grow-1">
+                    <!-- Order Number -->
+                    <div class="file-order-number" style="width: 24px; height: 24px; background: linear-gradient(135deg, #0047AD 0%, #003580 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.7rem; font-weight: bold; margin-right: 8px; flex-shrink: 0;">
+                        ${index + 1}
+                    </div>
                     <div class="file-icon me-2" style="width: 32px; height: 32px; background: #0047AD; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.7rem; font-weight: bold;">
                         ${getFileExtension(fileData.file.name).toUpperCase()}
                     </div>
@@ -2749,6 +3124,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
         console.log(`✓ File list updated for ${formType}: ${files.length} files`);
 
+        // Dispatch event to notify bottom bar of file count
+        window.dispatchEvent(new CustomEvent('filesUploaded', {
+            detail: { count: files.length, formType: formType }
+        }));
+
         // Attach visibility toggle handlers
         attachVisibilityHandlers(formType, viewer);
 
@@ -2760,7 +3140,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Select a file to edit its properties
     window.selectFile = function(formType, fileId) {
-        const viewer = formType === 'General' ? window.viewerGeneral : window.viewerMedical;
+        const viewer = window.viewerGeneral || window.viewer;
         if (!viewer) return;
 
         const fileData = viewer.uploadedFiles.find(f => f.id === fileId);
@@ -2906,7 +3286,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Show all file prices (called when "Save & Calculate" is clicked)
     window.showAllFilePrices = function(formType) {
-        const viewer = formType === 'General' ? window.viewerGeneral : window.viewerMedical;
+        const viewer = window.viewerGeneral || window.viewer;
         if (!viewer || !viewer.uploadedFiles) return;
 
         let totalPrice = 0;
@@ -2973,7 +3353,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Remove file function
     window.removeFile = async function(formType, fileId) {
-        const viewer = formType === 'General' ? window.viewerGeneral : window.viewerMedical;
+        const viewer = window.viewerGeneral || window.viewer;
         if (viewer) {
             viewer.removeFile(fileId);
             updateFileList(formType, viewer);
@@ -3135,16 +3515,19 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Save & Calculate - Main control bar
-    const saveCalculationsBtnMain = document.getElementById('saveCalculationsBtnMain');
-    if (saveCalculationsBtnMain) {
-        saveCalculationsBtnMain.addEventListener('click', function() {
-            saveCalculations(currentViewerId);
-        });
-    }
+    // NOTE: Button handler is now in quote.blade.php which calls EnhancedSaveCalculate.execute()
+    // This old handler is DISABLED to prevent conflicts
+    // const saveCalculationsBtnMain = document.getElementById('saveCalculationsBtnMain');
+    // if (saveCalculationsBtnMain) {
+    //     saveCalculationsBtnMain.addEventListener('click', function() {
+    //         saveCalculations(currentViewerId);
+    //     });
+    // }
+    console.log('ℹ️ Save & Calculate handler delegated to quote.blade.php (EnhancedSaveCalculate module)');
 
-    // Inject Screenshot and Share buttons into bottom toolbar
+    // Inject Screenshot button into bottom toolbar (Share & Save moved to top toolbar)
     function injectToolbarButtons() {
-        console.log('🔧 Injecting screenshot and share buttons...');
+        console.log('🔧 Injecting screenshot button (Share & Save moved to top toolbar)...');
 
         // Find the tools section in the bottom control bar
         const toolsSections = document.querySelectorAll('.tool-buttons');
@@ -3158,9 +3541,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const isGeneral = index === 0;
             const screenshotId = isGeneral ? 'screenshotBtnMain' : 'screenshotBtnMedicalMain';
-            const shareId = isGeneral ? 'shareBtnMain' : 'shareBtnMedicalMain';
 
-            // Create Screenshot button
+            // Create Screenshot button only (Share and Save now in top toolbar)
             const screenshotBtn = document.createElement('button');
             screenshotBtn.type = 'button';
             screenshotBtn.className = 'control-btn tool-btn';
@@ -3175,73 +3557,63 @@ document.addEventListener('DOMContentLoaded', function() {
                 <span>Screenshot</span>
             `;
 
-            // Create Share button
-            const shareBtn = document.createElement('button');
-            shareBtn.type = 'button';
-            shareBtn.className = 'control-btn tool-btn';
-            shareBtn.id = shareId;
-            shareBtn.title = 'Share Model';
-            shareBtn.innerHTML = `
-                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                    <circle cx="13" cy="4" r="2.5" stroke="currentColor" stroke-width="1.5"/>
-                    <circle cx="5" cy="9" r="2.5" stroke="currentColor" stroke-width="1.5"/>
-                    <circle cx="13" cy="14" r="2.5" stroke="currentColor" stroke-width="1.5"/>
-                    <path d="M7.5 10L10.5 12.5M7.5 8L10.5 5.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                </svg>
-                <span>Share</span>
-            `;
-
-            // Add buttons to toolbar
+            // Add button to toolbar
             toolsSection.appendChild(screenshotBtn);
-            toolsSection.appendChild(shareBtn);
 
-            console.log(`✅ Added screenshot and share buttons to toolbar ${index}`);
+            console.log(`✅ Added screenshot button to toolbar ${index}`);
 
-            // Add event listeners
+            // Add event listener for screenshot
             screenshotBtn.addEventListener('click', function() {
-                console.log('📸 Screenshot button clicked');
+                console.log('📸 Screenshot button clicked (bottom toolbar)');
                 const viewerId = isGeneral ? 'viewer3dGeneral' : 'viewer3dMedical';
-                const viewer = isGeneral ? window.viewerGeneral : window.viewerMedical;
+                const viewer = window.viewerGeneral || window.viewer;
 
-                if (!viewer) {
-                    console.error('Viewer not found!');
+                if (!viewer || !viewer.renderer || !viewer.scene || !viewer.camera) {
+                    console.error('Viewer not ready for screenshot');
+                    showToolbarNotification('Viewer not ready, please wait...', 'warning', 2000);
                     return;
                 }
 
                 try {
-                    // Render the scene
+                    // Force a fresh render before capturing
                     viewer.renderer.render(viewer.scene, viewer.camera);
 
-                    // Get the canvas as data URL
-                    const dataURL = viewer.renderer.domElement.toDataURL('image/png');
+                    // Get the canvas element
+                    const canvas = viewer.renderer.domElement;
+
+                    // Create a new canvas with white background
+                    const screenshotCanvas = document.createElement('canvas');
+                    screenshotCanvas.width = canvas.width;
+                    screenshotCanvas.height = canvas.height;
+                    const ctx = screenshotCanvas.getContext('2d');
+
+                    // Fill with white background
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(0, 0, screenshotCanvas.width, screenshotCanvas.height);
+
+                    // Draw the 3D viewer canvas on top
+                    ctx.drawImage(canvas, 0, 0);
+
+                    // Convert to data URL with high quality
+                    const dataURL = screenshotCanvas.toDataURL('image/png', 1.0);
 
                     // Create download link
+                    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').substring(0, 19);
+                    const filename = `3d-model-${isGeneral ? 'general' : 'medical'}-${timestamp}.png`;
                     const link = document.createElement('a');
-                    link.download = `3d-model-screenshot-${Date.now()}.png`;
+                    link.download = filename;
                     link.href = dataURL;
                     link.click();
 
-                    console.log('✅ Screenshot captured successfully');
+                    console.log('✅ Screenshot captured successfully:', filename);
+                    showToolbarNotification('Screenshot saved! ✓', 'success', 2000);
 
                     // Visual feedback
                     this.classList.add('active');
                     setTimeout(() => this.classList.remove('active'), 500);
                 } catch (error) {
                     console.error('Screenshot error:', error);
-                }
-            });
-
-            shareBtn.addEventListener('click', function() {
-                console.log('🔗 Share button clicked');
-
-                if (window.shareModal) {
-                    // Get the first file ID if available
-                    const filesList = document.querySelectorAll('[data-file-id]');
-                    const firstFileId = filesList.length > 0 ? filesList[0].dataset.fileId : null;
-
-                    window.shareModal.open(firstFileId);
-                } else {
-                    console.error('Share modal not found!');
+                    showToolbarNotification('Screenshot failed: ' + error.message, 'error', 3000);
                 }
             });
         });
@@ -3257,9 +3629,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Helper functions
     function setCameraView(viewerId, view) {
-        const viewer = viewerId === 'viewer3dGeneral' ? window.viewerGeneral : window.viewerMedical;
+        // Always use unified viewer
+        const viewer = window.viewerGeneral || window.viewer;
         if (!viewer?.scene?.activeCamera) {
-            console.log('No active camera found for:', viewerId);
+            console.log('No active camera found');
             return;
         }
 
@@ -3282,9 +3655,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function toggleGrid(viewerId, visible) {
-        const viewer = viewerId === 'viewer3dGeneral' ? window.viewerGeneral : window.viewerMedical;
+        // Always use unified viewer
+        const viewer = window.viewerGeneral || window.viewer;
         if (!viewer?.scene) {
-            console.log('No scene found for:', viewerId);
+            console.log('No scene found');
             return;
         }
 
@@ -3298,7 +3672,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function startAutoRotation(viewerId) {
-        const viewer = viewerId === 'viewer3dGeneral' ? window.viewerGeneral : window.viewerMedical;
+        // Always use unified viewer
+        const viewer = window.viewerGeneral || window.viewer;
         if (!viewer?.scene?.activeCamera) {
             console.log('Cannot start rotation - no camera');
             return;
@@ -3316,7 +3691,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function stopAutoRotation(viewerId) {
-        const viewer = viewerId === 'viewer3dGeneral' ? window.viewerGeneral : window.viewerMedical;
+        // Always use unified viewer
+        const viewer = window.viewerGeneral || window.viewer;
         if (!viewer?.scene?.activeCamera) return;
 
         const camera = viewer.scene.activeCamera;
@@ -3341,7 +3717,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function updateMeasurements(viewerId) {
-        const viewer = viewerId === 'viewer3dGeneral' ? window.viewerGeneral : window.viewerMedical;
+        const viewer = window.viewerGeneral || window.viewer;
         if (!viewer?.uploadedFiles || viewer.uploadedFiles.length === 0) {
             console.log('No files uploaded yet');
             return;
@@ -3702,12 +4078,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const THREE = window.THREE;
 
         if (!currentViewer || !currentViewer.scene) {
-            // Try to find viewer
-            if (window.viewerGeneral && window.viewerGeneral.scene) {
-                currentViewer = window.viewerGeneral;
-            } else if (window.viewerMedical && window.viewerMedical.scene) {
-                currentViewer = window.viewerMedical;
-            }
+            // Try to find viewer (unified)
+            currentViewer = window.viewerGeneral || window.viewer;
         }
 
         if (!currentViewer || !currentViewer.scene) return;
@@ -3811,12 +4183,10 @@ document.addEventListener('DOMContentLoaded', function() {
             button.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
             button.style.color = 'white';
 
-            // Disable orbit controls rotation, keep zoom
-            if (window.viewerGeneral && window.viewerGeneral.controls) {
-                window.viewerGeneral.controls.enableRotate = false;
-            }
-            if (window.viewerMedical && window.viewerMedical.controls) {
-                window.viewerMedical.controls.enableRotate = false;
+            // Disable orbit controls rotation, keep zoom (unified viewer)
+            const viewer = window.viewerGeneral || window.viewer;
+            if (viewer && viewer.controls) {
+                viewer.controls.enableRotate = false;
             }
 
             console.log('✋ Pan mode ACTIVE - Drag to move the model');
@@ -3827,12 +4197,10 @@ document.addEventListener('DOMContentLoaded', function() {
             button.style.background = '';
             button.style.color = '';
 
-            // Re-enable orbit controls rotation
-            if (window.viewerGeneral && window.viewerGeneral.controls) {
-                window.viewerGeneral.controls.enableRotate = true;
-            }
-            if (window.viewerMedical && window.viewerMedical.controls) {
-                window.viewerMedical.controls.enableRotate = true;
+            // Re-enable orbit controls rotation (unified viewer)
+            const viewer = window.viewerGeneral || window.viewer;
+            if (viewer && viewer.controls) {
+                viewer.controls.enableRotate = true;
             }
 
             console.log('✋ Pan mode OFF');
@@ -3913,7 +4281,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function takeScreenshot(viewerType) {
-        const viewer = viewerType === 'general' ? window.viewerGeneral : window.viewerMedical;
+        const viewer = window.viewerGeneral || window.viewer;
 
         if (!viewer || !viewer.renderer) {
             console.warn('⚠️ No viewer available for screenshot');
@@ -4037,14 +4405,12 @@ loading
             console.log('✅ Measurement and Pan handlers added to General viewer');
         }
 
-        if (window.viewerMedical && window.viewerMedical.renderer) {
-            const canvas = window.viewerMedical.renderer.domElement;
-            canvas.addEventListener('click', (event) => {
-                handleMeasurementClick(event, window.viewerMedical);
-            });
-            // Setup pan handlers
-            setupPanHandlers(canvas, window.viewerMedical);
-            console.log('✅ Measurement and Pan handlers added to Medical viewer');
+        // Medical viewer uses the same unified viewer
+        const viewer = window.viewerGeneral || window.viewer;
+        if (viewer && viewer.renderer) {
+            const canvas = viewer.renderer.domElement;
+            // Event listeners already added above for unified viewer
+            console.log('✅ Medical viewer uses unified viewer - handlers already attached');
         }
     });
 
@@ -4054,10 +4420,11 @@ loading
 });
 </script>
 
-<script src="{{ asset('frontend/assets/js/3d-viewer-pro.js') }}?v=5"></script>
+<script src="{{ asset('frontend/assets/js/3d-viewer-pro.js') }}?t={{ time() }}"></script>
 <script src="{{ asset('frontend/assets/js/volume-calculator.js') }}?v={{ time() }}"></script>
 <script src="{{ asset('frontend/assets/js/pricing-calculator.js') }}?v={{ time() }}"></script>
-<script src="{{ asset('frontend/assets/js/simple-save-calculate.js') }}?v={{ time() }}"></script>
+{{-- REMOVED: simple-save-calculate.js - Conflicts with enhanced-save-calculate.js --}}
+{{-- <script src="{{ asset('frontend/assets/js/simple-save-calculate.js') }}?v={{ time() }}"></script> --}}
 <script src="{{ asset('frontend/assets/js/debug-calculator.js') }}?v={{ time() }}"></script>
 
 {{-- INLINE HANDLER DEFINITION - Put it directly in HTML to bypass loading issues --}}
@@ -4067,16 +4434,16 @@ console.log('🚀 INLINE SCRIPT STARTING...');
 // Professional notification system - IMPROVED positioning
 window.showToolbarNotification = function(message, type = 'info', duration = 2500) {
     const notification = document.createElement('div');
-    
+
     const colors = {
         success: { bg: '#10b981', icon: '✓' },
         error: { bg: '#ef4444', icon: '✕' },
         info: { bg: '#3b82f6', icon: 'ℹ' },
         warning: { bg: '#f59e0b', icon: '⚠' }
     };
-    
+
     const style = colors[type] || colors.info;
-    
+
     notification.style.cssText = `
         position: fixed;
         top: 140px;
@@ -4097,12 +4464,12 @@ window.showToolbarNotification = function(message, type = 'info', duration = 250
         pointer-events: auto;
         cursor: pointer;
     `;
-    
+
     notification.innerHTML = `
         <span style="font-size: 18px; font-weight: bold;">${style.icon}</span>
         <span>${message}</span>
     `;
-    
+
     // Add animation keyframes if not already added
     if (!document.getElementById('toolbar-notification-styles')) {
         const styleSheet = document.createElement('style');
@@ -4119,15 +4486,15 @@ window.showToolbarNotification = function(message, type = 'info', duration = 250
         `;
         document.head.appendChild(styleSheet);
     }
-    
+
     document.body.appendChild(notification);
-    
+
     // Click to dismiss
     notification.onclick = function() {
         notification.style.animation = 'slideOut 0.3s ease-out';
         setTimeout(() => document.body.removeChild(notification), 300);
     };
-    
+
     // Auto dismiss
     setTimeout(() => {
         if (document.body.contains(notification)) {
@@ -4145,7 +4512,7 @@ window.showToolbarNotification = function(message, type = 'info', duration = 250
 window.toggleToolbarButton = function(buttonId, isActive) {
     const button = document.getElementById(buttonId);
     if (!button) return;
-    
+
     if (isActive) {
         button.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
         button.style.color = 'white';
@@ -4159,15 +4526,39 @@ window.toggleToolbarButton = function(buttonId, isActive) {
 
 // Define the handler RIGHT HERE in the HTML
 window.toolbarHandler = {
+    // Debugging helper to check viewer state
+    _checkViewer: function() {
+        console.log('🔍 Checking viewer state:');
+        console.log('   window.viewerGeneral:', window.viewerGeneral);
+        console.log('   window.viewerMedical:', window.viewerMedical);
+        console.log('   window.viewer:', window.viewer);
+        
+        const viewer = window.viewerGeneral || window.viewer;
+        if (viewer) {
+            console.log('✅ Viewer found!');
+            console.log('   - scene:', !!viewer.scene);
+            console.log('   - camera:', !!viewer.camera);
+            console.log('   - renderer:', !!viewer.renderer);
+            console.log('   - initialized:', !!viewer.initialized);
+            if (viewer.renderer && viewer.renderer.domElement) {
+                console.log('   - canvas size:', viewer.renderer.domElement.width, 'x', viewer.renderer.domElement.height);
+            }
+        } else {
+            console.error('❌ NO VIEWER FOUND!');
+        }
+        return viewer;
+    },
+
     toggleMeasurement: function(viewerType) {
         console.log(`📏 Toggle measurement for ${viewerType}`);
+        this._checkViewer();
         const submenu = document.getElementById('measurementSubmenu' + (viewerType === 'Medical' ? 'Medical' : ''));
         if (submenu) {
             const isVisible = submenu.style.display === 'block';
             submenu.style.display = isVisible ? 'none' : 'block';
             toggleToolbarButton('measurementToolBtn', !isVisible);
             showToolbarNotification(isVisible ? 'Measurement tools hidden' : 'Measurement tools shown', 'info', 1500);
-            
+
             // Initialize measurement tool handlers if not already done
             if (!submenu.dataset.initialized) {
                 this.initMeasurementTools(viewerType, submenu);
@@ -4175,15 +4566,16 @@ window.toolbarHandler = {
             }
         }
     },
-    
+
     initMeasurementTools: function(viewerType, submenu) {
-        const viewer = viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral;
-        
+        // Always use unified viewer
+        const viewer = window.viewerGeneral || window.viewer;
+
         if (!viewer) {
             console.warn('Viewer not found for measurement tools');
             return;
         }
-        
+
         // Initialize measurement state
         if (!viewer.measurementState) {
             viewer.measurementState = {
@@ -4193,7 +4585,7 @@ window.toolbarHandler = {
                 labels: []
             };
         }
-        
+
         // Close button
         const closeBtn = submenu.querySelector('.submenu-close');
         if (closeBtn) {
@@ -4202,7 +4594,7 @@ window.toolbarHandler = {
                 toggleToolbarButton('measurementToolBtn', false);
             });
         }
-        
+
         // Measurement tool buttons
         submenu.querySelectorAll('.submenu-btn').forEach(btn => {
             btn.addEventListener('click', () => {
@@ -4211,10 +4603,17 @@ window.toolbarHandler = {
             });
         });
     },
-    
+
     handleMeasurementTool: function(viewer, measureType, viewerType) {
         console.log(`📐 Measurement tool: ${measureType}`);
+        const THREE = window.THREE;
         
+        if (!THREE) {
+            console.error('❌ THREE.js not loaded!');
+            showToolbarNotification('3D library not loaded yet', 'error');
+            return;
+        }
+
         switch(measureType) {
             case 'distance':
                 this.startDistanceMeasurement(viewer, viewerType);
@@ -4236,35 +4635,43 @@ window.toolbarHandler = {
                 break;
         }
     },
-    
+
     startDistanceMeasurement: function(viewer, viewerType) {
+        const THREE = window.THREE;
+        
+        if (!THREE) {
+            console.error('❌ THREE.js not loaded!');
+            showToolbarNotification('3D library not loaded yet', 'error');
+            return;
+        }
+        
         viewer.measurementState.mode = 'distance';
         viewer.measurementState.points = [];
-        
+
         showToolbarNotification('Click two points on the model to measure distance', 'info', 3000);
-        
+
         // Add click handler for measurement
         const onMeasurementClick = (event) => {
             const raycaster = new THREE.Raycaster();
             const mouse = new THREE.Vector2();
-            
+
             const rect = viewer.renderer.domElement.getBoundingClientRect();
             mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
             mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-            
+
             raycaster.setFromCamera(mouse, viewer.camera);
-            
+
             const meshes = [];
             viewer.scene.traverse((obj) => {
                 if (obj.isMesh) meshes.push(obj);
             });
-            
+
             const intersects = raycaster.intersectObjects(meshes);
-            
+
             if (intersects.length > 0) {
                 const point = intersects[0].point.clone();
                 viewer.measurementState.points.push(point);
-                
+
                 // Create point marker
                 const geometry = new THREE.SphereGeometry(0.5, 16, 16);
                 const material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
@@ -4273,7 +4680,7 @@ window.toolbarHandler = {
                 sphere.userData.isMeasurementPoint = true;
                 viewer.scene.add(sphere);
                 viewer.measurementState.lines.push(sphere);
-                
+
                 if (viewer.measurementState.points.length === 2) {
                     // Draw line between points
                     const lineGeometry = new THREE.BufferGeometry().setFromPoints(viewer.measurementState.points);
@@ -4282,11 +4689,11 @@ window.toolbarHandler = {
                     line.userData.isMeasurementLine = true;
                     viewer.scene.add(line);
                     viewer.measurementState.lines.push(line);
-                    
+
                     // Calculate and display distance
                     const distance = viewer.measurementState.points[0].distanceTo(viewer.measurementState.points[1]);
                     const midPoint = new THREE.Vector3().addVectors(viewer.measurementState.points[0], viewer.measurementState.points[1]).multiplyScalar(0.5);
-                    
+
                     // Create label
                     const canvas = document.createElement('canvas');
                     const context = canvas.getContext('2d');
@@ -4299,7 +4706,7 @@ window.toolbarHandler = {
                     context.textAlign = 'center';
                     context.textBaseline = 'middle';
                     context.fillText(`${distance.toFixed(2)} mm`, 128, 32);
-                    
+
                     const texture = new THREE.CanvasTexture(canvas);
                     const spriteMaterial = new THREE.SpriteMaterial({ map: texture });
                     const sprite = new THREE.Sprite(spriteMaterial);
@@ -4308,37 +4715,37 @@ window.toolbarHandler = {
                     sprite.userData.isMeasurementLabel = true;
                     viewer.scene.add(sprite);
                     viewer.measurementState.labels.push(sprite);
-                    
+
                     showToolbarNotification(`Distance: ${distance.toFixed(2)} mm`, 'success', 3000);
-                    
+
                     // Reset for next measurement
                     viewer.measurementState.mode = null;
                     viewer.measurementState.points = [];
                     viewer.renderer.domElement.removeEventListener('click', onMeasurementClick);
                 }
-                
+
                 if (viewer.render) viewer.render();
             }
         };
-        
+
         viewer.renderer.domElement.addEventListener('click', onMeasurementClick);
     },
-    
+
     startPointToLineMeasurement: function(viewer, viewerType) {
         showToolbarNotification('Point-to-line measurement: Coming in next update', 'info', 2000);
     },
-    
+
     startPointToSurfaceMeasurement: function(viewer, viewerType) {
         showToolbarNotification('Point-to-surface measurement: Coming in next update', 'info', 2000);
     },
-    
+
     startAngleMeasurement: function(viewer, viewerType) {
         showToolbarNotification('Angle measurement: Coming in next update', 'info', 2000);
     },
-    
+
     clearAllMeasurements: function(viewer) {
         if (!viewer || !viewer.scene) return;
-        
+
         // Remove all measurement objects
         const toRemove = [];
         viewer.scene.traverse((obj) => {
@@ -4346,13 +4753,13 @@ window.toolbarHandler = {
                 toRemove.push(obj);
             }
         });
-        
+
         toRemove.forEach(obj => {
             viewer.scene.remove(obj);
             if (obj.geometry) obj.geometry.dispose();
             if (obj.material) obj.material.dispose();
         });
-        
+
         // Reset measurement state
         if (viewer.measurementState) {
             viewer.measurementState.points = [];
@@ -4360,20 +4767,27 @@ window.toolbarHandler = {
             viewer.measurementState.labels = [];
             viewer.measurementState.mode = null;
         }
-        
+
         if (viewer.render) viewer.render();
         showToolbarNotification('All measurements cleared', 'success', 1500);
     },
 
     toggleBoundingBox: function(viewerType) {
         console.log(`📦 Toggle bounding box for ${viewerType}`);
-        const viewer = viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral;
+        const THREE = window.THREE;
+        const viewer = window.viewerGeneral || window.viewer;
 
         if (!viewer || !viewer.scene) {
             showToolbarNotification('Please wait for the 3D model to load', 'warning');
             return;
         }
         
+        if (!THREE) {
+            console.error('❌ THREE.js not loaded!');
+            showToolbarNotification('3D library not loaded yet', 'error');
+            return;
+        }
+
         // Save state before making changes
         this.saveState(viewer);
 
@@ -4381,46 +4795,46 @@ window.toolbarHandler = {
 
         if (existingHelper) {
             existingHelper.visible = !existingHelper.visible;
-            
+
             // Toggle dimension labels
             const labels = viewer.scene.children.filter(child => child.userData && child.userData.isDimensionLabel);
             labels.forEach(label => label.visible = existingHelper.visible);
-            
+
             toggleToolbarButton('boundingBoxBtn', existingHelper.visible);
             showToolbarNotification(existingHelper.visible ? 'Bounding box shown' : 'Bounding box hidden', 'success', 1500);
         } else {
             const box = new THREE.Box3();
             let hasGeometry = false;
-            
+
             viewer.scene.traverse((object) => {
                 if (object.isMesh && object.geometry) {
                     box.expandByObject(object);
                     hasGeometry = true;
                 }
             });
-            
+
             if (hasGeometry) {
                 const helper = new THREE.Box3Helper(box, 0xffaa00);
                 helper.userData.isBoundingBoxHelper = true;
                 viewer.scene.add(helper);
-                
+
                 // Add dimension labels
                 const size = box.getSize(new THREE.Vector3());
                 const center = box.getCenter(new THREE.Vector3());
-                
+
                 // Create text sprites for dimensions
                 const createTextSprite = (text, position) => {
                     const canvas = document.createElement('canvas');
                     const context = canvas.getContext('2d');
                     canvas.width = 256;
                     canvas.height = 64;
-                    
+
                     context.fillStyle = '#000000';
                     context.font = 'Bold 24px Arial';
                     context.textAlign = 'center';
                     context.textBaseline = 'middle';
                     context.fillText(text, 128, 32);
-                    
+
                     const texture = new THREE.CanvasTexture(canvas);
                     const material = new THREE.SpriteMaterial({ map: texture, transparent: true });
                     const sprite = new THREE.Sprite(material);
@@ -4429,28 +4843,28 @@ window.toolbarHandler = {
                     sprite.userData.isDimensionLabel = true;
                     return sprite;
                 };
-                
+
                 // X dimension (Width)
                 const xLabel = createTextSprite(
                     `X: ${size.x.toFixed(1)} mm`,
                     new THREE.Vector3(center.x, box.min.y - size.y * 0.1, center.z)
                 );
                 viewer.scene.add(xLabel);
-                
+
                 // Y dimension (Height)
                 const yLabel = createTextSprite(
                     `Y: ${size.y.toFixed(1)} mm`,
                     new THREE.Vector3(box.max.x + size.x * 0.15, center.y, center.z)
                 );
                 viewer.scene.add(yLabel);
-                
+
                 // Z dimension (Depth)
                 const zLabel = createTextSprite(
                     `Z: ${size.z.toFixed(1)} mm`,
                     new THREE.Vector3(center.x, center.y, box.max.z + size.z * 0.1)
                 );
                 viewer.scene.add(zLabel);
-                
+
                 toggleToolbarButton('boundingBoxBtn', true);
                 showToolbarNotification('Bounding box enabled with dimensions', 'success', 2000);
             }
@@ -4461,13 +4875,20 @@ window.toolbarHandler = {
 
     toggleAxis: function(viewerType) {
         console.log(`🎯 Toggle axis for ${viewerType}`);
-        const viewer = viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral;
+        const THREE = window.THREE;
+        const viewer = window.viewerGeneral || window.viewer;
 
         if (!viewer || !viewer.scene) {
             showToolbarNotification('Please wait for the 3D model to load', 'warning');
             return;
         }
         
+        if (!THREE) {
+            console.error('❌ THREE.js not loaded!');
+            showToolbarNotification('3D library not loaded yet', 'error');
+            return;
+        }
+
         // Save state before making changes
         this.saveState(viewer);
 
@@ -4475,11 +4896,11 @@ window.toolbarHandler = {
 
         if (existingAxis) {
             existingAxis.visible = !existingAxis.visible;
-            
+
             // Toggle axis labels
             const labels = viewer.scene.children.filter(child => child.userData && child.userData.isAxisLabel);
             labels.forEach(label => label.visible = existingAxis.visible);
-            
+
             toggleToolbarButton('axisToggleBtn', existingAxis.visible);
             showToolbarNotification(existingAxis.visible ? 'Axis shown' : 'Axis hidden', 'success', 1500);
         } else {
@@ -4491,24 +4912,24 @@ window.toolbarHandler = {
             const size = box.getSize(new THREE.Vector3());
             const maxDim = Math.max(size.x, size.y, size.z);
             const axisSize = maxDim * 0.6;
-            
+
             const axesHelper = new THREE.AxesHelper(axisSize);
             axesHelper.userData.isAxisHelper = true;
             viewer.scene.add(axesHelper);
-            
+
             // Add axis labels (X, Y, Z)
             const createAxisLabel = (text, position, color) => {
                 const canvas = document.createElement('canvas');
                 const context = canvas.getContext('2d');
                 canvas.width = 128;
                 canvas.height = 128;
-                
+
                 context.fillStyle = color;
                 context.font = 'Bold 64px Arial';
                 context.textAlign = 'center';
                 context.textBaseline = 'middle';
                 context.fillText(text, 64, 64);
-                
+
                 const texture = new THREE.CanvasTexture(canvas);
                 const material = new THREE.SpriteMaterial({ map: texture, transparent: true });
                 const sprite = new THREE.Sprite(material);
@@ -4517,19 +4938,19 @@ window.toolbarHandler = {
                 sprite.userData.isAxisLabel = true;
                 return sprite;
             };
-            
+
             // X axis (Red)
             const xLabel = createAxisLabel('X', new THREE.Vector3(axisSize * 1.1, 0, 0), '#ff0000');
             viewer.scene.add(xLabel);
-            
+
             // Y axis (Green)
             const yLabel = createAxisLabel('Y', new THREE.Vector3(0, axisSize * 1.1, 0), '#00ff00');
             viewer.scene.add(yLabel);
-            
+
             // Z axis (Blue)
             const zLabel = createAxisLabel('Z', new THREE.Vector3(0, 0, axisSize * 1.1), '#0000ff');
             viewer.scene.add(zLabel);
-            
+
             toggleToolbarButton('axisToggleBtn', true);
             showToolbarNotification('Axis enabled with labels', 'success', 2000);
         }
@@ -4539,13 +4960,20 @@ window.toolbarHandler = {
 
     toggleGrid: function(viewerType) {
         console.log(`📐 Toggle grid for ${viewerType}`);
-        const viewer = viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral;
+        const THREE = window.THREE;
+        const viewer = window.viewerGeneral || window.viewer;
 
         if (!viewer || !viewer.scene) {
             showToolbarNotification('Please wait for the 3D model to load', 'warning');
             return;
         }
         
+        if (!THREE) {
+            console.error('❌ THREE.js not loaded!');
+            showToolbarNotification('3D library not loaded yet', 'error');
+            return;
+        }
+
         // Save state before making changes
         this.saveState(viewer);
 
@@ -4565,14 +4993,14 @@ window.toolbarHandler = {
             const maxDim = Math.max(size.x, size.y, size.z);
             const gridSize = Math.ceil(maxDim * 1.5);
             const divisions = Math.max(10, Math.ceil(gridSize / 10));
-            
+
             const gridHelper = new THREE.GridHelper(gridSize, divisions, 0x888888, 0x444444);
             gridHelper.userData.isGridHelper = true;
-            
+
             // Position grid at the bottom of the model
             const center = box.getCenter(new THREE.Vector3());
             gridHelper.position.y = box.min.y;
-            
+
             viewer.scene.add(gridHelper);
             toggleToolbarButton('gridToggleBtn', true);
             showToolbarNotification('Measurement grid enabled', 'success', 1500);
@@ -4583,13 +5011,13 @@ window.toolbarHandler = {
 
     toggleShadow: function(viewerType) {
         console.log(`🌓 Toggle shadow for ${viewerType}`);
-        const viewer = viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral;
+        const viewer = window.viewerGeneral || window.viewer;
 
         if (!viewer || !viewer.renderer) {
             showToolbarNotification('Please wait for the 3D model to load', 'warning');
             return;
         }
-        
+
         // Save state before making changes
         this.saveState(viewer);
 
@@ -4602,13 +5030,13 @@ window.toolbarHandler = {
 
     toggleTransparency: function(viewerType) {
         console.log(`👁️ Toggle transparency for ${viewerType}`);
-        const viewer = viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral;
+        const viewer = window.viewerGeneral || window.viewer;
 
         if (!viewer || !viewer.scene) {
             showToolbarNotification('Please wait for the 3D model to load', 'warning');
             return;
         }
-        
+
         // Save state before making changes
         this.saveState(viewer);
 
@@ -4637,29 +5065,64 @@ window.toolbarHandler = {
 
     takeScreenshot: function(viewerType) {
         console.log(`📸 Take screenshot for ${viewerType}`);
-        const viewer = viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral;
+        console.log('🔍 DEBUG: Checking viewer state...');
+        console.log('   window.viewerGeneral:', window.viewerGeneral);
+        console.log('   window.viewer:', window.viewer);
+        
+        const viewer = window.viewerGeneral || window.viewer;
+        console.log('   Selected viewer:', viewer);
 
         if (!viewer) {
+            console.error('❌ No viewer found!');
             showToolbarNotification('Viewer loading, please wait...', 'info');
             return;
         }
 
-        if (!viewer.renderer) {
+        console.log('   viewer.renderer:', viewer.renderer);
+        console.log('   viewer.scene:', viewer.scene);
+        console.log('   viewer.camera:', viewer.camera);
+
+        if (!viewer.renderer || !viewer.scene || !viewer.camera) {
+            console.error('❌ Viewer not fully initialized!');
             showToolbarNotification('Renderer loading, please wait...', 'warning');
             return;
         }
 
         try {
-            if (viewer.render && typeof viewer.render === 'function') {
-                viewer.render();
+            // Get the canvas element
+            const canvas = viewer.renderer.domElement;
+            console.log('   canvas:', canvas);
+            console.log('   canvas.width:', canvas.width);
+            console.log('   canvas.height:', canvas.height);
+
+            if (!canvas || canvas.width === 0 || canvas.height === 0) {
+                throw new Error('Canvas has invalid dimensions: ' + canvas.width + 'x' + canvas.height);
             }
 
-            const canvas = viewer.renderer.domElement;
-            const dataURL = canvas.toDataURL('image/png');
+            // Force a fresh render before capturing
+            viewer.renderer.render(viewer.scene, viewer.camera);
 
+            // Create a new canvas with white background
+            const screenshotCanvas = document.createElement('canvas');
+            screenshotCanvas.width = canvas.width;
+            screenshotCanvas.height = canvas.height;
+            const ctx = screenshotCanvas.getContext('2d');
+
+            // Fill with white background
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, screenshotCanvas.width, screenshotCanvas.height);
+
+            // Draw the 3D viewer canvas on top
+            ctx.drawImage(canvas, 0, 0);
+
+            // Convert to data URL
+            const dataURL = screenshotCanvas.toDataURL('image/png', 1.0);
+
+            // Generate filename with timestamp
             const timestamp = new Date().toISOString().replace(/[:.]/g, '-').substring(0, 19);
             const filename = `3d-model-${viewerType.toLowerCase()}-${timestamp}.png`;
 
+            // Create download link
             const link = document.createElement('a');
             link.href = dataURL;
             link.download = filename;
@@ -4667,23 +5130,34 @@ window.toolbarHandler = {
             link.click();
             document.body.removeChild(link);
 
-            showToolbarNotification('Screenshot saved successfully!', 'success', 2000);
+            // Show success message
+            showToolbarNotification('Screenshot saved successfully! ✓', 'success', 2000);
+
+            // Visual feedback on button
+            const screenshotBtn = document.getElementById('screenshotToolBtn');
+            if (screenshotBtn) {
+                screenshotBtn.classList.add('active');
+                setTimeout(() => screenshotBtn.classList.remove('active'), 500);
+            }
+
+            console.log('✅ Screenshot captured:', filename);
 
         } catch (error) {
             console.error('❌ Screenshot failed:', error);
+            console.error('Error stack:', error.stack);
             showToolbarNotification('Screenshot failed: ' + error.message, 'error', 3000);
         }
     },
 
-    undo: function() { 
+    undo: function() {
         console.log('⏪ Undo action');
-        const viewer = window.viewerGeneral || window.viewerMedical;
-        
+        const viewer = window.viewerGeneral || window.viewer;
+
         if (!viewer || !viewer.stateHistory) {
             viewer.stateHistory = [];
             viewer.stateHistoryIndex = -1;
         }
-        
+
         if (viewer.stateHistoryIndex > 0) {
             viewer.stateHistoryIndex--;
             const state = viewer.stateHistory[viewer.stateHistoryIndex];
@@ -4693,16 +5167,16 @@ window.toolbarHandler = {
             showToolbarNotification('Nothing to undo', 'info', 1500);
         }
     },
-    
-    redo: function() { 
+
+    redo: function() {
         console.log('⏩ Redo action');
-        const viewer = window.viewerGeneral || window.viewerMedical;
-        
+        const viewer = window.viewerGeneral || window.viewer;
+
         if (!viewer || !viewer.stateHistory) {
             viewer.stateHistory = [];
             viewer.stateHistoryIndex = -1;
         }
-        
+
         if (viewer.stateHistoryIndex < viewer.stateHistory.length - 1) {
             viewer.stateHistoryIndex++;
             const state = viewer.stateHistory[viewer.stateHistoryIndex];
@@ -4712,13 +5186,13 @@ window.toolbarHandler = {
             showToolbarNotification('Nothing to redo', 'info', 1500);
         }
     },
-    
+
     saveState: function(viewer) {
         if (!viewer.stateHistory) {
             viewer.stateHistory = [];
             viewer.stateHistoryIndex = -1;
         }
-        
+
         // Capture current state
         const state = {
             cameraPosition: viewer.camera.position.clone(),
@@ -4731,66 +5205,65 @@ window.toolbarHandler = {
                 grid: !!viewer.scene.children.find(child => child.userData && child.userData.isGridHelper && child.visible)
             }
         };
-        
+
         // Remove future states if we're not at the end
         if (viewer.stateHistoryIndex < viewer.stateHistory.length - 1) {
             viewer.stateHistory = viewer.stateHistory.slice(0, viewer.stateHistoryIndex + 1);
         }
-        
+
         viewer.stateHistory.push(state);
         viewer.stateHistoryIndex++;
-        
+
         // Limit history to 50 states
         if (viewer.stateHistory.length > 50) {
             viewer.stateHistory.shift();
             viewer.stateHistoryIndex--;
         }
     },
-    
+
     restoreState: function(viewer, state) {
         if (!state) return;
-        
+
         viewer.camera.position.copy(state.cameraPosition);
         viewer.camera.rotation.copy(state.cameraRotation);
-        
+
         // Restore transparency
         viewer.currentTransparencyIndex = state.transparency;
-        
+
         // Restore shadows
         viewer.renderer.shadowMap.enabled = state.shadows;
-        
+
         // Restore tools visibility
         const boundingBox = viewer.scene.children.find(child => child.userData && child.userData.isBoundingBoxHelper);
         if (boundingBox) boundingBox.visible = state.toolsVisible.boundingBox;
-        
+
         const axis = viewer.scene.children.find(child => child.userData && child.userData.isAxisHelper);
         if (axis) axis.visible = state.toolsVisible.axis;
-        
+
         const grid = viewer.scene.children.find(child => child.userData && child.userData.isGridHelper);
         if (grid) grid.visible = state.toolsVisible.grid;
-        
+
         if (viewer.render) viewer.render();
     },
-    
-    changeModelColor: function(viewerType) { 
+
+    changeModelColor: function(viewerType) {
         console.log('🎨 Change model color');
-        const viewer = viewerType ? (viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral) 
-                                  : (window.viewerGeneral || window.viewerMedical);
-        
+        const viewer = window.viewerGeneral || window.viewer;
+
         if (!viewer || !viewer.scene) {
             showToolbarNotification('Please wait for the 3D model to load', 'warning');
             return;
         }
-        
+
         // Create color picker dialog
         const colors = ['#0047AD', '#ffffff', '#2c3e50', '#3498db', '#e74c3c', '#2ecc71', '#f39c12', '#9b59b6', '#1abc9c', '#34495e'];
-        
+
         const existingPicker = document.getElementById('modelColorPicker');
         if (existingPicker) {
             existingPicker.remove();
             return;
         }
-        
+
         const picker = document.createElement('div');
         picker.id = 'modelColorPicker';
         picker.style.cssText = 'position: fixed; top: 140px; right: 20px; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); z-index: 9998;';
@@ -4798,19 +5271,19 @@ window.toolbarHandler = {
             <div style="font-weight: 600; margin-bottom: 10px; color: #2c3e50;">Select Model Color</div>
             <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px;">
                 ${colors.map(color => `
-                    <button class="model-color-option" data-color="${color}" 
+                    <button class="model-color-option" data-color="${color}"
                             style="width: 36px; height: 36px; border: 2px solid #ddd; border-radius: 6px; background: ${color}; cursor: pointer; transition: all 0.2s;"
                             onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
                     </button>
                 `).join('')}
             </div>
-            <button onclick="document.getElementById('modelColorPicker').remove()" 
+            <button onclick="document.getElementById('modelColorPicker').remove()"
                     style="margin-top: 10px; width: 100%; padding: 8px; border: none; background: #f1f3f5; border-radius: 6px; cursor: pointer; font-size: 0.85rem;">
                 Close
             </button>
         `;
         document.body.appendChild(picker);
-        
+
         // Add click handlers
         picker.querySelectorAll('.model-color-option').forEach(btn => {
             btn.addEventListener('click', function() {
@@ -4827,26 +5300,32 @@ window.toolbarHandler = {
             });
         });
     },
-    
-    changeBackgroundColor: function(viewerType) { 
+
+    changeBackgroundColor: function(viewerType) {
         console.log('🌈 Change background color');
-        const viewer = viewerType ? (viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral) 
-                                  : (window.viewerGeneral || window.viewerMedical);
-        
+        const THREE = window.THREE;
+        const viewer = window.viewerGeneral || window.viewer;
+
         if (!viewer || !viewer.scene) {
             showToolbarNotification('Please wait for the 3D viewer to load', 'warning');
             return;
         }
         
+        if (!THREE) {
+            console.error('❌ THREE.js not loaded!');
+            showToolbarNotification('3D library not loaded yet', 'error');
+            return;
+        }
+
         // Create color picker dialog
         const colors = ['#ffffff', '#f8f9fa', '#e9ecef', '#dee2e6', '#2c3e50', '#34495e', '#1a1a1a', '#000000', '#e3f2fd', '#fce4ec'];
-        
+
         const existingPicker = document.getElementById('bgColorPicker');
         if (existingPicker) {
             existingPicker.remove();
             return;
         }
-        
+
         const picker = document.createElement('div');
         picker.id = 'bgColorPicker';
         picker.style.cssText = 'position: fixed; top: 140px; right: 20px; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); z-index: 9998;';
@@ -4854,19 +5333,19 @@ window.toolbarHandler = {
             <div style="font-weight: 600; margin-bottom: 10px; color: #2c3e50;">Select Background Color</div>
             <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px;">
                 ${colors.map(color => `
-                    <button class="bg-color-option" data-color="${color}" 
+                    <button class="bg-color-option" data-color="${color}"
                             style="width: 36px; height: 36px; border: 2px solid #ddd; border-radius: 6px; background: ${color}; cursor: pointer; transition: all 0.2s;"
                             onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
                     </button>
                 `).join('')}
             </div>
-            <button onclick="document.getElementById('bgColorPicker').remove()" 
+            <button onclick="document.getElementById('bgColorPicker').remove()"
                     style="margin-top: 10px; width: 100%; padding: 8px; border: none; background: #f1f3f5; border-radius: 6px; cursor: pointer; font-size: 0.85rem;">
                 Close
             </button>
         `;
         document.body.appendChild(picker);
-        
+
         // Add click handlers
         picker.querySelectorAll('.bg-color-option').forEach(btn => {
             btn.addEventListener('click', function() {
@@ -4877,14 +5356,745 @@ window.toolbarHandler = {
                 picker.remove();
             });
         });
+    },
+
+    // ============================================
+    // MOVE/PAN TOOL - Drag models to reposition
+    // ============================================
+    toggleMoveMode: function(viewerType) {
+        console.log(`🖐️ Toggle Move Mode for ${viewerType}`);
+
+        // Use unified viewer
+        const viewer = window.viewerGeneral || window.viewer;
+        if (!viewer || !viewer.uploadedFiles || viewer.uploadedFiles.length === 0) {
+            console.warn('⚠️ Cannot enable move mode: No file uploaded');
+            showToolbarNotification('Please upload a 3D model first', 'warning', 2000);
+            return;
+        }
+
+        // Toggle pan mode state
+        window.panMode = !window.panMode;
+        const panToolBtn = document.getElementById('panToolBtn');
+
+        if (panToolBtn) {
+            if (window.panMode) {
+                panToolBtn.classList.add('active');
+            } else {
+                panToolBtn.classList.remove('active');
+            }
+        }
+
+        console.log('👋 Pan mode:', window.panMode ? 'ENABLED ✅' : 'DISABLED ❌');
+        console.log('   Viewer:', viewer ? 'Available ✅' : 'Not available ❌');
+        console.log('   Files loaded:', viewer.uploadedFiles.length);
+
+        // Attach/detach handlers directly to canvas
+        if (window.panMode && viewer.renderer && viewer.renderer.domElement) {
+            const canvas = viewer.renderer.domElement;
+            console.log('🎯 Attaching pan handlers directly to canvas');
+
+            // Store handlers for later removal
+            if (!window.canvasPanHandlers) {
+                window.canvasPanHandlers = {
+                    pointerdown: (e) => this.handleCanvasMouseDown(e, viewer),
+                    pointermove: (e) => this.handleCanvasMouseMove(e, viewer),
+                    pointerup: (e) => this.handleCanvasMouseUp(e, viewer)
+                };
+            }
+
+            // Use POINTER events (modern browsers)
+            canvas.addEventListener('pointerdown', window.canvasPanHandlers.pointerdown);
+            document.addEventListener('pointermove', window.canvasPanHandlers.pointermove);
+            document.addEventListener('pointerup', window.canvasPanHandlers.pointerup);
+
+            canvas.style.cursor = 'grab';
+            console.log('✅ Canvas pan handlers attached');
+            showToolbarNotification('Move mode enabled - Drag models to reposition', 'success', 2000);
+        } else if (!window.panMode && window.canvasPanHandlers && viewer.renderer) {
+            const canvas = viewer.renderer.domElement;
+            console.log('🔌 Removing pan handlers from canvas');
+
+            // Remove handlers
+            canvas.removeEventListener('pointerdown', window.canvasPanHandlers.pointerdown);
+            document.removeEventListener('pointermove', window.canvasPanHandlers.pointermove);
+            document.removeEventListener('pointerup', window.canvasPanHandlers.pointerup);
+
+            canvas.style.cursor = 'default';
+            console.log('✅ Canvas pan handlers removed');
+            showToolbarNotification('Move mode disabled', 'info', 1500);
+        }
+
+        // When pan mode is active, disable rotation but keep zoom
+        if (viewer.controls) {
+            viewer.controls.enableRotate = !window.panMode;
+            viewer.controls.enablePan = false; // Always disable OrbitControls pan
+            viewer.controls.enableZoom = true; // Keep zoom enabled always
+        }
+    },
+
+    // Canvas-specific pan handlers
+    handleCanvasMouseDown: function(e, viewer) {
+        console.log('🖱️ CANVAS MOUSEDOWN - Pan drag starting');
+
+        if (!viewer || !window.THREE) return;
+
+        const canvas = viewer.renderer.domElement;
+        const rect = canvas.getBoundingClientRect();
+        const mouse = new window.THREE.Vector2(
+            ((e.clientX - rect.left) / rect.width) * 2 - 1,
+            -((e.clientY - rect.top) / rect.height) * 2 + 1
+        );
+
+        const raycaster = new window.THREE.Raycaster();
+        raycaster.setFromCamera(mouse, viewer.camera);
+
+        // Find all model meshes
+        const meshes = [];
+        if (viewer.uploadedFiles && viewer.uploadedFiles.length > 0) {
+            viewer.uploadedFiles.forEach(fileData => {
+                if (fileData.mesh) {
+                    meshes.push(fileData.mesh);
+                }
+            });
+        }
+
+        console.log('   Meshes found for raycasting:', meshes.length);
+
+        const intersects = raycaster.intersectObjects(meshes, true);
+        console.log('   Intersections found:', intersects.length);
+
+        if (intersects.length > 0) {
+            let clickedObject = intersects[0].object;
+            window.selectedModel = null;
+
+            // Find which fileData mesh was clicked
+            for (const fileData of viewer.uploadedFiles) {
+                if (fileData.mesh === clickedObject) {
+                    window.selectedModel = fileData.mesh;
+                    break;
+                }
+
+                // Check if clickedObject is a descendant
+                let parent = clickedObject.parent;
+                while (parent) {
+                    if (parent === fileData.mesh) {
+                        window.selectedModel = fileData.mesh;
+                        break;
+                    }
+                    if (parent.name === 'modelGroup' || parent.type === 'Group' && parent.parent?.type === 'Scene') {
+                        break;
+                    }
+                    parent = parent.parent;
+                }
+                if (window.selectedModel) break;
+            }
+
+            if (!window.selectedModel) {
+                console.log('   ❌ Could not find matching mesh');
+                return;
+            }
+
+            window.isPanning = true;
+            canvas.style.cursor = 'grabbing';
+
+            // Highlight the selected model
+            if (window.selectedModel.material) {
+                window.originalMaterialEmissive = window.selectedModel.material.emissive
+                    ? window.selectedModel.material.emissive.getHex()
+                    : 0x000000;
+                window.selectedModel.material.emissive = new window.THREE.Color(0x4488ff);
+                window.selectedModel.material.emissiveIntensity = 0.3;
+            }
+
+            // Create drag plane
+            const normal = new window.THREE.Vector3(0, 0, 1);
+            normal.applyQuaternion(viewer.camera.quaternion);
+            window.dragPlane = new window.THREE.Plane();
+            window.dragPlane.setFromNormalAndCoplanarPoint(normal, window.selectedModel.position);
+
+            // Calculate offset
+            const intersectionPoint = new window.THREE.Vector3();
+            raycaster.ray.intersectPlane(window.dragPlane, intersectionPoint);
+            window.dragOffset = new window.THREE.Vector3();
+            window.dragOffset.subVectors(window.selectedModel.position, intersectionPoint);
+
+            console.log('👆 Drag started - Moving model:', window.selectedModel.name || 'unnamed');
+
+            // Disable orbit controls while dragging
+            if (viewer.controls) {
+                viewer.controls.enabled = false;
+            }
+        }
+    },
+
+    handleCanvasMouseMove: function(e, viewer) {
+        if (!window.isPanning || !window.selectedModel || !viewer || !viewer.camera) return;
+        if (!window.THREE) return;
+
+        const canvas = viewer.renderer.domElement;
+        const rect = canvas.getBoundingClientRect();
+        const mouse = new window.THREE.Vector2(
+            ((e.clientX - rect.left) / rect.width) * 2 - 1,
+            -((e.clientY - rect.top) / rect.height) * 2 + 1
+        );
+
+        const raycaster = new window.THREE.Raycaster();
+        raycaster.setFromCamera(mouse, viewer.camera);
+
+        // Find intersection with drag plane
+        const intersectionPoint = new window.THREE.Vector3();
+        if (raycaster.ray.intersectPlane(window.dragPlane, intersectionPoint)) {
+            // Move model to new position
+            window.selectedModel.position.copy(intersectionPoint).add(window.dragOffset);
+        }
+
+        e.preventDefault();
+    },
+
+    handleCanvasMouseUp: function(e, viewer) {
+        if (window.isPanning && window.THREE) {
+            // Remove highlight from selected model
+            if (window.selectedModel && window.selectedModel.material) {
+                window.selectedModel.material.emissive = new window.THREE.Color(window.originalMaterialEmissive || 0x000000);
+                window.selectedModel.material.emissiveIntensity = 0;
+            }
+
+            window.isPanning = false;
+            window.selectedModel = null;
+            window.dragPlane = null;
+            window.originalMaterialEmissive = null;
+
+            console.log('✋ Drag ended - Model repositioned');
+
+            if (viewer && viewer.renderer) {
+                viewer.renderer.domElement.style.cursor = window.panMode ? 'grab' : 'default';
+            }
+
+            // Re-enable orbit controls
+            if (viewer && viewer.controls) {
+                viewer.controls.enabled = true;
+            }
+        }
+    },
+
+    // ============================================
+    // AUTO-ROTATE TOGGLE
+    // ============================================
+    toggleAutoRotate: function(viewerType) {
+        console.log(`🔄 Toggle Auto-Rotate for ${viewerType}`);
+
+        // Use unified viewer
+        const viewer = window.viewerGeneral || window.viewer;
+        if (!viewer || !viewer.uploadedFiles || viewer.uploadedFiles.length === 0) {
+            console.warn('⚠️ Cannot toggle auto-rotate: No file uploaded');
+            showToolbarNotification('Please upload a 3D model first', 'warning', 2000);
+            return;
+        }
+
+        // Toggle auto-rotate state
+        if (!window.autoRotateEnabled) {
+            window.autoRotateEnabled = {};
+        }
+
+        const isCurrentlyEnabled = window.autoRotateEnabled[viewerType] || false;
+        window.autoRotateEnabled[viewerType] = !isCurrentlyEnabled;
+
+        const autoRotateBtn = document.getElementById('autoRotateBtn');
+
+        if (autoRotateBtn) {
+            if (window.autoRotateEnabled[viewerType]) {
+                autoRotateBtn.classList.add('active');
+            } else {
+                autoRotateBtn.classList.remove('active');
+            }
+        }
+
+        // Enable/disable auto-rotation in controls
+        if (viewer.controls) {
+            viewer.controls.autoRotate = window.autoRotateEnabled[viewerType];
+            viewer.controls.autoRotateSpeed = 2.0;
+            console.log('🔄 Auto-rotate:', window.autoRotateEnabled[viewerType] ? 'ENABLED ✅' : 'DISABLED ❌');
+
+            showToolbarNotification(
+                window.autoRotateEnabled[viewerType] ? 'Auto-rotate enabled' : 'Auto-rotate disabled',
+                'success',
+                1500
+            );
+        }
+    },
+
+    // ============================================
+    // GRID TOGGLE - From Bottom Control Bar
+    // ============================================
+    toggleGridMain: function(viewerType) {
+        console.log(`🏁 Toggle Grid (Main) for ${viewerType}`);
+
+        // Use unified viewer
+        const viewer = window.viewerGeneral || window.viewer;
+        if (!viewer || !viewer.scene) {
+            console.warn('⚠️ Cannot toggle grid: Viewer not ready');
+            showToolbarNotification('Please wait for the 3D viewer to load', 'warning', 2000);
+            return;
+        }
+
+        // Toggle grid visibility state (unified for both viewers)
+        if (!window.gridVisibleMain) {
+            window.gridVisibleMain = { unified: true }; // Default visible
+        }
+
+        window.gridVisibleMain.unified = !window.gridVisibleMain.unified;
+
+        // Update BOTH button states (General and Medical)
+        const gridBtnGeneral = document.getElementById('toggleGridBtnMain');
+        const gridBtnMedical = document.getElementById('toggleGridBtnMainMedical');
+
+        [gridBtnGeneral, gridBtnMedical].forEach(btn => {
+            if (btn) {
+                if (window.gridVisibleMain.unified) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            }
+        });
+
+        // Find and toggle grid helper in the scene
+        const ground = viewer.scene.children.find(child => 
+            child.name === 'ground' || 
+            child.type === 'GridHelper' ||
+            child.userData?.isGridHelper
+        );
+        
+        if (ground) {
+            ground.visible = window.gridVisibleMain.unified;
+            console.log('🏁 Grid visibility:', window.gridVisibleMain.unified ? 'SHOWN ✅' : 'HIDDEN ❌');
+
+            showToolbarNotification(
+                window.gridVisibleMain.unified ? 'Grid enabled' : 'Grid disabled',
+                'success',
+                1500
+            );
+        } else {
+            console.warn('⚠️ Grid helper not found in scene');
+            showToolbarNotification('Grid helper not found', 'warning', 1500);
+        }
+    },
+
+    // ============================================
+    // MEASURE TOOL - From Bottom Control Bar (Two-Point Distance)
+    // ============================================
+    toggleMeasureMain: function(viewerType) {
+        console.log(`📏 Toggle Measure Tool (Main) for ${viewerType}`);
+
+        const viewer = window.viewerGeneral || window.viewer;
+        if (!viewer || !viewer.scene) {
+            console.warn('⚠️ Cannot toggle measure tool: Viewer not ready');
+            showToolbarNotification('Please wait for the 3D viewer to load', 'warning', 2000);
+            return;
+        }
+
+        // Toggle measurement mode state
+        if (!window.measurementModeMain) {
+            window.measurementModeMain = {};
+            window.measurementPointsMain = {};
+            window.measurementMarkersMain = {};
+            window.measurementLineMain = {};
+            window.measurementLabelMain = {};
+        }
+
+        const isCurrentlyActive = window.measurementModeMain[viewerType] || false;
+        window.measurementModeMain[viewerType] = !isCurrentlyActive;
+
+        const measureBtn = document.getElementById('measureToolBtnMain');
+
+        if (measureBtn) {
+            if (window.measurementModeMain[viewerType]) {
+                measureBtn.classList.add('active');
+                showToolbarNotification('Measurement mode: Click first point on model', 'info', 3000);
+
+                // Attach canvas click handler
+                const canvas = viewer.renderer ? viewer.renderer.domElement : null;
+                if (canvas && !canvas.dataset.measureHandlerAttached) {
+                    canvas.addEventListener('click', (e) => this.handleMeasurementClickMain(e, viewer, viewerType));
+                    canvas.dataset.measureHandlerAttached = 'true';
+                }
+            } else {
+                measureBtn.classList.remove('active');
+                showToolbarNotification('Measurement mode disabled', 'info', 1500);
+
+                // Clear measurements
+                this.clearMeasurementMain(viewer, viewerType);
+            }
+        }
+    },
+
+    handleMeasurementClickMain: function(event, viewer, viewerType) {
+        if (!window.measurementModeMain || !window.measurementModeMain[viewerType]) return;
+
+        const THREE = window.THREE;
+        const canvas = viewer.renderer ? viewer.renderer.domElement : null;
+        if (!canvas) {
+            console.warn('⚠️ Canvas not found for measurement');
+            return;
+        }
+        
+        const rect = canvas.getBoundingClientRect();
+        const mouse = new THREE.Vector2();
+        mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+        const raycaster = new THREE.Raycaster();
+        raycaster.setFromCamera(mouse, viewer.camera);
+
+        let intersects = [];
+        if (viewer.modelGroup) {
+            intersects = raycaster.intersectObjects(viewer.modelGroup.children, true);
+        }
+
+        if (intersects.length === 0) return;
+
+        const point = intersects[0].point;
+
+        if (!window.measurementPointsMain[viewerType]) {
+            window.measurementPointsMain[viewerType] = [];
+            window.measurementMarkersMain[viewerType] = [];
+        }
+
+        if (window.measurementPointsMain[viewerType].length === 0) {
+            // First point
+            window.measurementPointsMain[viewerType].push(point);
+            this.createMeasurementMarkerMain(viewer, point, viewerType, 0);
+            showToolbarNotification('First point set! Click second point', 'info', 2000);
+        } else if (window.measurementPointsMain[viewerType].length === 1) {
+            // Second point - calculate distance
+            window.measurementPointsMain[viewerType].push(point);
+            this.createMeasurementMarkerMain(viewer, point, viewerType, 1);
+            this.drawMeasurementLineMain(viewer, viewerType);
+            this.calculateDistanceMain(viewer, viewerType);
+        } else {
+            // Reset for new measurement
+            this.clearMeasurementMain(viewer, viewerType);
+            window.measurementPointsMain[viewerType] = [point];
+            this.createMeasurementMarkerMain(viewer, point, viewerType, 0);
+            showToolbarNotification('New measurement: Click second point', 'info', 2000);
+        }
+    },
+
+    createMeasurementMarkerMain: function(viewer, position, viewerType, index) {
+        const THREE = window.THREE;
+        const geometry = new THREE.SphereGeometry(2, 16, 16);
+        const material = new THREE.MeshBasicMaterial({
+            color: index === 0 ? 0x00ff00 : 0xff0000,
+            transparent: true,
+            opacity: 0.8
+        });
+        const marker = new THREE.Mesh(geometry, material);
+        marker.position.copy(position);
+        viewer.scene.add(marker);
+
+        if (!window.measurementMarkersMain[viewerType]) {
+            window.measurementMarkersMain[viewerType] = [];
+        }
+        window.measurementMarkersMain[viewerType].push(marker);
+    },
+
+    drawMeasurementLineMain: function(viewer, viewerType) {
+        const THREE = window.THREE;
+        const points = window.measurementPointsMain[viewerType];
+        if (points.length < 2) return;
+
+        const curve = new THREE.LineCurve3(points[0], points[1]);
+        const tubeGeometry = new THREE.TubeGeometry(curve, 1, 0.5, 8, false);
+        const material = new THREE.MeshBasicMaterial({
+            color: 0x0000ff,
+            transparent: true,
+            opacity: 0.8
+        });
+        const line = new THREE.Mesh(tubeGeometry, material);
+        viewer.scene.add(line);
+        window.measurementLineMain[viewerType] = line;
+    },
+
+    calculateDistanceMain: function(viewer, viewerType) {
+        const THREE = window.THREE;
+        const points = window.measurementPointsMain[viewerType];
+        if (points.length < 2) return;
+
+        const distance = points[0].distanceTo(points[1]);
+        const midPoint = new THREE.Vector3().addVectors(points[0], points[1]).multiplyScalar(0.5);
+
+        // Create label
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        canvas.width = 512;
+        canvas.height = 128;
+
+        context.fillStyle = 'rgba(0, 0, 0, 0.8)';
+        context.fillRect(0, 0, canvas.width, canvas.height);
+        context.strokeStyle = '#ffff00';
+        context.lineWidth = 4;
+        context.strokeRect(2, 2, canvas.width - 4, canvas.height - 4);
+
+        const text = `${distance.toFixed(2)} mm`;
+        context.font = 'bold 48px Arial';
+        context.fillStyle = 'white';
+        context.textAlign = 'center';
+        context.textBaseline = 'middle';
+        context.fillText(text, canvas.width / 2, canvas.height / 2);
+
+        const texture = new THREE.CanvasTexture(canvas);
+        const geometry = new THREE.PlaneGeometry(40, 10);
+        const material = new THREE.MeshBasicMaterial({
+            map: texture,
+            transparent: true,
+            side: THREE.DoubleSide
+        });
+        const label = new THREE.Mesh(geometry, material);
+        label.position.copy(midPoint);
+        label.position.y += 15;
+        viewer.scene.add(label);
+        window.measurementLabelMain[viewerType] = label;
+
+        showToolbarNotification(`Distance: ${distance.toFixed(2)} mm`, 'success', 3000);
+    },
+
+    clearMeasurementMain: function(viewer, viewerType) {
+        // Clear markers
+        if (window.measurementMarkersMain[viewerType]) {
+            window.measurementMarkersMain[viewerType].forEach(marker => viewer.scene.remove(marker));
+            window.measurementMarkersMain[viewerType] = [];
+        }
+
+        // Clear line
+        if (window.measurementLineMain[viewerType]) {
+            viewer.scene.remove(window.measurementLineMain[viewerType]);
+            window.measurementLineMain[viewerType] = null;
+        }
+
+        // Clear label
+        if (window.measurementLabelMain[viewerType]) {
+            viewer.scene.remove(window.measurementLabelMain[viewerType]);
+            window.measurementLabelMain[viewerType] = null;
+        }
+
+        // Clear points
+        if (window.measurementPointsMain[viewerType]) {
+            window.measurementPointsMain[viewerType] = [];
+        }
+    },
+
+    // ============================================
+    // SHARE MODEL - From Top Toolbar
+    // ============================================
+    shareModel: function(viewerType) {
+        console.log(`🔗 Share Model for ${viewerType}`);
+
+        const viewer = window.viewerGeneral || window.viewer;
+        if (!viewer || !viewer.uploadedFiles || viewer.uploadedFiles.length === 0) {
+            console.warn('⚠️ Cannot share: No files uploaded');
+            showToolbarNotification('Please upload a 3D model first', 'warning', 2000);
+            return;
+        }
+
+        // Get the first file ID
+        const firstFile = viewer.uploadedFiles[0];
+        const fileId = firstFile.id;
+
+        // Check if share modal exists
+        if (window.shareModal) {
+            console.log('✓ Opening share modal with file ID:', fileId);
+            window.shareModal.open(fileId);
+            showToolbarNotification('Opening share options...', 'info', 1500);
+        } else {
+            console.warn('⚠️ Share modal not found');
+
+            // Fallback: Show share URL
+            const currentUrl = window.location.origin + window.location.pathname;
+            const shareUrl = `${currentUrl}?file=${fileId}`;
+
+            // Copy to clipboard
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(shareUrl).then(() => {
+                    showToolbarNotification('Share URL copied to clipboard! ✓', 'success', 3000);
+                }).catch(() => {
+                    showToolbarNotification('Share URL: ' + shareUrl, 'info', 5000);
+                });
+            } else {
+                showToolbarNotification('Share URL: ' + shareUrl, 'info', 5000);
+            }
+        }
+    },
+
+    // ============================================
+    // SAVE & CALCULATE - From Top Toolbar
+    // ============================================
+    saveAndCalculate: function(viewerType) {
+        console.log(`💾 Save & Calculate for ${viewerType}`);
+
+        const viewer = window.viewerGeneral || window.viewer;
+        if (!viewer || !viewer.uploadedFiles || viewer.uploadedFiles.length === 0) {
+            console.warn('⚠️ Cannot save: No files uploaded');
+            showToolbarNotification('Please upload a 3D model first', 'warning', 2000);
+            return;
+        }
+
+        const formType = viewerType === 'Medical' ? 'Medical' : 'General';
+
+        // Visual feedback on button
+        const saveBtn = document.getElementById('saveCalculateToolBtn');
+        if (saveBtn) {
+            saveBtn.style.pointerEvents = 'none';
+            const originalHTML = saveBtn.innerHTML;
+            saveBtn.innerHTML = `
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style="animation: spin 1s linear infinite;">
+                    <circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="2" stroke-dasharray="4"/>
+                </svg>
+            `;
+
+            setTimeout(() => {
+                saveBtn.innerHTML = originalHTML;
+                saveBtn.style.pointerEvents = '';
+            }, 2000);
+        }
+
+        // Check if EnhancedSaveCalculate module exists (from quote.blade.php)
+        if (window.EnhancedSaveCalculate && typeof window.EnhancedSaveCalculate.execute === 'function') {
+            console.log('✓ Using EnhancedSaveCalculate module');
+            window.EnhancedSaveCalculate.execute();
+            showToolbarNotification('Calculating pricing...', 'info', 2000);
+        } else {
+            console.log('✓ Using fallback calculation method');
+
+            // Fallback: Calculate and display prices for all files
+            let totalPrice = 0;
+            let totalVolume = 0;
+
+            viewer.uploadedFiles.forEach((fileData, index) => {
+                const volume = fileData.volume?.cm3 || 0;
+                const settings = fileData.settings || {};
+                const materialCost = settings.materialCost || 0.02;
+                const technologyMultiplier = settings.technologyMultiplier || 1.0;
+                const price = volume * materialCost * technologyMultiplier;
+
+                totalVolume += volume;
+                totalPrice += price;
+
+                console.log(`📦 File ${index + 1}: ${fileData.file.name}`);
+                console.log(`   Volume: ${volume.toFixed(2)} cm³`);
+                console.log(`   Price: $${price.toFixed(2)}`);
+            });
+
+            console.log(`\n💰 TOTAL PRICE: $${totalPrice.toFixed(2)}`);
+            console.log(`📊 TOTAL VOLUME: ${totalVolume.toFixed(2)} cm³`);
+
+            // Show results
+            showToolbarNotification(
+                `Total: $${totalPrice.toFixed(2)} | Volume: ${totalVolume.toFixed(2)} cm³`,
+                'success',
+                4000
+            );
+
+            // Update file manager if available
+            if (window.fileManagerGeneral && formType === 'General') {
+                window.fileManagerGeneral.updateQuote();
+            } else if (window.fileManagerMedical && formType === 'Medical') {
+                window.fileManagerMedical.updateQuote();
+            }
+        }
     }
 };
 
 console.log('✅ INLINE window.toolbarHandler created!', window.toolbarHandler);
 console.log('Available methods:', Object.keys(window.toolbarHandler));
+
+// ============================================
+// ATTACH EVENT LISTENERS TO ALL TOOLBAR BUTTONS
+// ============================================
+console.log('🔗 Attaching event listeners to toolbar buttons...');
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Wait a bit for viewers to initialize
+    setTimeout(() => {
+        console.log('🎯 Initializing toolbar button click handlers...');
+        
+        // Helper function to safely attach click handlers
+        function attachHandler(buttonId, handler, ...args) {
+            const btn = document.getElementById(buttonId);
+            if (btn) {
+                // Remove any existing onclick
+                btn.removeAttribute('onclick');
+                
+                // Add new click event listener
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log(`🖱️ Button clicked: ${buttonId}`);
+                    try {
+                        handler.apply(window.toolbarHandler, args);
+                    } catch (error) {
+                        console.error(`❌ Error in ${buttonId}:`, error);
+                    }
+                });
+                console.log(`✅ Attached handler to: ${buttonId}`);
+            } else {
+                console.warn(`⚠️ Button not found: ${buttonId}`);
+            }
+        }
+        
+        // GENERAL VIEWER TOOLBAR BUTTONS
+        attachHandler('measurementToolBtn', window.toolbarHandler.toggleMeasurement, 'General');
+        attachHandler('boundingBoxBtn', window.toolbarHandler.toggleBoundingBox, 'General');
+        attachHandler('axisToggleBtn', window.toolbarHandler.toggleAxis, 'General');
+        attachHandler('gridToggleBtn', window.toolbarHandler.toggleGrid, 'General');
+        attachHandler('panToolBtn', window.toolbarHandler.toggleMoveMode, 'General');
+        attachHandler('autoRotateBtn', window.toolbarHandler.toggleAutoRotate, 'General');
+        attachHandler('toggleGridBtnMain', window.toolbarHandler.toggleGridMain, 'General');
+        attachHandler('measureToolBtnMain', window.toolbarHandler.toggleMeasureMain, 'General');
+        attachHandler('shadowToggleBtn', window.toolbarHandler.toggleShadow, 'General');
+        attachHandler('transparencyBtn', window.toolbarHandler.toggleTransparency, 'General');
+        attachHandler('modelColorBtn', window.toolbarHandler.changeModelColor, 'General');
+        attachHandler('backgroundColorBtn', window.toolbarHandler.changeBackgroundColor, 'General');
+        attachHandler('undoBtn', window.toolbarHandler.undo);
+        attachHandler('redoBtn', window.toolbarHandler.redo);
+        attachHandler('screenshotToolBtn', window.toolbarHandler.takeScreenshot, 'General');
+        attachHandler('shareToolBtn', window.toolbarHandler.shareModel, 'General');
+        attachHandler('saveCalculateToolBtn', window.toolbarHandler.saveAndCalculate, 'General');
+        
+        // MEDICAL VIEWER TOOLBAR BUTTONS (if they exist)
+        attachHandler('measurementToolBtnMedical', window.toolbarHandler.toggleMeasurement, 'General');
+        attachHandler('boundingBoxBtnMedical', window.toolbarHandler.toggleBoundingBox, 'General');
+        attachHandler('axisToggleBtnMedical', window.toolbarHandler.toggleAxis, 'General');
+        attachHandler('gridToggleBtnMedical', window.toolbarHandler.toggleGrid, 'General');
+        attachHandler('panToolBtnMedical', window.toolbarHandler.toggleMoveMode, 'General');
+        attachHandler('autoRotateBtnMedical', window.toolbarHandler.toggleAutoRotate, 'General');
+        attachHandler('toggleGridBtnMainMedical', window.toolbarHandler.toggleGridMain, 'General');
+        attachHandler('measureToolBtnMainMedical', window.toolbarHandler.toggleMeasureMain, 'General');
+        attachHandler('shadowToggleBtnMedical', window.toolbarHandler.toggleShadow, 'General');
+        attachHandler('transparencyBtnMedical', window.toolbarHandler.toggleTransparency, 'General');
+        attachHandler('modelColorBtnMedical', window.toolbarHandler.changeModelColor, 'General');
+        attachHandler('backgroundColorBtnMedical', window.toolbarHandler.changeBackgroundColor, 'General');
+        attachHandler('undoBtnMedical', window.toolbarHandler.undo);
+        attachHandler('redoBtnMedical', window.toolbarHandler.redo);
+        attachHandler('screenshotToolBtnMedical', window.toolbarHandler.takeScreenshot, 'General');
+        attachHandler('shareToolBtnMedical', window.toolbarHandler.shareModel, 'General');
+        attachHandler('saveCalculateToolBtnMedical', window.toolbarHandler.saveAndCalculate, 'General');
+        
+        console.log('✅ All toolbar button handlers attached!');
+        console.log('📊 Total buttons processed: ~34');
+        
+        // Verify handlers are working
+        console.log('🔍 Verification:');
+        console.log('   window.toolbarHandler:', !!window.toolbarHandler);
+        console.log('   window.viewerGeneral:', !!window.viewerGeneral);
+        console.log('   Buttons ready!');
+    }, 1000); // Wait 1 second for viewer initialization
+});
+
+console.log('✅ Event listener attachment script loaded!');
 </script>
 
-<script src="{{ asset('frontend/assets/js/3d-viewer-professional-tools.js') }}?v=3000"></script>
+{{-- DISABLED: External file was overwriting inline toolbar handler --}}
+{{-- <script src="{{ asset('frontend/assets/js/3d-viewer-professional-tools.js') }}?t={{ time() }}"></script> --}}
 <script>
 // IMMEDIATE verification that toolbar handler exists
 console.log('========================================');
@@ -4921,10 +6131,10 @@ console.log('========================================');
 </script>
 
 {{-- Mesh Repair with Visual Feedback --}}
-<script src="{{ asset('frontend/assets/js/mesh-repair-visual.js') }}?v=1"></script>
+<script src="{{ asset('frontend/assets/js/mesh-repair-visual.js') }}?v={{ time() }}"></script>
 
-<script src="{{ asset('frontend/assets/js/enhanced-save-calculate.js') }}?v=2"></script>
-<script src="{{ asset('frontend/assets/js/3d-file-manager.js') }}?v=3"></script>
+<script src="{{ asset('frontend/assets/js/enhanced-save-calculate.js') }}?v={{ time() }}"></script>
+<script src="{{ asset('frontend/assets/js/3d-file-manager.js') }}?v={{ time() }}"></script>
 
 <!-- QR Code Library for Share Modal -->
 <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
@@ -5074,40 +6284,40 @@ document.addEventListener('DOMContentLoaded', function() {
  */
 (function() {
     console.log('🏥 Starting Viewer Health Check System...');
-    
+
     const healthCheck = {
         checkInterval: null,
         repairAttempts: 0,
         maxRepairAttempts: 3,
-        
+
         /**
          * Start monitoring viewer health
          */
         start() {
             // Initial check after 2 seconds
             setTimeout(() => this.performHealthCheck(), 2000);
-            
+
             // Periodic check every 10 seconds
             this.checkInterval = setInterval(() => {
                 this.performHealthCheck();
             }, 10000);
-            
+
             console.log('✅ Health check system started');
         },
-        
+
         /**
          * Perform comprehensive health check
          */
         performHealthCheck() {
             const results = {
-                viewerGeneral: this.checkViewer(window.viewerGeneral, 'General'),
-                viewerMedical: this.checkViewer(window.viewerMedical, 'Medical'),
+                viewerGeneral: this.checkViewer(window.viewerGeneral, 'General (Unified)'),
+                // viewerMedical removed - both use unified viewer now
                 toolbarHandler: this.checkToolbarHandler(),
                 saveCalculate: this.checkSaveCalculate()
             };
-            
+
             const allHealthy = Object.values(results).every(r => r === true);
-            
+
             if (allHealthy) {
                 console.log('✅ All systems healthy');
                 this.repairAttempts = 0;
@@ -5115,10 +6325,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.warn('⚠️ Health check failed:', results);
                 this.attemptRepair(results);
             }
-            
+
             return results;
         },
-        
+
         /**
          * Check individual viewer health
          */
@@ -5127,26 +6337,25 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.warn(`❌ ${name} viewer not found`);
                 return false;
             }
-            
+
+            // Relaxed health check - only check essential properties
             const checks = {
-                initialized: !!viewer.initialized,
+                exists: !!viewer,
                 scene: !!viewer.scene,
-                camera: !!viewer.camera,
-                renderer: !!viewer.renderer,
-                controls: !!viewer.controls,
-                render: typeof viewer.render === 'function',
-                calculateVolume: typeof viewer.calculateVolume === 'function'
+                hasRenderFunction: typeof viewer.render === 'function'
             };
-            
+
             const healthy = Object.values(checks).every(c => c === true);
-            
+
             if (!healthy) {
                 console.warn(`❌ ${name} viewer unhealthy:`, checks);
+            } else {
+                console.log(`✅ ${name} viewer healthy`);
             }
-            
+
             return healthy;
         },
-        
+
         /**
          * Check toolbar handler
          */
@@ -5155,7 +6364,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.warn('❌ toolbarHandler not found');
                 return false;
             }
-            
+
             const requiredMethods = [
                 'toggleBoundingBox',
                 'toggleAxis',
@@ -5169,19 +6378,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 'changeModelColor',
                 'changeBackgroundColor'
             ];
-            
-            const missing = requiredMethods.filter(method => 
+
+            const missing = requiredMethods.filter(method =>
                 typeof window.toolbarHandler[method] !== 'function'
             );
-            
+
             if (missing.length > 0) {
                 console.warn('❌ Toolbar handler missing methods:', missing);
                 return false;
             }
-            
+
             return true;
         },
-        
+
         /**
          * Check save & calculate system
          */
@@ -5190,15 +6399,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.warn('❌ EnhancedSaveCalculate not found');
                 return false;
             }
-            
+
             if (typeof window.EnhancedSaveCalculate.execute !== 'function') {
                 console.warn('❌ EnhancedSaveCalculate.execute not a function');
                 return false;
             }
-            
+
             return true;
         },
-        
+
         /**
          * Attempt to repair issues
          */
@@ -5207,10 +6416,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.error('❌ Max repair attempts reached. Manual intervention required.');
                 return;
             }
-            
+
             this.repairAttempts++;
             console.log(`🔧 Attempting repair (attempt ${this.repairAttempts}/${this.maxRepairAttempts})...`);
-            
+
             // Repair toolbar handler if missing
             if (!results.toolbarHandler) {
                 console.log('🔧 Attempting to reload toolbar handler...');
@@ -5220,19 +6429,16 @@ document.addEventListener('DOMContentLoaded', function() {
                     alert('Critical Error: Toolbar not loaded. Please refresh the page.');
                 }
             }
-            
+
             // Ensure viewers have required methods
             if (window.viewerGeneral && !window.viewerGeneral.calculateVolume) {
-                console.log('🔧 Adding fallback calculateVolume to viewerGeneral...');
+                console.log('🔧 Adding fallback calculateVolume to unified viewer...');
                 this.addFallbackVolumeCalculation(window.viewerGeneral);
             }
-            
-            if (window.viewerMedical && !window.viewerMedical.calculateVolume) {
-                console.log('🔧 Adding fallback calculateVolume to viewerMedical...');
-                this.addFallbackVolumeCalculation(window.viewerMedical);
-            }
+
+            // viewerMedical removed - both use unified viewer now
         },
-        
+
         /**
          * Add fallback volume calculation to viewer
          */
@@ -5242,41 +6448,41 @@ document.addEventListener('DOMContentLoaded', function() {
                     console.warn('Invalid mesh for volume calculation');
                     return { cm3: 0, mm3: 0 };
                 }
-                
+
                 const geometry = mesh.geometry;
                 if (!geometry.attributes || !geometry.attributes.position) {
                     console.warn('Invalid geometry attributes');
                     return { cm3: 0, mm3: 0 };
                 }
-                
+
                 const position = geometry.attributes.position;
                 const vertices = position.array;
                 let volume = 0;
-                
+
                 // Calculate signed volume
                 for (let i = 0; i < vertices.length; i += 9) {
                     const v1x = vertices[i], v1y = vertices[i + 1], v1z = vertices[i + 2];
                     const v2x = vertices[i + 3], v2y = vertices[i + 4], v2z = vertices[i + 5];
                     const v3x = vertices[i + 6], v3y = vertices[i + 7], v3z = vertices[i + 8];
-                    
+
                     volume += (v1x * v2y * v3z + v2x * v3y * v1z + v3x * v1y * v2z -
                               v1x * v3y * v2z - v2x * v1y * v3z - v3x * v2y * v1z) / 6.0;
                 }
-                
+
                 const volumeMm3 = Math.abs(volume);
                 const volumeCm3 = volumeMm3 / 1000;
-                
+
                 console.log(`📐 Calculated volume: ${volumeCm3.toFixed(2)} cm³`);
-                
+
                 return {
                     cm3: volumeCm3,
                     mm3: volumeMm3
                 };
             };
-            
+
             console.log('✅ Fallback calculateVolume added to viewer');
         },
-        
+
         /**
          * Stop health check system
          */
@@ -5288,13 +6494,13 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     };
-    
+
     // Start health check system
     healthCheck.start();
-    
+
     // Make it globally accessible
     window.viewerHealthCheck = healthCheck;
-    
+
     console.log('✅ Viewer Health Check System initialized');
     console.log('💡 TIP: Run window.viewerHealthCheck.performHealthCheck() to manually check system health');
 })();

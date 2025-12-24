@@ -18,11 +18,12 @@ window.toolbarHandler = {
             submenu.style.display = submenu.style.display === 'none' || submenu.style.display === '' ? 'block' : 'none';
         }
     },
-    
+
     toggleBoundingBox: function(viewerType) {
         console.log(`📦 Toggle bounding box for ${viewerType}`);
-        const viewer = viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral;
-        
+        // Always use unified viewer
+        const viewer = window.viewerGeneral || window.viewer;
+
         if (!viewer || !viewer.scene) {
             alert('Viewer not ready. Please wait for the 3D model to load...');
             console.error('❌ Viewer or scene not found');
@@ -44,10 +45,10 @@ window.toolbarHandler = {
         } else {
             // Direct implementation as fallback
             console.log('⚡ Using direct bounding box implementation');
-            
+
             // Check if we already have a bounding box helper
             let existingHelper = viewer.scene.children.find(child => child.userData && child.userData.isBoundingBoxHelper);
-            
+
             if (existingHelper) {
                 // Toggle visibility
                 existingHelper.visible = !existingHelper.visible;
@@ -60,15 +61,16 @@ window.toolbarHandler = {
                 viewer.scene.add(helper);
                 console.log('✅ Bounding box created and added');
             }
-            
+
             if (viewer.render) viewer.render();
         }
     },
-    
+
     toggleAxis: function(viewerType) {
         console.log(`🎯 Toggle axis for ${viewerType}`);
-        const viewer = viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral;
-        
+        // Always use unified viewer
+        const viewer = window.viewerGeneral || window.viewer;
+
         if (!viewer || !viewer.scene) {
             alert('Viewer not ready. Please wait for the 3D model to load...');
             console.error('❌ Viewer or scene not found');
@@ -89,9 +91,9 @@ window.toolbarHandler = {
         } else {
             // Direct implementation
             console.log('⚡ Using direct axis implementation');
-            
+
             let existingAxis = viewer.scene.children.find(child => child.userData && child.userData.isAxisHelper);
-            
+
             if (existingAxis) {
                 existingAxis.visible = !existingAxis.visible;
                 console.log('✅ Axis visibility toggled:', existingAxis.visible);
@@ -101,15 +103,16 @@ window.toolbarHandler = {
                 viewer.scene.add(axesHelper);
                 console.log('✅ Axis helper created and added');
             }
-            
+
             if (viewer.render) viewer.render();
         }
     },
-    
+
     toggleGrid: function(viewerType) {
         console.log(`📐 Toggle grid for ${viewerType}`);
-        const viewer = viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral;
-        
+        // Always use unified viewer
+        const viewer = window.viewerGeneral || window.viewer;
+
         if (!viewer || !viewer.scene) {
             alert('Viewer not ready. Please wait for the 3D model to load...');
             console.error('❌ Viewer or scene not found');
@@ -130,9 +133,9 @@ window.toolbarHandler = {
         } else {
             // Direct implementation
             console.log('⚡ Using direct grid implementation');
-            
+
             let existingGrid = viewer.scene.children.find(child => child.userData && child.userData.isGridHelper);
-            
+
             if (existingGrid) {
                 existingGrid.visible = !existingGrid.visible;
                 console.log('✅ Grid visibility toggled:', existingGrid.visible);
@@ -142,15 +145,16 @@ window.toolbarHandler = {
                 viewer.scene.add(gridHelper);
                 console.log('✅ Grid helper created and added');
             }
-            
+
             if (viewer.render) viewer.render();
         }
     },
-    
+
     toggleShadow: function(viewerType) {
         console.log(`🌓 Toggle shadow for ${viewerType}`);
-        const viewer = viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral;
-        
+        // Always use unified viewer
+        const viewer = window.viewerGeneral || window.viewer;
+
         if (!viewer || !viewer.renderer) {
             alert('Viewer not ready. Please wait for the 3D model to load...');
             console.error('❌ Viewer or renderer not found');
@@ -160,14 +164,15 @@ window.toolbarHandler = {
         // Toggle shadows
         viewer.renderer.shadowMap.enabled = !viewer.renderer.shadowMap.enabled;
         console.log('✅ Shadows toggled:', viewer.renderer.shadowMap.enabled);
-        
+
         if (viewer.render) viewer.render();
     },
-    
+
     toggleTransparency: function(viewerType) {
         console.log(`👁️ Toggle transparency for ${viewerType}`);
-        const viewer = viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral;
-        
+        // Always use unified viewer
+        const viewer = window.viewerGeneral || window.viewer;
+
         if (!viewer || !viewer.scene) {
             alert('Viewer not ready. Please wait for the 3D model to load...');
             console.error('❌ Viewer or scene not found');
@@ -176,16 +181,16 @@ window.toolbarHandler = {
 
         // Cycle through transparency levels: 100% -> 75% -> 50% -> 25% -> 100%
         const levels = [1.0, 0.75, 0.5, 0.25];
-        
+
         // Get current transparency level
         if (!viewer.currentTransparencyIndex) {
             viewer.currentTransparencyIndex = 0;
         }
-        
+
         // Move to next level
         viewer.currentTransparencyIndex = (viewer.currentTransparencyIndex + 1) % levels.length;
         const newOpacity = levels[viewer.currentTransparencyIndex];
-        
+
         // Apply to all meshes in the scene
         viewer.scene.traverse((object) => {
             if (object.isMesh && object.material) {
@@ -194,16 +199,17 @@ window.toolbarHandler = {
                 object.material.needsUpdate = true;
             }
         });
-        
+
         console.log(`✅ Transparency set to ${Math.round(newOpacity * 100)}%`);
-        
+
         if (viewer.render) viewer.render();
     },
-    
+
     takeScreenshot: function(viewerType) {
         console.log(`📸 Take screenshot for ${viewerType}`);
-        const viewer = viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral;
-        
+        // Always use unified viewer
+        const viewer = window.viewerGeneral || window.viewer;
+
         if (!viewer) {
             alert('Viewer not loaded yet. Please wait...');
             console.error('❌ Viewer not found');
@@ -219,7 +225,7 @@ window.toolbarHandler = {
         try {
             console.log('✅ Viewer found:', viewer);
             console.log('✅ Renderer found:', viewer.renderer);
-            
+
             // Force a render to ensure we capture the current view
             if (viewer.render && typeof viewer.render === 'function') {
                 viewer.render();
@@ -229,7 +235,7 @@ window.toolbarHandler = {
             // Get the canvas element
             const canvas = viewer.renderer.domElement;
             console.log('✅ Canvas found:', canvas);
-            
+
             // Convert canvas to data URL
             const dataURL = canvas.toDataURL('image/png');
             console.log('✅ Data URL created, length:', dataURL.length);
@@ -237,7 +243,7 @@ window.toolbarHandler = {
             // Create download link
             const timestamp = new Date().toISOString().replace(/[:.]/g, '-').substring(0, 19);
             const filename = `3d-model-${viewerType.toLowerCase()}-${timestamp}.png`;
-            
+
             const link = document.createElement('a');
             link.href = dataURL;
             link.download = filename;
@@ -246,25 +252,85 @@ window.toolbarHandler = {
             document.body.removeChild(link);
 
             console.log('✅ Screenshot saved:', filename);
-            
+
             // Show success notification
             const notification = document.createElement('div');
             notification.style.cssText = 'position: fixed; top: 80px; right: 20px; background: #10b981; color: white; padding: 12px 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 999999; font-family: system-ui; font-size: 14px; font-weight: 500;';
             notification.textContent = '📸 Screenshot saved!';
             document.body.appendChild(notification);
-            
+
             setTimeout(() => {
                 notification.style.transition = 'opacity 0.3s';
                 notification.style.opacity = '0';
                 setTimeout(() => document.body.removeChild(notification), 300);
             }, 2000);
-            
+
         } catch (error) {
             console.error('❌ Screenshot failed:', error);
             alert('Screenshot failed: ' + error.message);
         }
     },
-    
+
+    toggleMoveMode: function(viewerType) {
+        console.log(`🔄 Toggle move mode for ${viewerType}`);
+        const viewer = window.viewerGeneral || window.viewer;
+        if (!viewer) {
+            alert('Viewer not ready');
+            return;
+        }
+
+        // Toggle pan/move mode
+        if (viewer.controls) {
+            viewer.controls.enablePan = !viewer.controls.enablePan;
+            console.log('✅ Pan mode:', viewer.controls.enablePan ? 'enabled' : 'disabled');
+        }
+    },
+
+    toggleAutoRotate: function(viewerType) {
+        console.log(`🔄 Toggle auto-rotate for ${viewerType}`);
+        const viewer = window.viewerGeneral || window.viewer;
+        if (!viewer) {
+            alert('Viewer not ready');
+            return;
+        }
+
+        if (viewer.controls) {
+            viewer.controls.autoRotate = !viewer.controls.autoRotate;
+            console.log('✅ Auto-rotate:', viewer.controls.autoRotate ? 'enabled' : 'disabled');
+        }
+    },
+
+    toggleGridMain: function(viewerType) {
+        console.log(`📐 Toggle grid main for ${viewerType}`);
+        this.toggleGrid(viewerType);
+    },
+
+    toggleMeasureMain: function(viewerType) {
+        console.log(`📏 Toggle measure main for ${viewerType}`);
+        this.toggleMeasurement(viewerType);
+    },
+
+    shareModel: function(viewerType) {
+        console.log(`📤 Share model for ${viewerType}`);
+        alert('Share feature coming soon! You will be able to generate a shareable link.');
+    },
+
+    saveAndCalculate: function(viewerType) {
+        console.log(`💾 Save and calculate for ${viewerType}`);
+        const viewer = window.viewerGeneral || window.viewer;
+        if (!viewer || !viewer.uploadedFiles || viewer.uploadedFiles.length === 0) {
+            alert('Please upload a 3D model first');
+            return;
+        }
+
+        // Trigger the existing save & calculate functionality
+        if (window.calculatePricing) {
+            window.calculatePricing();
+        } else {
+            alert('Calculating pricing...');
+        }
+    },
+
     // Placeholder methods
     undo: function() { alert('Undo feature coming soon!'); },
     redo: function() { alert('Redo feature coming soon!'); },
@@ -273,6 +339,52 @@ window.toolbarHandler = {
 };
 
 console.log('✅ window.toolbarHandler created and ready!', window.toolbarHandler);
+
+// Setup camera button event listeners for toolbar
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('🎥 Setting up camera button listeners...');
+
+    // Camera buttons in both toolbars (General and Medical)
+    document.querySelectorAll('.viewer-professional-toolbar .camera-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const view = this.dataset.view;
+            console.log(`📷 Camera view clicked: ${view}`);
+
+            // Remove active class from siblings
+            const toolbar = this.closest('.viewer-professional-toolbar');
+            toolbar.querySelectorAll('.camera-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+
+            // Get the viewer
+            const viewer = window.viewerGeneral || window.viewer;
+            if (!viewer?.scene?.activeCamera) {
+                console.warn('No viewer or camera found');
+                return;
+            }
+
+            const camera = viewer.scene.activeCamera;
+            const radius = camera.radius || 10;
+
+            // Camera view positions
+            const views = {
+                top: { alpha: Math.PI / 2, beta: 0 },
+                bottom: { alpha: Math.PI / 2, beta: Math.PI },
+                front: { alpha: Math.PI / 2, beta: Math.PI / 2 },
+                right: { alpha: 0, beta: Math.PI / 2 },
+                left: { alpha: Math.PI, beta: Math.PI / 2 },
+                reset: { alpha: Math.PI / 4, beta: Math.PI / 3 }
+            };
+
+            if (views[view] && camera.alpha !== undefined) {
+                camera.alpha = views[view].alpha;
+                camera.beta = views[view].beta;
+                console.log(`✅ Camera view set to: ${view}`);
+            }
+        });
+    });
+
+    console.log('✅ Camera button listeners setup complete');
+});
 
 // Global state management
 window.ViewerToolsState = {
@@ -313,7 +425,7 @@ class HistoryManager {
 
     undo() {
         if (this.undoStack.length === 0) return;
-        
+
         const action = this.undoStack.pop();
         if (action && action.undo) {
             action.undo();
@@ -325,7 +437,7 @@ class HistoryManager {
 
     redo() {
         if (this.redoStack.length === 0) return;
-        
+
         const action = this.redoStack.pop();
         if (action && action.redo) {
             action.redo();
@@ -338,7 +450,7 @@ class HistoryManager {
     updateButtons() {
         const undoBtn = document.getElementById('undoBtn');
         const redoBtn = document.getElementById('redoBtn');
-        
+
         if (undoBtn) undoBtn.disabled = this.undoStack.length === 0;
         if (redoBtn) redoBtn.disabled = this.redoStack.length === 0;
     }
@@ -369,41 +481,41 @@ class MeasurementTools {
     // Distance measurement (point-to-point)
     measureDistance(point1, point2) {
         const distance = point1.distanceTo(point2);
-        
+
         // Create visual line
         const geometry = new THREE.BufferGeometry().setFromPoints([point1, point2]);
-        const material = new THREE.LineBasicMaterial({ 
-            color: 0x4a90e2, 
-            linewidth: 3 
+        const material = new THREE.LineBasicMaterial({
+            color: 0x4a90e2,
+            linewidth: 3
         });
         const line = new THREE.Line(geometry, material);
-        
+
         // Add markers
         const markerGeometry = new THREE.SphereGeometry(2, 16, 16);
         const markerMaterial = new THREE.MeshBasicMaterial({ color: 0x4a90e2 });
-        
+
         const marker1 = new THREE.Mesh(markerGeometry, markerMaterial);
         marker1.position.copy(point1);
-        
+
         const marker2 = new THREE.Mesh(markerGeometry, markerMaterial);
         marker2.position.copy(point2);
-        
+
         // Add to scene
         if (this.viewer.scene) {
             this.viewer.scene.add(line);
             this.viewer.scene.add(marker1);
             this.viewer.scene.add(marker2);
         }
-        
+
         const measurement = {
             type: 'distance',
             value: distance,
             objects: [line, marker1, marker2],
             points: [point1, point2]
         };
-        
+
         this.measurements.push(measurement);
-        
+
         // Add to history
         window.historyManager.addAction({
             type: 'measurement',
@@ -414,10 +526,10 @@ class MeasurementTools {
                 measurement.objects.forEach(obj => this.viewer.scene.remove(obj));
             }
         });
-        
+
         // Show annotation
         this.showMeasurementLabel(distance, point1, point2);
-        
+
         console.log(`📏 Distance measured: ${distance.toFixed(2)} ${window.ViewerToolsState.currentUnit}`);
         return distance;
     }
@@ -427,13 +539,13 @@ class MeasurementTools {
         const raycaster = new THREE.Raycaster();
         const direction = new THREE.Vector3(0, -1, 0); // Cast downward
         raycaster.set(point, direction);
-        
+
         const intersects = raycaster.intersectObject(mesh, true);
         if (intersects.length > 0) {
             const surfacePoint = intersects[0].point;
             return this.measureDistance(point, surfacePoint);
         }
-        
+
         console.warn('⚠️ No surface found');
         return null;
     }
@@ -447,13 +559,13 @@ class MeasurementTools {
                 }
             });
         });
-        
+
         this.measurements = [];
         this.currentPoints = [];
-        
+
         // Clear labels
         document.querySelectorAll('.measurement-annotation').forEach(el => el.remove());
-        
+
         console.log('🗑️ All measurements cleared');
     }
 
@@ -462,24 +574,24 @@ class MeasurementTools {
         const midpoint = new THREE.Vector3()
             .addVectors(point1, point2)
             .multiplyScalar(0.5);
-        
+
         // Project to screen coordinates
         if (!this.viewer.camera || !this.viewer.renderer) return;
-        
+
         const vector = midpoint.clone();
         vector.project(this.viewer.camera);
-        
+
         const canvas = this.viewer.renderer.domElement;
         const x = (vector.x * 0.5 + 0.5) * canvas.clientWidth;
         const y = (-(vector.y * 0.5) + 0.5) * canvas.clientHeight;
-        
+
         // Create label
         const label = document.createElement('div');
         label.className = 'measurement-annotation';
         label.textContent = `${distance.toFixed(2)} ${window.ViewerToolsState.currentUnit}`;
         label.style.left = `${x}px`;
         label.style.top = `${y}px`;
-        
+
         canvas.parentElement.appendChild(label);
     }
 }
@@ -536,10 +648,10 @@ class BoundingBoxController {
 
         // Show dimensions
         this.showDimensions(size);
-        
+
         this.isVisible = true;
         document.getElementById('boundingBoxBtn')?.classList.add('active');
-        
+
         console.log('📦 Bounding box shown:', {
             x: size.x.toFixed(2),
             y: size.y.toFixed(2),
@@ -552,10 +664,10 @@ class BoundingBoxController {
             this.viewer.scene.remove(this.boundingBox);
             this.boundingBox = null;
         }
-        
+
         // Hide dimension labels
         document.querySelectorAll('.dimension-label').forEach(el => el.remove());
-        
+
         this.isVisible = false;
         document.getElementById('boundingBoxBtn')?.classList.remove('active');
         console.log('📦 Bounding box hidden');
@@ -595,7 +707,7 @@ class AxisController {
             this.axisHelper = new THREE.AxesHelper(100);
             this.viewer.scene.add(this.axisHelper);
         }
-        
+
         this.isVisible = true;
         document.getElementById('axisToggleBtn')?.classList.add('active');
         console.log('🎯 Axis helper shown');
@@ -605,7 +717,7 @@ class AxisController {
         if (this.axisHelper && this.viewer.scene) {
             this.viewer.scene.remove(this.axisHelper);
         }
-        
+
         this.isVisible = false;
         document.getElementById('axisToggleBtn')?.classList.remove('active');
         console.log('🎯 Axis helper hidden');
@@ -640,13 +752,13 @@ class GridController {
             // Create grid (size, divisions)
             const size = this.unit === 'mm' ? 500 : 20; // 500mm or 20 inches
             const divisions = 50;
-            
+
             this.gridHelper = new THREE.GridHelper(size, divisions, 0x888888, 0xcccccc);
             this.gridHelper.material.opacity = 0.3;
             this.gridHelper.material.transparent = true;
             this.viewer.scene.add(this.gridHelper);
         }
-        
+
         this.isVisible = true;
         document.getElementById('gridToggleBtn')?.classList.add('active');
         document.getElementById('unitToggle')?.style.display = 'flex';
@@ -657,7 +769,7 @@ class GridController {
         if (this.gridHelper && this.viewer.scene) {
             this.viewer.scene.remove(this.gridHelper);
         }
-        
+
         this.isVisible = false;
         document.getElementById('gridToggleBtn')?.classList.remove('active');
         document.getElementById('unitToggle')?.style.display = 'none';
@@ -667,19 +779,19 @@ class GridController {
     setUnit(unit) {
         this.unit = unit;
         window.ViewerToolsState.currentUnit = unit;
-        
+
         // Recreate grid with new scale
         if (this.isVisible) {
             this.hide();
             this.gridHelper = null;
             this.show();
         }
-        
+
         // Update all dimension displays
         document.querySelectorAll('.axis-unit').forEach(el => {
             el.textContent = unit;
         });
-        
+
         console.log(`📏 Unit changed to: ${unit}`);
     }
 }
@@ -697,7 +809,7 @@ class ShadowController {
 
     toggle() {
         this.isEnabled = !this.isEnabled;
-        
+
         // Toggle shadows on all meshes
         if (this.viewer.uploadedFiles) {
             this.viewer.uploadedFiles.forEach(fileData => {
@@ -743,13 +855,13 @@ class TransparencyController {
         const opacityLevels = [1.0, 0.7, 0.4];
         const currentIndex = opacityLevels.indexOf(this.opacity);
         this.opacity = opacityLevels[(currentIndex + 1) % opacityLevels.length];
-        
+
         this.apply(this.opacity);
     }
 
     apply(opacity) {
         this.opacity = opacity;
-        
+
         if (this.viewer.uploadedFiles) {
             this.viewer.uploadedFiles.forEach(fileData => {
                 if (fileData.mesh && fileData.mesh.material) {
@@ -784,7 +896,7 @@ class ColorController {
 
     setModelColor(color) {
         this.currentModelColor = color;
-        
+
         if (this.viewer.uploadedFiles) {
             this.viewer.uploadedFiles.forEach(fileData => {
                 if (fileData.mesh && fileData.mesh.material) {
@@ -798,7 +910,7 @@ class ColorController {
 
     setBackgroundColor(color) {
         this.currentBgColor = color;
-        
+
         if (this.viewer.scene) {
             this.viewer.scene.background = new THREE.Color(color);
         }
@@ -873,7 +985,7 @@ class MeshAnalyzer {
 
     async analyzeMesh(mesh) {
         console.log('🔍 Analyzing mesh...');
-        
+
         const geometry = mesh.geometry;
         const analysis = {
             vertices: geometry.attributes.position.count,
@@ -926,7 +1038,7 @@ class MeshAnalyzer {
 
     async repairMesh(mesh) {
         console.log('🔧 Repairing mesh...');
-        
+
         // Simplified repair - merge vertices and recalculate normals
         if (mesh.geometry) {
             mesh.geometry.computeVertexNormals();
@@ -1026,20 +1138,20 @@ function setupToolbarEvents(viewer) {
     console.log('   Viewer object:', viewer);
     console.log('   Viewer container:', viewer.container);
     console.log('   Viewer tools:', viewer.tools);
-    
+
     // Get the container to scope button selection
     const container = viewer.container;
     if (!container) {
         console.error('❌ Viewer container not found');
         return;
     }
-    
+
     // Determine if this is General or Medical viewer
     const viewerType = viewer.containerId.includes('Medical') ? 'Medical' : '';
     const btnSuffix = viewerType; // '' for General, 'Medical' for Medical
-    
+
     console.log(`   Viewer type: ${viewerType || 'General'}, Button suffix: '${btnSuffix}'`);
-    
+
     // Measurement tool
     const measurementBtn = document.getElementById(`measurementToolBtn${btnSuffix}`);
     console.log(`   Looking for: measurementToolBtn${btnSuffix}`, measurementBtn);
@@ -1073,7 +1185,7 @@ function setupToolbarEvents(viewer) {
         submenu.querySelectorAll('.submenu-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 const measureType = this.getAttribute('data-measure');
-                
+
                 if (measureType === 'clear') {
                     viewer.tools.measurement.clearMeasurements();
                     console.log('   ✓ Cleared measurements');
@@ -1084,7 +1196,7 @@ function setupToolbarEvents(viewer) {
                     this.classList.add('active');
                     console.log(`   ✓ Active measurement: ${measureType}`);
                 }
-                
+
                 submenu.style.display = 'none';
             });
         });
@@ -1202,21 +1314,17 @@ if (!window.professionalToolsKeyboardSetup) {
 // Initialize when viewer is ready
 window.addEventListener('viewersReady', () => {
     console.log('🎬 viewersReady EVENT received, initializing professional tools...');
-    
+
     if (window.viewerGeneral) {
-        console.log('   Found viewerGeneral, initializing...');
+        console.log('   Found viewerGeneral (unified viewer), initializing...');
         initProfessionalTools(window.viewerGeneral);
+    } else if (window.viewer) {
+        console.log('   Found window.viewer, initializing...');
+        initProfessionalTools(window.viewer);
     } else {
-        console.warn('   ⚠️ viewerGeneral not found');
+        console.warn('   ⚠️ No viewer found');
     }
-    
-    if (window.viewerMedical) {
-        console.log('   Found viewerMedical, initializing...');
-        initProfessionalTools(window.viewerMedical);
-    } else {
-        console.warn('   ⚠️ viewerMedical not found');
-    }
-    
+
     // Ensure toolbars are visible
     setTimeout(() => {
         const toolbars = document.querySelectorAll('.viewer-professional-toolbar');
@@ -1232,24 +1340,20 @@ window.addEventListener('viewersReady', () => {
 // IMPORTANT: Also check if viewers are ALREADY initialized (in case event already fired)
 document.addEventListener('DOMContentLoaded', () => {
     console.log('📍 DOMContentLoaded - checking if viewers already exist...');
-    
+
     // Wait a bit for viewers to initialize
     setTimeout(() => {
         console.log('   Checking for existing viewers...');
         console.log('   window.viewerGeneral:', !!window.viewerGeneral);
-        console.log('   window.viewerMedical:', !!window.viewerMedical);
-        
-        // If viewers exist but tools aren't initialized, do it now
-        if (window.viewerGeneral && !window.viewerGeneral.tools) {
-            console.log('   🔧 viewerGeneral exists but tools not initialized - doing it now!');
-            initProfessionalTools(window.viewerGeneral);
+        console.log('   window.viewer:', !!window.viewer);
+
+        // If viewer exists but tools aren't initialized, do it now
+        const viewer = window.viewerGeneral || window.viewer;
+        if (viewer && !viewer.tools) {
+            console.log('   🔧 Viewer exists but tools not initialized - doing it now!');
+            initProfessionalTools(viewer);
         }
-        
-        if (window.viewerMedical && !window.viewerMedical.tools) {
-            console.log('   🔧 viewerMedical exists but tools not initialized - doing it now!');
-            initProfessionalTools(window.viewerMedical);
-        }
-        
+
         // Ensure toolbars are visible
         const toolbars = document.querySelectorAll('.viewer-professional-toolbar');
         toolbars.forEach(toolbar => {

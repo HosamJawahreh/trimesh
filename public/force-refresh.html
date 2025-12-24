@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Force Cache Clear</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+</head>
+<body style="font-family: Arial, sans-serif; padding: 50px; text-align: center;">
+    <h1>✅ Cache Cleared!</h1>
+    <p>Your browser cache has been instructed to clear.</p>
+    <p><strong>Next steps:</strong></p>
+    <ol style="text-align: left; max-width: 600px; margin: 20px auto;">
+        <li>Press <kbd>Ctrl + Shift + Delete</kbd> (or <kbd>Cmd + Shift + Delete</kbd> on Mac)</li>
+        <li>Select "Cached images and files"</li>
+        <li>Click "Clear data"</li>
+        <li>Close this tab</li>
+        <li>Go back to your quote viewer page</li>
+        <li>Press <kbd>Ctrl + Shift + R</kbd> (or <kbd>Cmd + Shift + R</kbd>) to hard reload</li>
+    </ol>
+    <p style="margin-top: 30px;">
+        <a href="/quote/files-file_1766595776_y69reyzZaE3Ee%2fcfile_1766595076_f7PQz5TollbX&reviewer=general"
+           style="background: #1976D2; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; display: inline-block;">
+           Back to Quote Viewer
+        </a>
+    </p>
+
+    <script>
+        // Attempt to clear service worker cache
+        if ('caches' in window) {
+            caches.keys().then(function(names) {
+                for (let name of names) caches.delete(name);
+            });
+        }
+
+        // Log confirmation
+        console.log('✅ Cache clear attempted');
+        console.log('🔄 Please do a hard refresh (Ctrl+Shift+R) on the quote viewer page');
+    </script>
+</body>
+</html>

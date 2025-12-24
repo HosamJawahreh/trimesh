@@ -202,6 +202,8 @@ class Enhanced3DViewer {
         const gridHelper = new THREE.GridHelper(500, 20, 0xffffff, 0xffffff);
         gridHelper.material.opacity = 0.1;
         gridHelper.material.transparent = true;
+        gridHelper.name = 'ground'; // Add name so toolbar can find it
+        gridHelper.userData.isGridHelper = true; // Add marker
         this.scene.add(gridHelper);
 
         this.initialized = true;
@@ -523,6 +525,18 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         console.log('✓ Both viewers initialized successfully');
 
+        // CRITICAL: Set global window references for toolbar handlers
+        window.generalViewer3D = generalViewer3D;
+        window.medicalViewer3D = medicalViewer3D;
+        window.viewerGeneral = generalViewer3D;
+        window.viewer = generalViewer3D;
+
+        console.log('✅ Global viewer references set:');
+        console.log('   window.viewerGeneral =', !!window.viewerGeneral);
+        console.log('   window.viewer =', !!window.viewer);
+        console.log('   Scene exists:', !!window.viewerGeneral?.scene);
+        console.log('   Renderer exists:', !!window.viewerGeneral?.renderer);
+
         // Setup file input handlers
         setupFileHandlers();
 
@@ -680,8 +694,4 @@ function setupDragAndDrop() {
     });
 }
 
-// Make viewers globally accessible for debugging
-window.generalViewer3D = generalViewer3D;
-window.medicalViewer3D = medicalViewer3D;
-
-console.log('3D Viewer script loaded');
+console.log('✅ 3D Viewer Enhanced script loaded and ready');

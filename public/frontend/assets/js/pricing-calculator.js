@@ -25,7 +25,15 @@ window.PricingCalculator = {
             'flexible-resin': 3.50,
             'medical-resin': 4.00,
             'dental-resin': 4.50,
-            'castable-resin': 5.00
+            'castable-resin': 5.00,
+            'biocompatible-resin': 5.50,
+            'surgical-guide': 6.00
+        },
+        dlp: {
+            'biocompatible-resin': 5.80,
+            'dental-resin': 4.80,
+            'surgical-guide': 6.20,
+            'castable-resin': 5.20
         },
         sls: {
             nylon: 3.50,
@@ -55,6 +63,7 @@ window.PricingCalculator = {
     printSpeedFactors: {
         fdm: 0.5,
         sla: 0.3,
+        dlp: 0.25,
         sls: 0.4,
         dmls: 1.0,
         mjf: 0.35,

@@ -16,6 +16,201 @@
 @section('content')
 <style>
     /* ============================================
+       VIEWER SELECTION MODAL
+       ============================================ */
+    .viewer-selection-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: linear-gradient(180deg, #b8c6db 0%, #f5f7fa 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 999999;
+        opacity: 1;
+        visibility: visible;
+        transition: opacity 0.4s ease, visibility 0.4s ease;
+    }
+
+    .viewer-selection-overlay.hidden {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+    }
+
+    .viewer-selection-container {
+        max-width: 1100px;
+        width: 90%;
+        padding: 30px;
+    }
+
+    .viewer-selection-title {
+        text-align: center;
+        color: #2c3e50;
+        margin-bottom: 40px;
+    }
+
+    .viewer-selection-title h1 {
+        font-size: 36px;
+        font-weight: 700;
+        margin-bottom: 12px;
+        color: #2c3e50;
+    }
+
+    .viewer-selection-title p {
+        font-size: 16px;
+        color: #5a6c7d;
+        font-weight: 400;
+    }
+
+    .viewer-cards-wrapper {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 30px;
+    }
+
+    .viewer-card {
+        background: white;
+        border-radius: 12px;
+        padding: 32px 28px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+        border: 2px solid transparent;
+    }
+
+    .viewer-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+        border-color: #4CAF50;
+    }
+
+    .viewer-card.dental:hover {
+        border-color: #2196F3;
+    }
+
+    .viewer-card-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 20px;
+        font-size: 28px;
+        background: #4CAF50;
+        color: white;
+        box-shadow: 0 4px 12px rgba(76, 175, 80, 0.25);
+    }
+
+    .viewer-card.dental .viewer-card-icon {
+        background: #2196F3;
+        box-shadow: 0 4px 12px rgba(33, 150, 243, 0.25);
+    }
+
+    .viewer-card h2 {
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 12px;
+        color: #2c3e50;
+    }
+
+    .viewer-card-description {
+        font-size: 14px;
+        color: #6c757d;
+        margin-bottom: 24px;
+        line-height: 1.6;
+    }
+
+    .viewer-card-specs {
+        margin-bottom: 24px;
+    }
+
+    .viewer-card-specs h3 {
+        font-size: 13px;
+        font-weight: 700;
+        color: #495057;
+        margin-bottom: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .spec-item {
+        display: flex;
+        align-items: flex-start;
+        margin-bottom: 10px;
+        font-size: 13px;
+    }
+
+    .spec-label {
+        font-weight: 600;
+        color: #495057;
+        min-width: 110px;
+        flex-shrink: 0;
+    }
+
+    .spec-value {
+        color: #6c757d;
+        line-height: 1.5;
+    }
+
+    .viewer-card-button {
+        width: 100%;
+        padding: 14px;
+        background: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 8px rgba(76, 175, 80, 0.25);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .viewer-card.dental .viewer-card-button {
+        background: #2196F3;
+        box-shadow: 0 2px 8px rgba(33, 150, 243, 0.25);
+    }
+
+    .viewer-card-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(76, 175, 80, 0.35);
+    }
+
+    .viewer-card.dental .viewer-card-button:hover {
+        box-shadow: 0 4px 12px rgba(33, 150, 243, 0.35);
+    }
+
+    .viewer-card-button:active {
+        transform: translateY(0);
+    }
+
+    @media (max-width: 968px) {
+        .viewer-cards-wrapper {
+            grid-template-columns: 1fr;
+            gap: 25px;
+        }
+
+        .viewer-selection-container {
+            padding: 25px 15px;
+        }
+
+        .viewer-selection-title h1 {
+            font-size: 28px;
+        }
+
+        .viewer-selection-title p {
+            font-size: 14px;
+        }
+    }
+
+    /* ============================================
        FULL SCREEN LAYOUT - SHAPEWAYS STYLE
        ============================================ */
 
@@ -55,6 +250,15 @@
         overflow-x: hidden !important;
         z-index: 1000 !important;
         box-shadow: 2px 0 12px rgba(0, 0, 0, 0.1) !important;
+        visibility: visible;
+        opacity: 1;
+        transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+
+    /* Hide sidebar when selection modal is visible */
+    .viewer-selection-overlay:not(.hidden) ~ .quote-sidebar {
+        visibility: hidden;
+        opacity: 0;
     }
 
     /* Viewer - Fixed Right with dynamic background based on mode */
@@ -69,6 +273,14 @@
         background: linear-gradient(180deg, #afc5d8 0%, #e8eef3 100%) !important;
         overflow: hidden !important;
         transition: background 0.3s ease !important;
+        visibility: visible;
+        opacity: 1;
+    }
+
+    /* Hide viewer when selection modal is visible */
+    .viewer-selection-overlay:not(.hidden) ~ .quote-viewer {
+        visibility: hidden;
+        opacity: 0;
     }
 
     /* General mode - Blue gradient */
@@ -78,6 +290,11 @@
 
     /* Medical mode - Original Shapeways gradient */
     .quote-viewer.mode-medical {
+        background: linear-gradient(180deg, #afc5d8 0%, #e8eef3 100%) !important;
+    }
+
+    /* Dental mode - Same as Medical */
+    .quote-viewer.mode-dental {
         background: linear-gradient(180deg, #afc5d8 0%, #e8eef3 100%) !important;
     }
 
@@ -201,6 +418,17 @@
         z-index: 999999 !important;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important;
         pointer-events: auto !important;
+        visibility: visible;
+        opacity: 1;
+        transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+
+    /* Hide bottom controls when selection modal is visible */
+    .viewer-selection-overlay:not(.hidden) ~ * .viewer-bottom-controls,
+    .viewer-selection-overlay:not(.hidden) ~ .viewer-bottom-controls {
+        visibility: hidden;
+        opacity: 0;
+        pointer-events: none;
     }
 
     /* Bottom Bar Groups */
@@ -834,6 +1062,95 @@
         </div>
     </div>
 
+    <!-- Viewer Selection Modal -->
+    <div class="viewer-selection-overlay" id="viewerSelectionModal">
+        <div class="viewer-selection-container">
+            <div class="viewer-selection-title">
+                <h1>Choose Your 3D Printing Experience</h1>
+            </div>
+
+            <div class="viewer-cards-wrapper">
+                <!-- General Viewer Card -->
+                <div class="viewer-card general" data-viewer-type="general">
+                    <div class="viewer-card-icon">
+                        <i class="fas fa-cube"></i>
+                    </div>
+                    <h2>General Viewer</h2>
+                    <p class="viewer-card-description">
+                        Perfect for prototypes, functional parts, and standard 3D printing projects with a wide range of materials and technologies.
+                    </p>
+
+                    <div class="viewer-card-specs">
+                        <h3>Specifications</h3>
+                        <div class="spec-item">
+                            <span class="spec-label">Technology:</span>
+                            <span class="spec-value">FDM, SLA, SLS</span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="spec-label">Materials:</span>
+                            <span class="spec-value">PLA, ABS, PETG, Nylon, Resin</span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="spec-label">Colors:</span>
+                            <span class="spec-value">Full cosmetic color range</span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="spec-label">Layer Height:</span>
+                            <span class="spec-value">Variable based on technology</span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="spec-label">Best For:</span>
+                            <span class="spec-value">Prototypes, parts, figurines</span>
+                        </div>
+                    </div>
+
+                    <button class="viewer-card-button" onclick="selectViewer('general')">
+                        Launch General Viewer
+                    </button>
+                </div>
+
+                <!-- Dental Viewer Card -->
+                <div class="viewer-card dental" data-viewer-type="dental">
+                    <div class="viewer-card-icon">
+                        <i class="fas fa-tooth"></i>
+                    </div>
+                    <h2>Dental Viewer</h2>
+                    <p class="viewer-card-description">
+                        Specialized for dental applications with certified biocompatible materials and medical-grade quality standards.
+                    </p>
+
+                    <div class="viewer-card-specs">
+                        <h3>Specifications</h3>
+                        <div class="spec-item">
+                            <span class="spec-label">Technology:</span>
+                            <span class="spec-value">SLA / DLP only</span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="spec-label">Materials:</span>
+                            <span class="spec-value">Biocompatible certified resins</span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="spec-label">Colors:</span>
+                            <span class="spec-value">Limited, certified range</span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="spec-label">Layer Height:</span>
+                            <span class="spec-value">Fixed, validated (25-50μm)</span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="spec-label">Best For:</span>
+                            <span class="spec-value">Dental models, surgical guides, aligners</span>
+                        </div>
+                    </div>
+
+                    <button class="viewer-card-button" onclick="selectViewer('dental')">
+                        Launch Dental Viewer
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Sidebar -->
     <div class="quote-sidebar">
         @include('frontend.pages.quote-viewer')
@@ -915,10 +1232,162 @@
     // Flag to prevent duplicate event listeners
     let measurementClickHandlerSet = false;
 
+    // ============================================
+    // VIEWER TYPE SELECTION
+    // ============================================
+    let selectedViewerType = null; // 'general' or 'dental'
+
+    function selectViewer(type) {
+        console.log(`🎯 Viewer selected: ${type.toUpperCase()}`);
+        selectedViewerType = type;
+
+        // Store selection in sessionStorage
+        sessionStorage.setItem('viewerType', type);
+
+        // Update URL with viewer type parameter
+        const url = new URL(window.location.href);
+        url.searchParams.set('viewer', type);
+        window.history.pushState({}, '', url);
+
+        // Hide the selection modal with animation
+        const modal = document.getElementById('viewerSelectionModal');
+        if (modal) {
+            modal.classList.add('hidden');
+            console.log('✅ Selection modal hidden');
+        }
+
+        // Update viewer container class for styling
+        const viewerContainer = document.querySelector('.quote-viewer');
+        if (viewerContainer) {
+            viewerContainer.classList.remove('mode-general', 'mode-dental');
+            viewerContainer.classList.add(`mode-${type}`);
+        }
+
+        // Update sidebar to show correct form (with retries to ensure forms are loaded)
+        let retryCount = 0;
+        const maxRetries = 10;
+
+        function tryUpdateSidebar() {
+            const generalForm = document.getElementById('generalForm3d');
+            const medicalForm = document.getElementById('medicalForm3d');
+
+            if (generalForm && medicalForm) {
+                updateSidebarForViewerType(type);
+                console.log('✅ Forms found and updated');
+            } else if (retryCount < maxRetries) {
+                retryCount++;
+                console.log(`⏳ Waiting for forms to load... (attempt ${retryCount}/${maxRetries})`);
+                setTimeout(tryUpdateSidebar, 100);
+            } else {
+                console.error('❌ Forms not found after 10 retries');
+            }
+        }
+
+        // Start trying to update sidebar
+        setTimeout(tryUpdateSidebar, 100);
+
+        // Initialize the viewer after a short delay
+        setTimeout(() => {
+            initializeViewer(type);
+        }, 400);
+    }
+
+    function updateSidebarForViewerType(type) {
+        // Show/hide appropriate forms in sidebar using correct IDs
+        const generalForm = document.getElementById('generalForm3d');
+        const medicalForm = document.getElementById('medicalForm3d');
+
+        console.log('🔄 Updating sidebar forms:', {
+            type: type,
+            generalFormFound: !!generalForm,
+            medicalFormFound: !!medicalForm
+        });
+
+        if (type === 'general') {
+            if (generalForm) {
+                // Use cssText to ensure it overrides everything
+                generalForm.setAttribute('style', 'display: block !important;');
+                console.log('✅ General form displayed');
+            }
+            if (medicalForm) {
+                medicalForm.setAttribute('style', 'display: none !important;');
+                console.log('✅ Medical form hidden');
+            }
+        } else if (type === 'dental') {
+            if (generalForm) {
+                generalForm.setAttribute('style', 'display: none !important;');
+                console.log('✅ General form hidden');
+            }
+            if (medicalForm) {
+                medicalForm.setAttribute('style', 'display: block !important;');
+                console.log('✅ Dental/Medical form displayed');
+            }
+        }
+
+        // Verify the changes were applied
+        setTimeout(() => {
+            console.log('📊 Final verification:', {
+                generalDisplay: generalForm ? window.getComputedStyle(generalForm).display : 'not found',
+                medicalDisplay: medicalForm ? window.getComputedStyle(medicalForm).display : 'not found'
+            });
+        }, 100);
+    }
+
+    function initializeViewer(type) {
+        console.log(`🚀 Initializing viewer for ${type} mode...`);
+
+        // Both General and Dental use the SAME viewer (General viewer)
+        // The ONLY difference is the sidebar form options
+        // This ensures identical functionality, tools, and file handling
+
+        if (typeof initGeneralViewer === 'function') {
+            initGeneralViewer();
+            console.log('✅ General viewer initialized (used for both General and Dental modes)');
+        } else if (window.viewerGeneral) {
+            console.log('✅ General viewer already initialized');
+        }
+
+        // Set the global viewer reference for both modes
+        window.viewer = window.viewerGeneral;
+
+        console.log(`📋 Viewer mode: ${type} (using General viewer with ${type} form)`);
+    }
+
+    // Check if viewer type was already selected (page refresh or URL parameter)
+    function checkExistingViewerSelection() {
+        // First check URL parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlViewerType = urlParams.get('viewer');
+
+        // If URL has a viewer parameter, use it (highest priority)
+        if (urlViewerType && (urlViewerType === 'general' || urlViewerType === 'dental')) {
+            console.log(`🔄 Loading viewer from URL parameter: ${urlViewerType}`);
+            selectViewer(urlViewerType);
+            return;
+        }
+
+        // If no URL parameter, ALWAYS show the selection modal
+        // (Don't auto-restore from sessionStorage on direct /quote visits)
+        console.log('📋 No viewer parameter in URL - showing selection modal');
+        const modal = document.getElementById('viewerSelectionModal');
+        if (modal) {
+            modal.classList.remove('hidden');
+        }
+
+        // Clear any old sessionStorage to prevent confusion
+        sessionStorage.removeItem('viewerType');
+    }
+
+    // Make selectViewer globally accessible
+    window.selectViewer = selectViewer;
+
     // Wait for everything to load including quote-viewer scripts
     window.addEventListener('load', function() {
         console.log('🎯 Initializing control bar for Three.js...');
         console.log('🔍 Script loaded successfully at:', new Date().toLocaleTimeString());
+
+        // Check for existing viewer selection first
+        checkExistingViewerSelection();
 
         // Small delay to ensure quote-viewer is fully initialized
         setTimeout(initControls, 500);
@@ -945,8 +1414,28 @@
             if (files && files.length > 0) {
                 console.log(`📁 Selected ${files.length} file(s) from bottom bar`);
 
-                // Delegate to existing file handler
-                const mainFileInput = document.getElementById('fileInput3d') || document.getElementById('fileInput3dMedical');
+                // Detect which form is active (General or Dental)
+                const generalForm = document.getElementById('generalForm3d');
+                const medicalForm = document.getElementById('medicalForm3d');
+
+                let mainFileInput = null;
+                let activeForm = 'unknown';
+
+                // Check which form is currently visible
+                if (generalForm && window.getComputedStyle(generalForm).display !== 'none') {
+                    mainFileInput = document.getElementById('fileInput3d');
+                    activeForm = 'General';
+                } else if (medicalForm && window.getComputedStyle(medicalForm).display !== 'none') {
+                    mainFileInput = document.getElementById('fileInput3dMedical');
+                    activeForm = 'Dental';
+                } else {
+                    // Fallback: try both inputs
+                    mainFileInput = document.getElementById('fileInput3d') || document.getElementById('fileInput3dMedical');
+                    activeForm = 'Fallback';
+                }
+
+                console.log(`🎯 Active form detected: ${activeForm}, delegating to: ${mainFileInput ? mainFileInput.id : 'none'}`);
+
                 if (mainFileInput) {
                     // Transfer files to main input
                     const dataTransfer = new DataTransfer();
@@ -964,7 +1453,7 @@
                     // Show success notification
                     if (window.showToolbarNotification) {
                         showToolbarNotification(
-                            `✅ ${files.length} file${files.length > 1 ? 's' : ''} uploaded successfully`,
+                            `✅ ${files.length} file${files.length > 1 ? 's' : ''} uploaded to ${activeForm} viewer`,
                             'success',
                             3000
                         );

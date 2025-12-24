@@ -213,8 +213,22 @@ class Professional3DViewer {
         this.scene.background = new THREE.Color(this.backgroundColor);
 
         // Setup camera
-        const width = this.container.clientWidth;
-        const height = this.container.clientHeight;
+        const width = this.container.clientWidth || 800;
+        const height = this.container.clientHeight || 600;
+
+        console.log(`📐 Container dimensions for ${this.containerId}:`, {
+            clientWidth: this.container.clientWidth,
+            clientHeight: this.container.clientHeight,
+            offsetWidth: this.container.offsetWidth,
+            offsetHeight: this.container.offsetHeight,
+            usingWidth: width,
+            usingHeight: height
+        });
+
+        if (width === 0 || height === 0) {
+            console.error(`❌ Container ${this.containerId} has zero dimensions! Forcing minimum size.`);
+        }
+
         this.camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 10000);
         this.camera.position.set(100, 100, 200);
 
@@ -258,6 +272,16 @@ class Professional3DViewer {
 
         // Handle window resize
         window.addEventListener('resize', () => this.onWindowResize());
+
+        // Force initial resize after a short delay to ensure container has dimensions
+        setTimeout(() => {
+            console.log(`🔄 Forcing resize for ${this.containerId}...`);
+            this.onWindowResize();
+            console.log(`📐 After resize - Canvas dimensions:`, {
+                width: this.renderer.domElement.width,
+                height: this.renderer.domElement.height
+            });
+        }, 100);
     }
 
     setupLighting() {
@@ -299,7 +323,8 @@ class Professional3DViewer {
         gridHelper.material.opacity = 0.3;
         gridHelper.material.transparent = true;
         gridHelper.material.depthWrite = false;
-        gridHelper.name = 'grid';
+        gridHelper.name = 'grid'; // Also try 'ground' for compatibility
+        gridHelper.userData.isGridHelper = true; // Marker for toolbar
         this.scene.add(gridHelper);
     }
 
@@ -585,10 +610,28 @@ class Professional3DViewer {
         this.renderer.render(this.scene, this.camera);
     }
 
+    // Alias for health checks and manual rendering
+    render() {
+        if (this.renderer && this.scene && this.camera) {
+            this.renderer.render(this.scene, this.camera);
+        }
+    }
+
     onWindowResize() {
         if (!this.container) return;
-        const width = this.container.clientWidth;
-        const height = this.container.clientHeight;
+
+        let width = this.container.clientWidth;
+        let height = this.container.clientHeight;
+
+        // Fallback to parent or window dimensions if container has no size
+        if (width === 0 || height === 0) {
+            console.warn(`⚠️ Container ${this.containerId} has zero dimensions, using fallback`);
+            width = this.container.offsetWidth || window.innerWidth;
+            height = this.container.offsetHeight || window.innerHeight;
+        }
+
+        console.log(`📐 Resizing ${this.containerId} to ${width}x${height}`);
+
         this.camera.aspect = width / height;
         this.camera.updateProjectionMatrix();
         this.renderer.setSize(width, height);
@@ -1056,6 +1099,21 @@ async function initializeViewerSystem() {
         // Wait a bit more for renderer to be fully ready
         await new Promise(resolve => setTimeout(resolve, 500));
 
+        // CRITICAL: Export viewers to window object for toolbar handlers
+        window.viewerGeneral = viewerGeneral;
+        window.viewerMedical = viewerMedical;
+        window.viewer = viewerGeneral; // Default alias
+
+        console.log('✅ Viewers exported to window object:');
+        console.log('   window.viewerGeneral:', !!window.viewerGeneral);
+        console.log('   window.viewerMedical:', !!window.viewerMedical);
+        console.log('   window.viewer:', !!window.viewer);
+        console.log('   scene exists:', !!window.viewerGeneral?.scene);
+        console.log('   renderer exists:', !!window.viewerGeneral?.renderer);
+        console.log('   camera exists:', !!window.viewerGeneral?.camera);
+        console.log('   🔧 render() method exists:', typeof window.viewerGeneral?.render === 'function');
+        console.log('   🔧 animate() method exists:', typeof window.viewerGeneral?.animate === 'function');
+
         console.log('═══════════════════════════════════════');
         console.log('✓ 3D Viewer System Ready - Upload files now!');
         console.log('═══════════════════════════════════════');
@@ -1345,8 +1403,4 @@ if (document.readyState === 'loading') {
     initializeViewerSystem();
 }
 
-// Export for debugging
-window.viewerGeneral = viewerGeneral;
-window.viewerMedical = viewerMedical;
-
-console.log('✓ 3D Viewer script loaded');
+console.log('✅ 3D Viewer Pro script loaded - waiting for DOM ready...');

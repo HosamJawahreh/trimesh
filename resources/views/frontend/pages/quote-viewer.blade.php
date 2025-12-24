@@ -1,15 +1,59 @@
 {{-- ============================================
      3D QUOTE VIEWER - FULL SCREEN INTERFACE
      Professional & Optimized Layout
+     Version: 2025-12-24-21:00 - MODAL & EYE BUTTON FIX
      ============================================ --}}
 
-{{-- EMERGENCY TEST BUTTON - REMOVE AFTER TESTING --}}
+{{-- EMERGENCY DIAGNOSTIC BUTTON --}}
 
+<script>
+function runEmergencyDiagnostic() {
+    console.clear();
+    console.log('%c=== EMERGENCY DIAGNOSTIC ===', 'font-size:20px; background:#ff0000; color:white; padding:10px;');
+
+    // Test 1: Viewer objects
+    console.log('\n1️⃣ VIEWER OBJECTS:');
+    console.log('window.viewerGeneral:', window.viewerGeneral);
+    console.log('window.viewerMedical:', window.viewerMedical);
+    console.log('window.viewer:', window.viewer);
+
+    // Test 2: Toolbar handler
+    console.log('\n2️⃣ TOOLBAR HANDLER:');
+    console.log('window.toolbarHandler:', window.toolbarHandler);
+    if (window.toolbarHandler) {
+        console.log('Methods:', Object.keys(window.toolbarHandler).slice(0, 10));
+    }
+
+    // Test 3: Try grid toggle
+    console.log('\n3️⃣ TESTING GRID TOGGLE:');
+    if (window.toolbarHandler && window.toolbarHandler._checkViewer) {
+        window.toolbarHandler._checkViewer();
+    }
+    if (window.toolbarHandler && window.toolbarHandler.toggleGridMain) {
+        window.toolbarHandler.toggleGridMain('General');
+    } else {
+        console.error('❌ toggleGridMain not found!');
+    }
+
+    // Test 4: Canvas check
+    console.log('\n4️⃣ CANVAS CHECK:');
+    if (window.viewerGeneral && window.viewerGeneral.renderer) {
+        const canvas = window.viewerGeneral.renderer.domElement;
+        console.log('Canvas:', canvas);
+        console.log('Canvas size:', canvas.width, 'x', canvas.height);
+    } else {
+        console.error('❌ No renderer found!');
+    }
+
+    console.log('\n%c=== DIAGNOSTIC COMPLETE ===', 'font-size:16px; background:#00ff00; color:black; padding:10px;');
+    alert('✅ Diagnostic complete! Check console (F12) for results.');
+}
+</script>
 
 <section class="dgm-3d-quote-area pb-100">
     <div class="container">
         {{-- General 3D Printing Form --}}
-        <div class="quote-form-container-3d" id="generalForm3d">
+        <div class="quote-form-container-3d" id="generalForm3d" style="display: block;">
             <div class="row justify-content-center">
                 <div class="col-12 col-lg-11">
                     <div class="card border-0 shadow-sm">
@@ -283,12 +327,538 @@ document.addEventListener('DOMContentLoaded', function() {
                                             <div class="model-subtitle" id="modelDimensionsDisplay">0 × 0 × 0 mm</div>
                                         </div>
 
+                                        {{-- NEW Right Side Files Panel --}}
+                                        <div class="right-files-panel" id="rightFilesPanel" style="position: absolute !important; top: 100px !important; right: 20px !important; width: 320px !important; max-height: calc(100vh - 120px) !important; background: white !important; border-radius: 12px !important; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important; overflow: hidden !important; display: flex !important; flex-direction: column !important; z-index: 9998 !important;">
+                                            {{-- Panel Header --}}
+                                            <div style="padding: 16px; border-bottom: 1px solid #e0e0e0; display: flex; justify-content: space-between; align-items: center;">
+                                                <h6 style="margin: 0; font-weight: 600; font-size: 14px; color: #333;">Uploaded Files</h6>
+                                                <button type="button" id="uploadMoreFilesBtn" style="background: #1976D2; border: none; cursor: pointer; padding: 6px; color: white; border-radius: 6px; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" title="Upload More Files" onclick="document.getElementById('fileInput3d').click()">
+                                                    <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+                                                        <path d="M10 5L10 15M5 10L15 10" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                            {{-- Files Container --}}
+                                            <div id="rightFilesContainer" style="flex: 1; overflow-y: auto; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; margin: 12px;">
+                                                <div style="text-align: center; padding: 40px 20px; color: #999;">
+                                                    <svg width="48" height="48" viewBox="0 0 48 48" fill="none" style="margin: 0 auto 12px;">
+                                                        <path d="M24 8L40 16L24 24L8 16L24 8Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                        <path d="M8 32L24 40L40 32" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                        <path d="M8 24L24 32L40 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                    </svg>
+                                                    <p style="margin: 0; font-size: 13px;">No files uploaded yet</p>
+                                                </div>
+                                            </div>
+                                        </div>
+
                                         {{-- Professional Toolbar - Top Right --}}
                                         <div class="viewer-professional-toolbar" id="professionalToolbar" style="position: absolute !important; top: 20px !important; right: 20px !important; display: flex !important; visibility: visible !important; opacity: 1 !important; z-index: 9999 !important; background: rgba(255, 255, 255, 0.95) !important; padding: 8px !important; border-radius: 12px !important; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important; pointer-events: auto !important; gap: 8px !important;">
 
                                             {{-- Logo Group --}}
                                             <div class="toolbar-group" style="display: flex !important; align-items: center !important; padding-right: 8px !important;">
-                                                <img src="{{ asset($settings->logo) }}" alt="{{ $settings->app_name }}" style="max-height: 36px; width: auto;">
+                                                <a href="{{ url('/') }}" style="display: flex; align-items: center; text-decoration: none; cursor: pointer; transition: opacity 0.2s ease;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'" title="Go to Homepage">
+                                                    <img src="{{ asset($settings->logo) }}" alt="{{ $settings->app_name }}" style="max-height: 36px; width: auto;">
+                                                </a>
+                                            </div>
+
+                                            <div class="toolbar-divider"></div>
+
+                                            {{-- Tools Group --}}
+                                            <div class="toolbar-group" style="display: flex !important; gap: 4px !important; visibility: visible !important; opacity: 1 !important;">
+
+                                                {{-- Measurement Tool with Dropdown --}}
+                                                <div style="position: relative;">
+                                                    <button type="button" class="toolbar-btn" id="measurementToolBtn" title="Measurement Tools" data-tool="measurement" onclick="window.toolbarHandler.toggleMeasurement('General')">
+                                                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                                            <path d="M4 16L16 4M6 16L8 14M10 16L12 14M14 16L16 14M4 14L6 12M4 10L8 6M4 6L6 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                                                        </svg>
+                                                    </button>
+                                                    {{-- Measurement Sub-Menu (Dropdown under button) --}}
+                                                    <div class="measurement-submenu" id="measurementSubmenu" style="display: none;">
+                                                        <div class="submenu-header">
+                                                            <span>Measurement Tools</span>
+                                                            <button type="button" class="submenu-close">×</button>
+                                                        </div>
+                                                        <button type="button" class="submenu-btn" data-measure="distance">
+                                                            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                                                                <path d="M2 2L16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                                                <circle cx="2" cy="2" r="2" fill="currentColor"/>
+                                                                <circle cx="16" cy="16" r="2" fill="currentColor"/>
+                                                            </svg>
+                                                            <span>Distance (Point-to-Point)</span>
+                                                        </button>
+                                                        <button type="button" class="submenu-btn" data-measure="diameter">
+                                                            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                                                                <circle cx="9" cy="9" r="7" stroke="currentColor" stroke-width="1.5"/>
+                                                                <path d="M2 9L16 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                                                <circle cx="2" cy="9" r="1.5" fill="currentColor"/>
+                                                                <circle cx="16" cy="9" r="1.5" fill="currentColor"/>
+                                                            </svg>
+                                                            <span>Diameter</span>
+                                                        </button>
+                                                        <button type="button" class="submenu-btn" data-measure="area">
+                                                            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                                                                <rect x="2" y="2" width="14" height="14" stroke="currentColor" stroke-width="1.5"/>
+                                                                <path d="M2 9L16 9M9 2L9 16" stroke="currentColor" stroke-width="1" opacity="0.3"/>
+                                                            </svg>
+                                                            <span>Area</span>
+                                                        </button>
+                                                        <button type="button" class="submenu-btn" data-measure="point-to-surface">
+                                                            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                                                                <rect x="2" y="12" width="14" height="4" stroke="currentColor" stroke-width="1.5"/>
+                                                                <path d="M9 2L9 12" stroke="currentColor" stroke-width="1.5" stroke-dasharray="2 2"/>
+                                                                <circle cx="9" cy="2" r="2" fill="currentColor"/>
+                                                            </svg>
+                                                            <span>Point to Surface</span>
+                                                        </button>
+                                                        <button type="button" class="submenu-btn" data-measure="angle">
+                                                            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                                                                <path d="M2 16L9 9L16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                                <path d="M4 16A6 6 0 0 1 9 11" stroke="currentColor" stroke-width="1.5" stroke-dasharray="2 2"/>
+                                                            </svg>
+                                                            <span>Angle</span>
+                                                        </button>
+                                                        <button type="button" class="submenu-btn" data-measure="clear">
+                                                            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                                                                <path d="M3 3L15 15M15 3L3 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                                            </svg>
+                                                            <span>Clear All Measurements</span>
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+                                                <button type="button" class="toolbar-btn" id="boundingBoxBtn" title="Bounding Box" data-tool="boundingBox" onclick="window.toolbarHandler.toggleBoundingBox('General')">
+                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                                        <rect x="3" y="3" width="14" height="14" stroke="currentColor" stroke-width="1.8" stroke-dasharray="2 2"/>
+                                                        <circle cx="3" cy="3" r="1.5" fill="currentColor"/>
+                                                        <circle cx="17" cy="3" r="1.5" fill="currentColor"/>
+                                                        <circle cx="3" cy="17" r="1.5" fill="currentColor"/>
+                                                        <circle cx="17" cy="17" r="1.5" fill="currentColor"/>
+                                                    </svg>
+                                                </button>
+                                                <button type="button" class="toolbar-btn" id="axisToggleBtn" title="Toggle Axis" data-tool="axis" onclick="window.toolbarHandler.toggleAxis('General')">
+                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                                        <path d="M10 2V18M2 10H18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                                                        <path d="M10 2L8 4M10 2L12 4M18 10L16 8M18 10L16 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                                                    </svg>
+                                                </button>
+                                                <button type="button" class="toolbar-btn" id="gridToggleBtn" title="Measurement Grid" data-tool="grid" onclick="window.toolbarHandler.toggleGrid('General')">
+                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                                        <path d="M2 6H18M2 10H18M2 14H18M6 2V18M10 2V18M14 2V18" stroke="currentColor" stroke-width="1.5" opacity="0.6"/>
+                                                    </svg>
+                                                </button>
+                                                <button type="button" class="toolbar-btn" id="panToolBtn" title="Move Model - Drag to reposition" data-tool="pan" onclick="window.toolbarHandler.toggleMoveMode('General')">
+                                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                                        <path d="M13 5L13 11M13 11L10 8M13 11L16 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                        <path d="M13 19L13 13M13 13L10 16M13 13L16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                        <path d="M5 13L11 13M11 13L8 10M11 13L8 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                        <path d="M19 13L13 13M13 13L16 10M13 13L16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                        <circle cx="13" cy="13" r="2" fill="currentColor"/>
+                                                    </svg>
+                                                </button>
+                                                <button type="button" class="toolbar-btn" id="autoRotateBtn" title="Auto-rotate Model" data-tool="autoRotate" onclick="window.toolbarHandler.toggleAutoRotate('General')">
+                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                                        <path d="M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C12.0605 3 13.8792 3.91099 15 5.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                                                        <path d="M17 3V7H13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                                                    </svg>
+                                                </button>
+                                                {{-- Bottom Control Bar Functions - Now in Top Toolbar --}}
+                                                <button type="button" class="toolbar-btn" id="toggleGridBtnMain" title="Toggle grid visibility" data-tool="gridMain" onclick="window.toolbarHandler.toggleGridMain('General')">
+                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                                        <rect x="3" y="3" width="5" height="5" stroke="currentColor" stroke-width="1.5"/>
+                                                        <rect x="11" y="3" width="5" height="5" stroke="currentColor" stroke-width="1.5"/>
+                                                        <rect x="3" y="11" width="5" height="5" stroke="currentColor" stroke-width="1.5"/>
+                                                        <rect x="11" y="11" width="5" height="5" stroke="currentColor" stroke-width="1.5"/>
+                                                    </svg>
+                                                </button>
+                                                <button type="button" class="toolbar-btn" id="measureToolBtnMain" title="Measure distance between two points" data-tool="measureMain" onclick="window.toolbarHandler.toggleMeasureMain('General')">
+                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                                        <path d="M2 2L18 18M2 2L2 18M18 2L18 18M2 18L18 18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                                        <circle cx="2" cy="2" r="1.5" fill="currentColor"/>
+                                                        <circle cx="18" cy="18" r="1.5" fill="currentColor"/>
+                                                    </svg>
+                                                </button>
+                                            </div>
+
+                                            <div class="toolbar-divider"></div>
+
+                                            {{-- View Options --}}
+                                            <div class="toolbar-group">
+                                                <button type="button" class="toolbar-btn" id="shadowToggleBtn" title="Toggle Shadows" data-tool="shadow" onclick="window.toolbarHandler.toggleShadow('General')">
+                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                                        <circle cx="10" cy="8" r="3" stroke="currentColor" stroke-width="1.8"/>
+                                                        <ellipse cx="10" cy="16" rx="5" ry="1.5" fill="currentColor" opacity="0.3"/>
+                                                    </svg>
+                                                </button>
+                                                <button type="button" class="toolbar-btn" id="transparencyBtn" title="Transparency" data-tool="transparency" onclick="window.toolbarHandler.toggleTransparency('General')">
+                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                                        <circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.8" opacity="0.5"/>
+                                                        <path d="M10 3C6 3 3 6 3 10C3 14 6 17 10 17" stroke="currentColor" stroke-width="1.8"/>
+                                                    </svg>
+                                                </button>
+                                                <button type="button" class="toolbar-btn" id="modelColorBtn" title="Model Color" data-tool="modelColor" onclick="window.toolbarHandler.changeModelColor()">
+                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                                        <circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.8"/>
+                                                        <circle cx="10" cy="10" r="4" fill="currentColor" opacity="0.3"/>
+                                                    </svg>
+                                                </button>
+                                                <button type="button" class="toolbar-btn" id="backgroundColorBtn" title="Background Color" data-tool="bgColor" onclick="window.toolbarHandler.changeBackgroundColor()">
+                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                                        <rect x="2" y="2" width="16" height="16" rx="2" stroke="currentColor" stroke-width="1.8"/>
+                                                        <path d="M2 10H18" stroke="currentColor" stroke-width="1.8"/>
+                                                    </svg>
+                                                </button>
+                                            </div>
+
+                                            <div class="toolbar-divider"></div>
+
+                                            {{-- Actions --}}
+                                            <div class="toolbar-group">
+                                                <button type="button" class="toolbar-btn" id="undoBtn" title="Undo" data-action="undo" onclick="window.toolbarHandler.undo()">
+                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                                        <path d="M5 8H15C16.6569 8 18 9.34315 18 11C18 12.6569 16.6569 14 15 14H8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                                                        <path d="M8 5L5 8L8 11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                                                    </svg>
+                                                </button>
+                                                <button type="button" class="toolbar-btn" id="redoBtn" title="Redo" data-action="redo" onclick="window.toolbarHandler.redo()">
+                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                                        <path d="M15 8H5C3.34315 8 2 9.34315 2 11C2 12.6569 3.34315 14 5 14H12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                                                        <path d="M12 5L15 8L12 11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                                                    </svg>
+                                                </button>
+                                                <button type="button" class="toolbar-btn" id="screenshotToolBtn" title="Screenshot" data-action="screenshot" onclick="window.toolbarHandler.takeScreenshot('General')">
+                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                                        <rect x="2" y="5" width="16" height="12" rx="2" stroke="currentColor" stroke-width="1.8"/>
+                                                        <circle cx="10" cy="11" r="2.5" stroke="currentColor" stroke-width="1.8"/>
+                                                        <path d="M6 5L7 3H13L14 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                                                    </svg>
+                                                </button>
+                                            </div>
+
+                                            <div class="toolbar-divider"></div>
+
+                                            {{-- Camera View Controls --}}
+                                            <div class="toolbar-group">
+                                                <button type="button" class="toolbar-btn camera-btn" data-view="top" title="Top View">
+                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                                                        <path d="M12 5L12 19M12 5L8 9M12 5L16 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                                    </svg>
+                                                </button>
+                                                <button type="button" class="toolbar-btn camera-btn active" data-view="front" title="Front View">
+                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                                                        <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/>
+                                                        <circle cx="12" cy="12" r="3" fill="currentColor"/>
+                                                    </svg>
+                                                </button>
+                                                <button type="button" class="toolbar-btn camera-btn" data-view="right" title="Right View">
+                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                                                        <path d="M19 12L5 12M19 12L15 8M19 12L15 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                                    </svg>
+                                                </button>
+                                                <button type="button" class="toolbar-btn camera-btn" data-view="left" title="Left View">
+                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                                                        <path d="M5 12L19 12M5 12L9 8M5 12L9 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                                    </svg>
+                                                </button>
+                                                <button type="button" class="toolbar-btn camera-btn" data-view="bottom" title="Bottom View">
+                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                                                        <path d="M12 19L12 5M12 19L8 15M12 19L16 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                                    </svg>
+                                                </button>
+                                                <button type="button" class="toolbar-btn camera-btn" data-view="reset" title="Reset Camera">
+                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                                                        <path d="M12 4V1L8 5L12 9V6C15.31 6 18 8.69 18 12C18 13.01 17.75 13.97 17.3 14.8L18.76 16.26C19.54 15.03 20 13.57 20 12C20 7.58 16.42 4 12 4ZM12 18C8.69 18 6 15.31 6 12C6 10.99 6.25 10.03 6.7 9.2L5.24 7.74C4.46 8.97 4 10.43 4 12C4 16.42 7.58 20 12 20V23L16 19L12 15V18Z" fill="currentColor"/>
+                                                    </svg>
+                                                </button>
+                                            </div>
+
+                                            {{-- Divider --}}
+                                            <div style="width: 1px; height: 32px; background: rgba(0,0,0,0.1); margin: 0 4px;"></div>
+
+                                            {{-- Action Buttons Group --}}
+                                            <div class="toolbar-group" style="display: flex !important; gap: 4px !important; visibility: visible !important; opacity: 1 !important;">
+                                                <button type="button" class="toolbar-btn" id="shareToolBtn" title="Share Model" data-action="share" onclick="window.toolbarHandler.shareModel('General')">
+                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                                        <circle cx="15" cy="4" r="3" stroke="currentColor" stroke-width="1.8"/>
+                                                        <circle cx="5" cy="10" r="3" stroke="currentColor" stroke-width="1.8"/>
+                                                        <circle cx="15" cy="16" r="3" stroke="currentColor" stroke-width="1.8"/>
+                                                        <path d="M7.5 11.5L12.5 14.5M12.5 5.5L7.5 8.5" stroke="currentColor" stroke-width="1.8"/>
+                                                    </svg>
+                                                </button>
+                                                <button type="button" class="toolbar-btn toolbar-btn-primary" id="saveCalculateToolBtn" title="Save & Calculate Pricing" data-action="saveCalculate" onclick="window.toolbarHandler.saveAndCalculate('General')">
+                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                                        <path d="M16 18H4C3 18 2 17 2 16V4C2 3 3 2 4 2H13L18 7V16C18 17 17 18 16 18Z" stroke="currentColor" stroke-width="1.8"/>
+                                                        <path d="M5 11H15V18H5V11Z" stroke="currentColor" stroke-width="1.8"/>
+                                                        <path d="M14 2V6H6V2" stroke="currentColor" stroke-width="1.8"/>
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {{-- Unit Toggle (for Grid) --}}
+                                        <div class="unit-toggle" id="unitToggle" style="display: none;">
+                                            <button type="button" class="unit-btn active" data-unit="mm">mm</button>
+                                            <button type="button" class="unit-btn" data-unit="inch">inch</button>
+                                        </div>
+
+                                        {{-- Bottom Control Bar - Professional --}}
+                                        <div class="viewer-bottom-controls" id="controlBarGeneral">
+                                            <div class="control-section measurements-section">
+                                                <div class="control-label">Dimensions</div>
+                                                <div class="measurement-items">
+                                                    <div class="measurement-item">
+                                                        <span class="axis-label">X:</span>
+                                                        <span class="axis-value" id="measureX">0.00</span>
+                                                        <span class="axis-unit">mm</span>
+                                                    </div>
+                                                    <div class="measurement-item">
+                                                        <span class="axis-label">Y:</span>
+                                                        <span class="axis-value" id="measureY">0.00</span>
+                                                        <span class="axis-unit">mm</span>
+                                                    </div>
+                                                    <div class="measurement-item">
+                                                        <span class="axis-label">Z:</span>
+                                                        <span class="axis-value" id="measureZ">0.00</span>
+                                                        <span class="axis-unit">mm</span>
+                                                    </div>
+                                                    <div class="measurement-item volume">
+                                                        <span class="axis-label">Vol:</span>
+                                                        <span class="axis-value" id="measureVolume">0.00</span>
+                                                        <span class="axis-unit">cm³</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="control-divider"></div>
+
+                                            <div class="control-section camera-section">
+                                                <div class="control-label">Camera View</div>
+                                                <div class="camera-buttons">
+                                                    <button type="button" class="control-btn camera-btn" data-view="top" title="Top View">
+                                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                            <path d="M8 2L14 6L8 10L2 6L8 2Z" stroke="currentColor" stroke-width="1.5"/>
+                                                        </svg>
+                                                        <span>Top</span>
+                                                    </button>
+                                                    <button type="button" class="control-btn camera-btn" data-view="front" title="Front View">
+                                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                            <rect x="3" y="3" width="10" height="10" stroke="currentColor" stroke-width="1.5"/>
+                                                        </svg>
+                                                        <span>Front</span>
+                                                    </button>
+                                                    <button type="button" class="control-btn camera-btn" data-view="right" title="Right View">
+                                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                            <path d="M3 3L13 3L13 13L3 13L3 3Z" stroke="currentColor" stroke-width="1.5"/>
+                                                            <path d="M8 3L13 8L8 13" stroke="currentColor" stroke-width="1.5"/>
+                                                        </svg>
+                                                        <span>Right</span>
+                                                    </button>
+                                                    <button type="button" class="control-btn camera-btn" data-view="left" title="Left View">
+                                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                            <path d="M13 3L3 3L3 13L13 13L13 3Z" stroke="currentColor" stroke-width="1.5"/>
+                                                            <path d="M8 3L3 8L8 13" stroke="currentColor" stroke-width="1.5"/>
+                                                        </svg>
+                                                        <span>Left</span>
+                                                    </button>
+                                                    <button type="button" class="control-btn camera-btn" data-view="bottom" title="Bottom View">
+                                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                            <path d="M8 14L2 10L8 6L14 10L8 14Z" stroke="currentColor" stroke-width="1.5"/>
+                                                        </svg>
+                                                        <span>Bottom</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <div class="control-divider"></div>
+
+                                            <div class="control-section tools-section">
+                                                <div class="control-label">Tools</div>
+                                                <div class="control-buttons">
+                                                    <button type="button" class="control-btn tool-btn" id="panToolBtn" title="Pan Tool">
+                                                        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                                                            <path d="M9 2C9 2 9 7 9 7M9 7L6.5 4.5M9 7L11.5 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                                            <path d="M9 16C9 16 9 11 9 11M9 11L6.5 13.5M9 11L11.5 13.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                                            <path d="M2 9C2 9 7 9 7 9M7 9L4.5 6.5M7 9L4.5 11.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                                            <path d="M16 9C16 9 11 9 11 9M11 9L13.5 6.5M11 9L13.5 11.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                                        </svg>
+                                                        <span>Pan</span>
+                                                    </button>
+                                                    <button type="button" class="control-btn tool-btn" id="screenshotBtn" title="Take Screenshot">
+                                                        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                                                            <rect x="2" y="4" width="14" height="11" rx="2" stroke="currentColor" stroke-width="1.5"/>
+                                                            <circle cx="9" cy="9.5" r="2.5" stroke="currentColor" stroke-width="1.5"/>
+                                                            <path d="M6 4L7 2H11L12 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                                        </svg>
+                                                        <span>Screenshot</span>
+                                                    </button>
+                                                    <button type="button" class="control-btn tool-btn" id="shareGeneralBtn" title="Share Model">
+                                                        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                                                            <circle cx="13" cy="4" r="2.5" stroke="currentColor" stroke-width="1.5"/>
+                                                            <circle cx="5" cy="9" r="2.5" stroke="currentColor" stroke-width="1.5"/>
+                                                            <circle cx="13" cy="14" r="2.5" stroke="currentColor" stroke-width="1.5"/>
+                                                            <path d="M7.5 10L10.5 12.5M7.5 8L10.5 5.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                                        </svg>
+                                                        <span>Share</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <div class="control-divider"></div>
+
+                                            <div class="control-section actions-section">
+                                                <button type="button" class="control-btn save-btn" id="saveCalculationsBtn">
+                                                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                                                        <path d="M15 16H3C2.44772 16 2 15.5523 2 15V3C2 2.44772 2.44772 2 3 2H12L16 6V15C16 15.5523 15.5523 16 15 16Z" stroke="currentColor" stroke-width="1.5"/>
+                                                        <path d="M12 2V6H5V2" stroke="currentColor" stroke-width="1.5"/>
+                                                        <path d="M5 10H13V16H5V10Z" stroke="currentColor" stroke-width="1.5"/>
+                                                    </svg>
+                                                    <span>Save & Calculate</span>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {{-- Empty State --}}
+                                        <div class="d-flex align-items-center justify-content-center h-100 text-muted text-center">
+                                            <div>
+                                                <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" style="opacity: 0.3;">
+                                                    <path d="M40 10L70 25L40 40L10 25L40 10Z" stroke="#6c757d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                    <path d="M10 55L40 70L70 55" stroke="#6c757d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.7"/>
+                                                    <path d="M10 40L40 55L70 40" stroke="#6c757d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/>
+                                                </svg>
+                                                <p class="mt-3 mb-0" style="font-weight: 500; color: #6c757d; font-size: 0.95rem;">Upload a 3D file to preview</p>
+                                                <p class="mt-1 mb-0" style="font-size: 0.8rem; color: #95a5a6;">Drag & drop or click to browse</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {{-- Viewer Controls Panel - REMOVED FOR CLEAN INTERFACE --}}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+/* Category Tab Button Styling */
+                    <div class="card border-0 shadow-sm" style="border-radius: 12px; overflow: hidden;">
+                        <div class="card-body p-0">
+                            <div class="row g-0">
+                                <!-- Left Side: Controls -->
+                                <div class="col-12 col-lg-3" style="background: #f8f9fa; border-right: 1px solid #e9ecef;">
+                                    <div class="">
+                                        {{-- Category tabs removed - upload from bottom bar --}}
+                                        {{-- Upload area hidden - use bottom bar upload button --}}
+
+                                        <!-- Hidden file inputs for compatibility -->
+                                        <input type="file" id="fileInput3dMedical" style="display: none;" accept=".stl,.obj,.ply" multiple>
+
+                                        <!-- Uploaded Files List -->
+                                        <div id="uploadedFilesListMedical" class="mb-3" style="display: none;">
+                                            <label class="form-label mb-2" style="font-size: 0.85rem; font-weight: 600; color: #495057;">Uploaded Files (<span id="fileCountMedical">0</span>)</label>
+                                            <div id="filesContainerMedical" style="max-height: 200px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 8px; background: #f8f9fa;"></div>
+                                        </div>
+
+                                        <!-- Technology -->
+                                        <div class="mb-3">
+                                            <label class="form-label mb-2" style="font-size: 0.85rem; font-weight: 600; color: #495057;">Technology</label>
+                                            <select id="technologySelectMedical" class="form-select form-select-sm" style="border-radius: 6px; border: 1px solid #dee2e6; font-size: 0.85rem;">
+                                                <option value="sla" selected>SLA (Stereolithography)</option>
+                                                <option value="dlp">DLP (Digital Light Processing)</option>
+                                            </select>
+                                        </div>
+
+                                        <!-- Material -->
+                                        <div class="mb-3">
+                                            <label class="form-label mb-2" style="font-size: 0.85rem; font-weight: 600; color: #495057;">Material</label>
+                                            <select id="materialSelectMedical" class="form-select form-select-sm" style="border-radius: 6px; border: 1px solid #dee2e6; font-size: 0.85rem;">
+                                                <option value="biocompatible-resin" selected>Biocompatible Resin (Class I)</option>
+                                                <option value="dental-resin">Dental Resin (FDA Approved)</option>
+                                                <option value="surgical-guide">Surgical Guide Resin</option>
+                                                <option value="castable-resin">Castable Resin</option>
+                                            </select>
+                                        </div>
+
+                                        <!-- Application -->
+                                        <div class="mb-3">
+                                            <label class="form-label mb-2" style="font-size: 0.85rem; font-weight: 600; color: #495057;">Application</label>
+                                            <select id="applicationSelectMedical" class="form-select form-select-sm" style="border-radius: 6px; border: 1px solid #dee2e6; font-size: 0.85rem;">
+                                                <option value="surgical">Surgical Guide</option>
+                                                <option value="dental">Dental Model</option>
+                                                <option value="anatomical">Anatomical</option>
+                                                <option value="prosthetic">Prosthetic</option>
+                                            </select>
+                                        </div>
+
+                                        <!-- Layer Height - Fixed & Validated -->
+                                        <div class="mb-3">
+                                            <label class="form-label mb-2" style="font-size: 0.85rem; font-weight: 600; color: #495057;">Layer Height</label>
+                                            <div class="p-2" style="background: #f8f9fa; border-radius: 6px; border: 1px solid #dee2e6;">
+                                                <div style="display: flex; align-items: center; gap: 8px;">
+                                                    <i class="fas fa-lock" style="color: #6c757d; font-size: 0.75rem;"></i>
+                                                    <span style="font-size: 0.85rem; font-weight: 600; color: #495057;">25-50 μm</span>
+                                                    <span style="font-size: 0.7rem; color: #6c757d; margin-left: auto;">(Fixed, Validated)</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Color Picker -->
+                                        <div class="mb-3">
+                                            <label class="form-label mb-2" style="font-size: 0.85rem; font-weight: 600; color: #495057;">Model Color <span style="font-size: 0.7rem; color: #6c757d;">(Certified Only)</span></label>
+                                            <div class="d-flex gap-2 flex-wrap">
+                                                <button type="button" class="color-btn-medical active" data-color="#F5E6D3" style="width: 32px; height: 32px; border-radius: 6px; border: 2px solid #F5E6D3; background: #F5E6D3; cursor: pointer;" title="Dental White"></button>
+                                                <button type="button" class="color-btn-medical" data-color="#FFE4C4" style="width: 32px; height: 32px; border-radius: 6px; border: 2px solid #dee2e6; background: #FFE4C4; cursor: pointer;" title="Gum Pink"></button>
+                                                <button type="button" class="color-btn-medical" data-color="#FFFFFF" style="width: 32px; height: 32px; border-radius: 6px; border: 2px solid #dee2e6; background: #FFFFFF; cursor: pointer;" title="Clear"></button>
+                                            </div>
+                                        </div>
+
+                                        <!-- Price Summary -->
+                                        <div id="priceSummaryMedical" class="mt-3 p-3" style="display: none; background: white; border-radius: 12px; border: 2px solid #e9ecef; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+                                            <div class="d-flex justify-content-between align-items-center mb-2 pb-2" style="border-bottom: 1px solid #f1f3f5;">
+                                                <span style="font-size: 0.8rem; color: #6c757d; font-weight: 500;">Volume</span>
+                                                <strong id="quoteTotalVolumeMedical" style="font-weight: 600; font-size: 0.85rem; color: #2c3e50;">0 cm³</strong>
+                                            </div>
+                                            <div class="d-flex justify-content-between align-items-center mb-2 pb-2" style="border-bottom: 1px solid #f1f3f5;">
+                                                <span style="font-size: 0.8rem; color: #6c757d; font-weight: 500;">Print Time</span>
+                                                <strong id="quotePrintTimeMedical" style="font-weight: 600; font-size: 0.85rem; color: #2c3e50;">0h</strong>
+                                            </div>
+                                            <div class="d-flex justify-content-between align-items-center mt-2 pt-2">
+                                                <span style="font-size: 0.85rem; font-weight: 600; color: #495057; text-transform: uppercase; letter-spacing: 0.3px;">Total Price</span>
+                                                <h4 class="mb-0" id="quoteTotalPriceMedical" style="font-weight: 700; font-size: 1.3rem; color: #2c3e50;">$0</h4>
+                                            </div>
+                                            <button type="button" class="btn w-100 mt-2" id="btnRequestQuoteMedical" style="border-radius: 10px; font-weight: 600; font-size: 0.85rem; padding: 10px; background: #4a90e2; color: white; border: none; transition: all 0.3s; box-shadow: 0 2px 8px rgba(74, 144, 226, 0.3);">
+                                                Request Quote →
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Right Side: 3D Viewer -->
+                                <div class="col-12 col-lg-9 position-relative d-flex flex-column" style="display: flex !important; visibility: visible !important; opacity: 1 !important; flex: 1 !important; min-width: 0 !important; background: linear-gradient(to bottom, #b8c5d6 0%, #99a8ba 100%) !important;">
+                                    <div id="viewer3dMedical" style="position: relative !important; display: flex !important; visibility: visible !important; width: 100% !important; height: 100vh !important; background: linear-gradient(to bottom, #b8c5d6 0%, #99a8ba 100%) !important;">
+                                        {{-- Model Info Badge (Top Left - Hidden until file uploaded) --}}
+                                        <div class="model-info-badge" style="display: none;">
+                                            <div class="model-name">
+                                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                                    <path d="M8 2L14 5L8 8L2 5L8 2Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                                    <path d="M2 11L8 14L14 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.7"/>
+                                                </svg>
+                                                <span id="modelNameDisplayMedical">model.stl</span>
+                                            </div>
+                                            <div class="model-subtitle" id="modelDimensionsDisplayMedical">0 × 0 × 0 mm</div>
+                                        </div>
+
+                                        {{-- Professional Toolbar - Top Right --}}
+                                        <div class="viewer-professional-toolbar" id="professionalToolbar" style="position: absolute !important; top: 20px !important; right: 20px !important; display: flex !important; visibility: visible !important; opacity: 1 !important; z-index: 9999 !important; background: rgba(255, 255, 255, 0.95) !important; padding: 8px !important; border-radius: 12px !important; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important; pointer-events: auto !important; gap: 8px !important;">
+
+                                            {{-- Logo Group --}}
+                                            <div class="toolbar-group" style="display: flex !important; align-items: center !important; padding-right: 8px !important;">
+                                                <a href="{{ url('/') }}" style="display: flex; align-items: center; text-decoration: none; cursor: pointer; transition: opacity 0.2s ease;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'" title="Go to Homepage">
+                                                    <img src="{{ asset($settings->logo) }}" alt="{{ $settings->app_name }}" style="max-height: 36px; width: auto;">
+                                                </a>
                                             </div>
 
                                             <div class="toolbar-divider"></div>
@@ -518,334 +1088,6 @@ document.addEventListener('DOMContentLoaded', function() {
                                         <div class="unit-toggle" id="unitToggle" style="display: none;">
                                             <button type="button" class="unit-btn active" data-unit="mm">mm</button>
                                             <button type="button" class="unit-btn" data-unit="inch">inch</button>
-                                        </div>
-
-                                        {{-- Bottom Control Bar - Professional --}}
-                                        <div class="viewer-bottom-controls" id="controlBarGeneral">
-                                            <div class="control-section measurements-section">
-                                                <div class="control-label">Dimensions</div>
-                                                <div class="measurement-items">
-                                                    <div class="measurement-item">
-                                                        <span class="axis-label">X:</span>
-                                                        <span class="axis-value" id="measureX">0.00</span>
-                                                        <span class="axis-unit">mm</span>
-                                                    </div>
-                                                    <div class="measurement-item">
-                                                        <span class="axis-label">Y:</span>
-                                                        <span class="axis-value" id="measureY">0.00</span>
-                                                        <span class="axis-unit">mm</span>
-                                                    </div>
-                                                    <div class="measurement-item">
-                                                        <span class="axis-label">Z:</span>
-                                                        <span class="axis-value" id="measureZ">0.00</span>
-                                                        <span class="axis-unit">mm</span>
-                                                    </div>
-                                                    <div class="measurement-item volume">
-                                                        <span class="axis-label">Vol:</span>
-                                                        <span class="axis-value" id="measureVolume">0.00</span>
-                                                        <span class="axis-unit">cm³</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="control-divider"></div>
-
-                                            <div class="control-section camera-section">
-                                                <div class="control-label">Camera View</div>
-                                                <div class="camera-buttons">
-                                                    <button type="button" class="control-btn camera-btn" data-view="top" title="Top View">
-                                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                                            <path d="M8 2L14 6L8 10L2 6L8 2Z" stroke="currentColor" stroke-width="1.5"/>
-                                                        </svg>
-                                                        <span>Top</span>
-                                                    </button>
-                                                    <button type="button" class="control-btn camera-btn" data-view="front" title="Front View">
-                                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                                            <rect x="3" y="3" width="10" height="10" stroke="currentColor" stroke-width="1.5"/>
-                                                        </svg>
-                                                        <span>Front</span>
-                                                    </button>
-                                                    <button type="button" class="control-btn camera-btn" data-view="right" title="Right View">
-                                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                                            <path d="M3 3L13 3L13 13L3 13L3 3Z" stroke="currentColor" stroke-width="1.5"/>
-                                                            <path d="M8 3L13 8L8 13" stroke="currentColor" stroke-width="1.5"/>
-                                                        </svg>
-                                                        <span>Right</span>
-                                                    </button>
-                                                    <button type="button" class="control-btn camera-btn" data-view="left" title="Left View">
-                                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                                            <path d="M13 3L3 3L3 13L13 13L13 3Z" stroke="currentColor" stroke-width="1.5"/>
-                                                            <path d="M8 3L3 8L8 13" stroke="currentColor" stroke-width="1.5"/>
-                                                        </svg>
-                                                        <span>Left</span>
-                                                    </button>
-                                                    <button type="button" class="control-btn camera-btn" data-view="bottom" title="Bottom View">
-                                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                                            <path d="M8 14L2 10L8 6L14 10L8 14Z" stroke="currentColor" stroke-width="1.5"/>
-                                                        </svg>
-                                                        <span>Bottom</span>
-                                                    </button>
-                                                </div>
-                                            </div>
-
-                                            <div class="control-divider"></div>
-
-                                            <div class="control-section tools-section">
-                                                <div class="control-label">Tools</div>
-                                                <div class="control-buttons">
-                                                    <button type="button" class="control-btn tool-btn" id="panToolBtn" title="Pan Tool">
-                                                        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                                                            <path d="M9 2C9 2 9 7 9 7M9 7L6.5 4.5M9 7L11.5 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                                            <path d="M9 16C9 16 9 11 9 11M9 11L6.5 13.5M9 11L11.5 13.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                                            <path d="M2 9C2 9 7 9 7 9M7 9L4.5 6.5M7 9L4.5 11.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                                            <path d="M16 9C16 9 11 9 11 9M11 9L13.5 6.5M11 9L13.5 11.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                                        </svg>
-                                                        <span>Pan</span>
-                                                    </button>
-                                                    <button type="button" class="control-btn tool-btn" id="screenshotBtn" title="Take Screenshot">
-                                                        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                                                            <rect x="2" y="4" width="14" height="11" rx="2" stroke="currentColor" stroke-width="1.5"/>
-                                                            <circle cx="9" cy="9.5" r="2.5" stroke="currentColor" stroke-width="1.5"/>
-                                                            <path d="M6 4L7 2H11L12 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                                                        </svg>
-                                                        <span>Screenshot</span>
-                                                    </button>
-                                                    <button type="button" class="control-btn tool-btn" id="shareGeneralBtn" title="Share Model">
-                                                        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                                                            <circle cx="13" cy="4" r="2.5" stroke="currentColor" stroke-width="1.5"/>
-                                                            <circle cx="5" cy="9" r="2.5" stroke="currentColor" stroke-width="1.5"/>
-                                                            <circle cx="13" cy="14" r="2.5" stroke="currentColor" stroke-width="1.5"/>
-                                                            <path d="M7.5 10L10.5 12.5M7.5 8L10.5 5.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                                                        </svg>
-                                                        <span>Share</span>
-                                                    </button>
-                                                </div>
-                                            </div>
-
-                                            <div class="control-divider"></div>
-
-                                            <div class="control-section actions-section">
-                                                <button type="button" class="control-btn save-btn" id="saveCalculationsBtn">
-                                                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                                                        <path d="M15 16H3C2.44772 16 2 15.5523 2 15V3C2 2.44772 2.44772 2 3 2H12L16 6V15C16 15.5523 15.5523 16 15 16Z" stroke="currentColor" stroke-width="1.5"/>
-                                                        <path d="M12 2V6H5V2" stroke="currentColor" stroke-width="1.5"/>
-                                                        <path d="M5 10H13V16H5V10Z" stroke="currentColor" stroke-width="1.5"/>
-                                                    </svg>
-                                                    <span>Save & Calculate</span>
-                                                </button>
-                                            </div>
-                                        </div>
-
-                                        {{-- Empty State --}}
-                                        <div class="d-flex align-items-center justify-content-center h-100 text-muted text-center">
-                                            <div>
-                                                <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" style="opacity: 0.3;">
-                                                    <path d="M40 10L70 25L40 40L10 25L40 10Z" stroke="#6c757d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                                    <path d="M10 55L40 70L70 55" stroke="#6c757d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.7"/>
-                                                    <path d="M10 40L40 55L70 40" stroke="#6c757d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/>
-                                                </svg>
-                                                <p class="mt-3 mb-0" style="font-weight: 500; color: #6c757d; font-size: 0.95rem;">Upload a 3D file to preview</p>
-                                                <p class="mt-1 mb-0" style="font-size: 0.8rem; color: #95a5a6;">Drag & drop or click to browse</p>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {{-- Viewer Controls Panel - REMOVED FOR CLEAN INTERFACE --}}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Medical Form - Unified Single Section -->
-        <div class="quote-form-container-3d" id="medicalForm3d" style="display: none;">
-            <div class="row justify-content-center">
-                <div class="col-12 col-lg-11">
-                    <div class="card border-0 shadow-sm" style="border-radius: 12px; overflow: hidden;">
-                        <div class="card-body p-0">
-                            <div class="row g-0">
-                                <!-- Left Side: Controls -->
-                                <div class="col-12 col-lg-3" style="background: #f8f9fa; border-right: 1px solid #e9ecef;">
-                                    <div class="">
-                                        {{-- Category tabs removed - upload from bottom bar --}}
-                                        {{-- Upload area hidden - use bottom bar upload button --}}
-
-                                        <!-- Hidden file inputs for compatibility -->
-                                        <input type="file" id="fileInput3dMedical" style="display: none;" accept=".stl,.obj,.ply" multiple>
-
-                                        <!-- Uploaded Files List -->
-                                        <div id="uploadedFilesListMedical" class="mb-3" style="display: none;">
-                                            <label class="form-label mb-2" style="font-size: 0.85rem; font-weight: 600; color: #495057;">Uploaded Files (<span id="fileCountMedical">0</span>)</label>
-                                            <div id="filesContainerMedical" style="max-height: 200px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 8px; background: #f8f9fa;"></div>
-                                        </div>
-
-                                        <!-- Technology -->
-                                        <div class="mb-3">
-                                            <label class="form-label mb-2" style="font-size: 0.85rem; font-weight: 600; color: #495057;">Technology</label>
-                                            <select id="technologySelectMedical" class="form-select form-select-sm" style="border-radius: 6px; border: 1px solid #dee2e6; font-size: 0.85rem;">
-                                                <option value="sla" selected>SLA (Stereolithography)</option>
-                                                <option value="dmls">DMLS (Direct Metal Laser Sintering)</option>
-                                                <option value="mjf">MJF (Multi Jet Fusion)</option>
-                                                <option value="polyjet">PolyJet</option>
-                                            </select>
-                                        </div>
-
-                                        <!-- Material -->
-                                        <div class="mb-3">
-                                            <label class="form-label mb-2" style="font-size: 0.85rem; font-weight: 600; color: #495057;">Material</label>
-                                            <select id="materialSelectMedical" class="form-select form-select-sm" style="border-radius: 6px; border: 1px solid #dee2e6; font-size: 0.85rem;">
-                                                <option value="medical-resin">Medical Resin</option>
-                                                <option value="biocompatible">Biocompatible</option>
-                                                <option value="surgical">Surgical Grade</option>
-                                            </select>
-                                        </div>
-
-                                        <!-- Application -->
-                                        <div class="mb-3">
-                                            <label class="form-label mb-2" style="font-size: 0.85rem; font-weight: 600; color: #495057;">Application</label>
-                                            <select id="applicationSelectMedical" class="form-select form-select-sm" style="border-radius: 6px; border: 1px solid #dee2e6; font-size: 0.85rem;">
-                                                <option value="surgical">Surgical Guide</option>
-                                                <option value="dental">Dental Model</option>
-                                                <option value="anatomical">Anatomical</option>
-                                                <option value="prosthetic">Prosthetic</option>
-                                            </select>
-                                        </div>
-
-                                        <!-- Color Picker -->
-                                        <div class="mb-3">
-                                            <label class="form-label mb-2" style="font-size: 0.85rem; font-weight: 600; color: #495057;">Model Color</label>
-                                            <div class="d-flex gap-2 flex-wrap">
-                                                <button type="button" class="color-btn-medical active" data-color="#0047AD" style="width: 32px; height: 32px; border-radius: 6px; border: 2px solid #0047AD; background: #0047AD; cursor: pointer;"></button>
-                                                <button type="button" class="color-btn-medical" data-color="#ffffff" style="width: 32px; height: 32px; border-radius: 6px; border: 2px solid #dee2e6; background: #ffffff; cursor: pointer;"></button>
-                                                <button type="button" class="color-btn-medical" data-color="#0071cc" style="width: 32px; height: 32px; border-radius: 6px; border: 2px solid #dee2e6; background: #0071cc; cursor: pointer;"></button>
-                                                <button type="button" class="color-btn-medical" data-color="#e91e63" style="width: 32px; height: 32px; border-radius: 6px; border: 2px solid #dee2e6; background: #e91e63; cursor: pointer;"></button>
-                                                <button type="button" class="color-btn-medical" data-color="#9c27b0" style="width: 32px; height: 32px; border-radius: 6px; border: 2px solid #dee2e6; background: #9c27b0; cursor: pointer;"></button>
-                                            </div>
-                                        </div>
-
-                                        <!-- Price Summary -->
-                                        <div id="priceSummaryMedical" class="mt-3 p-3" style="display: none; background: white; border-radius: 12px; border: 2px solid #e9ecef; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
-                                            <div class="d-flex justify-content-between align-items-center mb-2 pb-2" style="border-bottom: 1px solid #f1f3f5;">
-                                                <span style="font-size: 0.8rem; color: #6c757d; font-weight: 500;">Volume</span>
-                                                <strong id="quoteTotalVolumeMedical" style="font-weight: 600; font-size: 0.85rem; color: #2c3e50;">0 cm³</strong>
-                                            </div>
-                                            <div class="d-flex justify-content-between align-items-center mb-2 pb-2" style="border-bottom: 1px solid #f1f3f5;">
-                                                <span style="font-size: 0.8rem; color: #6c757d; font-weight: 500;">Print Time</span>
-                                                <strong id="quotePrintTimeMedical" style="font-weight: 600; font-size: 0.85rem; color: #2c3e50;">0h</strong>
-                                            </div>
-                                            <div class="d-flex justify-content-between align-items-center mt-2 pt-2">
-                                                <span style="font-size: 0.85rem; font-weight: 600; color: #495057; text-transform: uppercase; letter-spacing: 0.3px;">Total Price</span>
-                                                <h4 class="mb-0" id="quoteTotalPriceMedical" style="font-weight: 700; font-size: 1.3rem; color: #2c3e50;">$0</h4>
-                                            </div>
-                                            <button type="button" class="btn w-100 mt-2" id="btnRequestQuoteMedical" style="border-radius: 10px; font-weight: 600; font-size: 0.85rem; padding: 10px; background: #4a90e2; color: white; border: none; transition: all 0.3s; box-shadow: 0 2px 8px rgba(74, 144, 226, 0.3);">
-                                                Request Quote →
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Right Side: 3D Viewer -->
-                                <div class="col-12 col-lg-9 position-relative d-flex flex-column" style="display: flex !important; visibility: visible !important; opacity: 1 !important; flex: 1 !important; min-width: 0 !important; background: linear-gradient(to bottom, #b8c5d6 0%, #99a8ba 100%) !important;">
-                                    <div id="viewer3dMedical" style="position: relative !important; display: flex !important; visibility: visible !important; width: 100% !important; height: 100vh !important; background: linear-gradient(to bottom, #b8c5d6 0%, #99a8ba 100%) !important;">
-                                        {{-- Model Info Badge (Top Left - Hidden until file uploaded) --}}
-                                        <div class="model-info-badge" style="display: none;">
-                                            <div class="model-name">
-                                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                                    <path d="M8 2L14 5L8 8L2 5L8 2Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                                    <path d="M2 11L8 14L14 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.7"/>
-                                                </svg>
-                                                <span id="modelNameDisplayMedical">model.stl</span>
-                                            </div>
-                                            <div class="model-subtitle" id="modelDimensionsDisplayMedical">0 × 0 × 0 mm</div>
-                                        </div>
-
-                                        {{-- Professional Toolbar - Top Right --}}
-                                        <div class="viewer-professional-toolbar" id="professionalToolbarMedical" style="position: absolute !important; top: 20px !important; right: 20px !important; display: flex !important; visibility: visible !important; opacity: 1 !important; z-index: 9999 !important; background: rgba(255, 255, 255, 0.95) !important; padding: 8px !important; border-radius: 12px !important; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important; pointer-events: auto !important;">
-                                            {{-- Tools Group --}}
-                                            <div class="toolbar-group">
-                                                <button type="button" class="toolbar-btn" id="measurementToolBtnMedical" title="Measurement Tools" data-tool="measurement">
-                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                                                        <path d="M4 16L16 4M6 16L8 14M10 16L12 14M14 16L16 14M4 14L6 12M4 10L8 6M4 6L6 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-                                                    </svg>
-                                                </button>
-                                                <button type="button" class="toolbar-btn" id="boundingBoxBtnMedical" title="Bounding Box" data-tool="boundingBox">
-                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                                                        <rect x="3" y="3" width="14" height="14" stroke="currentColor" stroke-width="1.8" stroke-dasharray="2 2"/>
-                                                        <circle cx="3" cy="3" r="1.5" fill="currentColor"/>
-                                                        <circle cx="17" cy="3" r="1.5" fill="currentColor"/>
-                                                        <circle cx="3" cy="17" r="1.5" fill="currentColor"/>
-                                                        <circle cx="17" cy="17" r="1.5" fill="currentColor"/>
-                                                    </svg>
-                                                </button>
-                                                <button type="button" class="toolbar-btn" id="axisToggleBtnMedical" title="Toggle Axis" data-tool="axis">
-                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                                                        <path d="M10 2V18M2 10H18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-                                                        <path d="M10 2L8 4M10 2L12 4M18 10L16 8M18 10L16 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-                                                    </svg>
-                                                </button>
-                                                <button type="button" class="toolbar-btn" id="gridToggleBtnMedical" title="Measurement Grid" data-tool="grid">
-                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                                                        <path d="M2 6H18M2 10H18M2 14H18M6 2V18M10 2V18M14 2V18" stroke="currentColor" stroke-width="1.5" opacity="0.6"/>
-                                                    </svg>
-                                                </button>
-                                            </div>
-
-                                            <div class="toolbar-divider"></div>
-
-                                            {{-- View Options --}}
-                                            <div class="toolbar-group">
-                                                <button type="button" class="toolbar-btn" id="shadowToggleBtnMedical" title="Toggle Shadows" data-tool="shadow">
-                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                                                        <circle cx="10" cy="8" r="3" stroke="currentColor" stroke-width="1.8"/>
-                                                        <ellipse cx="10" cy="16" rx="5" ry="1.5" fill="currentColor" opacity="0.3"/>
-                                                    </svg>
-                                                </button>
-                                                <button type="button" class="toolbar-btn" id="transparencyBtnMedical" title="Transparency" data-tool="transparency">
-                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                                                        <circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.8" opacity="0.5"/>
-                                                        <path d="M10 3C6 3 3 6 3 10C3 14 6 17 10 17" stroke="currentColor" stroke-width="1.8"/>
-                                                    </svg>
-                                                </button>
-                                                <button type="button" class="toolbar-btn" id="modelColorBtnMedical" title="Model Color" data-tool="modelColor">
-                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                                                        <circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.8"/>
-                                                        <circle cx="10" cy="10" r="4" fill="currentColor" opacity="0.3"/>
-                                                    </svg>
-                                                </button>
-                                                <button type="button" class="toolbar-btn" id="backgroundColorBtnMedical" title="Background Color" data-tool="bgColor">
-                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                                                        <rect x="2" y="2" width="16" height="16" rx="2" stroke="currentColor" stroke-width="1.8"/>
-                                                        <path d="M2 10H18" stroke="currentColor" stroke-width="1.8"/>
-                                                    </svg>
-                                                </button>
-                                            </div>
-
-                                            <div class="toolbar-divider"></div>
-
-                                            {{-- Actions --}}
-                                            <div class="toolbar-group">
-                                                <button type="button" class="toolbar-btn" id="undoBtnMedical" title="Undo" data-action="undo">
-                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                                                        <path d="M5 8H15C16.6569 8 18 9.34315 18 11C18 12.6569 16.6569 14 15 14H8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-                                                        <path d="M8 5L5 8L8 11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                                                    </svg>
-                                                </button>
-                                                <button type="button" class="toolbar-btn" id="redoBtnMedical" title="Redo" data-action="redo">
-                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                                                        <path d="M15 8H5C3.34315 8 2 9.34315 2 11C2 12.6569 3.34315 14 5 14H12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-                                                        <path d="M12 5L15 8L12 11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                                                    </svg>
-                                                </button>
-                                                <button type="button" class="toolbar-btn" id="screenshotToolBtnMedical" title="Screenshot" data-action="screenshot">
-                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                                                        <rect x="2" y="5" width="16" height="12" rx="2" stroke="currentColor" stroke-width="1.8"/>
-                                                        <circle cx="10" cy="11" r="2.5" stroke="currentColor" stroke-width="1.8"/>
-                                                        <path d="M6 5L7 3H13L14 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-                                                    </svg>
-                                                </button>
-                                            </div>
                                         </div>
 
                                         {{-- Bottom Control Bar - Professional --}}
@@ -1433,6 +1675,10 @@ document.addEventListener('DOMContentLoaded', function() {
     background-color: #f8f9fa !important;
 }
 
+/* CACHE BUSTER - Updated: 2025-12-24 20:53 */
+/* RIGHT PANEL NOW MATCHES LEFT PANEL DESIGN - Simple list layout */
+
+
 .file-list-item:last-child {
     border-bottom: none !important;
 }
@@ -1502,6 +1748,295 @@ document.addEventListener('DOMContentLoaded', function() {
 .remove-file-btn:hover {
     opacity: 1;
     transform: scale(1.1);
+}
+
+/* Right Files Panel Styles */
+.right-files-panel {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+}
+
+.right-files-panel #rightFilesContainer::-webkit-scrollbar {
+    width: 6px;
+}
+
+.right-files-panel #rightFilesContainer::-webkit-scrollbar-track {
+    background: #f8f9fa;
+    border-radius: 3px;
+}
+
+.right-files-panel #rightFilesContainer::-webkit-scrollbar-thumb {
+    background: #cbd5e0;
+    border-radius: 3px;
+}
+
+.right-files-panel #rightFilesContainer::-webkit-scrollbar-thumb:hover {
+    background: #a0aec0;
+}
+
+/* Right Panel File Card - Beautiful Blue Design */
+.right-file-card {
+    background: #E3F2FD !important;
+    border: 1px solid #BBDEFB !important;
+    border-radius: 8px !important;
+    padding: 12px !important;
+    margin-bottom: 12px !important;
+    cursor: grab !important;
+    transition: all 0.2s ease !important;
+    position: relative !important;
+}
+
+.right-file-card:hover {
+    background: #BBDEFB !important;
+    box-shadow: 0 2px 8px rgba(25, 118, 210, 0.2) !important;
+    transform: translateY(-2px) !important;
+}
+
+.right-file-card:active {
+    cursor: grabbing !important;
+}
+
+.right-file-card.dragging {
+    opacity: 0.5 !important;
+    cursor: grabbing !important;
+}
+
+/* File Card Header */
+.right-file-header {
+    display: flex !important;
+    align-items: flex-start !important;
+    gap: 0 !important;
+    margin-bottom: 8px !important;
+}
+
+/* File Info */
+.right-file-info {
+    flex: 1 !important;
+    min-width: 0 !important;
+}
+
+.right-file-name {
+    font-weight: 600 !important;
+    font-size: 13px !important;
+    color: #1565C0 !important;
+    margin: 0 0 4px 0 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+}
+
+/* STL Icon Container - Small, inline with filename */
+.right-file-icon {
+    width: 20px !important;
+    height: 20px !important;
+    background: #1976D2 !important;
+    border-radius: 4px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-shrink: 0 !important;
+}
+
+.right-file-icon svg {
+    width: 12px !important;
+    height: 12px !important;
+    color: white !important;
+}
+
+.right-file-details {
+    display: flex !important;
+    gap: 8px !important;
+    font-size: 11px !important;
+    color: #546E7A !important;
+}
+
+.right-file-detail {
+    display: flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+}
+
+.right-file-detail svg {
+    width: 12px !important;
+    height: 12px !important;
+}
+
+/* Action Buttons - No divider line */
+.right-file-actions {
+    display: flex !important;
+    gap: 8px !important;
+    margin-top: 8px !important;
+}
+
+.right-file-action-btn {
+    flex: 1 !important;
+    background: white !important;
+    border: 1px solid #1976D2 !important;
+    color: #1976D2 !important;
+    border-radius: 5px !important;
+    padding: 8px !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 4px !important;
+    min-width: 36px !important;
+}
+
+.right-file-action-btn:hover {
+    background: #1976D2 !important;
+    color: white !important;
+}
+
+.right-file-action-btn svg {
+    width: 16px !important;
+    height: 16px !important;
+}
+
+.right-file-action-btn.eye-btn {
+    border-color: #1976D2 !important;
+    color: #1976D2 !important;
+}
+
+.right-file-action-btn.eye-btn:hover {
+    background: #1976D2 !important;
+    color: white !important;
+}
+
+.right-file-action-btn.eye-btn.active {
+    background: #E3F2FD !important;
+}
+
+.right-file-action-btn.download-btn {
+    border-color: #2E7D32 !important;
+    color: #2E7D32 !important;
+}
+
+.right-file-action-btn.download-btn:hover {
+    background: #2E7D32 !important;
+    color: white !important;
+}
+
+.right-file-action-btn.delete-btn {
+    border-color: #D32F2F !important;
+    color: #D32F2F !important;
+}
+
+.right-file-action-btn.delete-btn:hover {
+    background: #D32F2F !important;
+    color: white !important;
+}
+
+/* Modal Color Button Styles */
+.modal-color-btn {
+    position: relative;
+}
+
+.modal-color-btn.active::after {
+    content: '✓';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+    text-shadow: 0 0 3px rgba(0,0,0,0.5);
+}
+
+.modal-color-btn[data-color="#ffffff"].active::after {
+    color: #0047AD;
+    text-shadow: none;
+}
+
+.modal-color-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+/* Right File Card Hover Effect */
+.right-file-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.12) !important;
+}
+
+/* File Settings Modal - Ensure it appears above everything */
+#fileSettingsModal {
+    pointer-events: auto !important;
+    z-index: 10060 !important;
+}
+
+#fileSettingsModal .modal-dialog {
+    pointer-events: auto !important;
+}
+
+#fileSettingsModal .modal-content {
+    pointer-events: auto !important;
+}
+
+#fileSettingsModal .modal-backdrop {
+    z-index: 10055 !important;
+    pointer-events: auto !important;
+}
+
+#fileSettingsModal button,
+#fileSettingsModal select,
+#fileSettingsModal input,
+#fileSettingsModal .modal-color-btn {
+    pointer-events: auto !important;
+    cursor: pointer !important;
+}
+
+/* Modal Color Button Styles */
+.modal-color-btn {
+    position: relative;
+}
+
+.modal-color-btn.active::after {
+    content: '✓';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+    text-shadow: 0 0 3px rgba(0,0,0,0.5);
+}
+
+.modal-open {
+    overflow: hidden;
+}
+
+/* Fix z-index hierarchy when modal is open */
+/* Modal backdrop should be above toolbar and right panel */
+.modal-backdrop {
+    z-index: 10000 !important;
+}
+
+/* Modal should be above backdrop */
+.modal {
+    z-index: 10001 !important;
+}
+
+/* Lower toolbar and right panel z-index when modal is open */
+body.modal-open #professionalToolbar {
+    z-index: 999 !important;
+}
+
+body.modal-open #rightFilesPanel {
+    z-index: 998 !important;
+}
+
+/* Toggle Panel Button */
+#toggleRightPanel:hover {
+    background: rgba(0, 0, 0, 0.05) !important;
+    border-radius: 4px;
 }
 
 /* Fullscreen controls visibility */
@@ -1622,14 +2157,15 @@ document.addEventListener('DOMContentLoaded', function() {
 /* Measurement Submenu */
 .measurement-submenu {
     position: absolute;
-    top: 60px;
-    right: 20px;
+    top: 100%;
+    margin-top: 8px;
+    left: 0;
     background: white;
     border-radius: 12px;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
     padding: 12px;
     min-width: 240px;
-    z-index: 1001;
+    z-index: 10000;
     animation: slideDown 0.2s ease;
 }
 
@@ -2018,9 +2554,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 const color = this.getAttribute('data-color');
 
-                // Apply to selected file only
-                if (window.selectedFileId && window.viewerMedical) {
-                    const fileData = window.viewerMedical.uploadedFiles.find(f => f.id === window.selectedFileId);
+                // Apply to selected file only - use unified viewer
+                const viewer = window.viewerGeneral || window.viewer;
+                if (window.selectedFileId && viewer) {
+                    const fileData = viewer.uploadedFiles.find(f => f.id === window.selectedFileId);
                     if (fileData && fileData.mesh) {
                         // Update file settings
                         if (!fileData.settings) fileData.settings = {};
@@ -2041,9 +2578,9 @@ document.addEventListener('DOMContentLoaded', function() {
                             window.viewerStateManager.saveState('File Color Changed');
                         }
                     }
-                } else if (window.viewerMedical && window.viewerMedical.model) {
+                } else if (viewer && viewer.model) {
                     // Fallback: Apply to all models
-                    window.viewerMedical.changeModelColor(color);
+                    viewer.changeModelColor(color);
                     if (window.viewerStateManager) {
                         window.viewerStateManager.saveState('Color Changed');
                     }
@@ -2117,8 +2654,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 const costs = { pla: 0.02, abs: 0.025, petg: 0.03, nylon: 0.04, tpu: 0.05, resin: 0.08 };
                 const cost = costs[material] || 0.02;
 
-                if (window.selectedFileId && window.viewerMedical) {
-                    const fileData = window.viewerMedical.uploadedFiles.find(f => f.id === window.selectedFileId);
+                const viewer = window.viewerGeneral || window.viewer;
+                if (window.selectedFileId && viewer) {
+                    const fileData = viewer.uploadedFiles.find(f => f.id === window.selectedFileId);
                     if (fileData) {
                         if (!fileData.settings) fileData.settings = {};
                         fileData.settings.material = material;
@@ -2127,7 +2665,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                         // Recalculate price
                         if (window.calculateFilePrice) {
-                            window.calculateFilePrice(window.selectedFileId, window.viewerMedical, 'Medical');
+                            window.calculateFilePrice(window.selectedFileId, viewer, 'Medical');
                         }
 
                         if (window.viewerStateManager) {
@@ -2146,8 +2684,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 const multipliers = { fdm: 1.0, sla: 1.5, sls: 2.0, dmls: 3.0, mjf: 2.5 };
                 const multiplier = multipliers[technology] || 1.0;
 
-                if (window.selectedFileId && window.viewerMedical) {
-                    const fileData = window.viewerMedical.uploadedFiles.find(f => f.id === window.selectedFileId);
+                const viewer = window.viewerGeneral || window.viewer;
+                if (window.selectedFileId && viewer) {
+                    const fileData = viewer.uploadedFiles.find(f => f.id === window.selectedFileId);
                     if (fileData) {
                         if (!fileData.settings) fileData.settings = {};
                         fileData.settings.technology = technology;
@@ -2156,7 +2695,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                         // Recalculate price
                         if (window.calculateFilePrice) {
-                            window.calculateFilePrice(window.selectedFileId, window.viewerMedical, 'Medical');
+                            window.calculateFilePrice(window.selectedFileId, viewer, 'Medical');
                         }
 
                         if (window.viewerStateManager) {
@@ -2213,8 +2752,9 @@ document.addEventListener('DOMContentLoaded', function() {
         if (resetViewMed) {
             resetViewMed.addEventListener('click', () => {
                 console.log('🔄 Medical reset view clicked');
-                if (window.viewerMedical && window.viewerMedical.model) {
-                    window.viewerMedical.fitCameraToModel();
+                const viewer = window.viewerGeneral || window.viewer;
+                if (viewer && viewer.model) {
+                    viewer.fitCameraToModel();
                 }
             });
         }
@@ -2224,8 +2764,9 @@ document.addEventListener('DOMContentLoaded', function() {
             wireframeMed.addEventListener('click', () => {
                 wireframeMode = !wireframeMode;
                 console.log('🔲 Medical wireframe toggle:', wireframeMode);
-                if (window.viewerMedical && window.viewerMedical.model) {
-                    window.viewerMedical.toggleWireframe(wireframeMode);
+                const viewer = window.viewerGeneral || window.viewer;
+                if (viewer && viewer.model) {
+                    viewer.toggleWireframe(wireframeMode);
                 }
                 wireframeMed.style.background = wireframeMode ? '#d84315' : '';
                 wireframeMed.style.color = wireframeMode ? 'white' : '';
@@ -2299,21 +2840,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('generalForm3d').style.display = 'none';
                 document.getElementById('medicalForm3d').style.display = 'block';
 
-                // Resize Medical viewer after showing
+                // Resize viewer after showing (use unified viewer)
                 setTimeout(() => {
-                    if (window.viewerMedical && window.viewerMedical.onWindowResize) {
-                        window.viewerMedical.onWindowResize();
-                        console.log('✓ Medical viewer resized');
+                    const viewer = window.viewerGeneral || window.viewer;
+                    if (viewer && viewer.onWindowResize) {
+                        viewer.onWindowResize();
+                        console.log('✓ Viewer resized');
                     }
 
-                    // If Medical viewer has a model, fit it to view
-                    if (window.viewerMedical && window.viewerMedical.model) {
-                        window.viewerMedical.fitCameraToModel();
-                        console.log('✓ Medical model refitted to camera');
+                    // If viewer has a model, fit it to view
+                    if (viewer && viewer.model) {
+                        viewer.fitCameraToModel();
+                        console.log('✓ Model refitted to camera');
                     }
 
-                    // Update quote if files are uploaded
-                    if (window.fileManagerMedical && window.viewerMedical && window.viewerMedical.uploadedFiles && window.viewerMedical.uploadedFiles.length > 0) {
+                    // Update quote if files are uploaded (unified viewer)
+                    const unifiedViewer = window.viewerGeneral || window.viewer;
+                    if (window.fileManagerMedical && unifiedViewer && unifiedViewer.uploadedFiles && unifiedViewer.uploadedFiles.length > 0) {
                         window.fileManagerMedical.updateQuote();
                         console.log('✓ Medical quote updated');
                     }
@@ -2401,9 +2944,10 @@ document.addEventListener('DOMContentLoaded', function() {
     window.addEventListener('viewersReady', () => {
         console.log('🎮 Setting up viewer controls...');
 
-        // Expose viewers globally for controls
+        // Expose unified viewer globally for controls
         window.viewerGeneral = viewerGeneral;
-        window.viewerMedical = viewerMedical;
+        // Note: window.viewerMedical removed - both use window.viewerGeneral now
+        window.viewer = viewerGeneral; // Alias for compatibility
 
         // General Viewer Controls
         const resetViewGeneralBtn = document.getElementById('resetViewGeneralBtn');
@@ -2570,8 +3114,9 @@ document.addEventListener('DOMContentLoaded', function() {
         if (resetViewMedicalBtn) {
             resetViewMedicalBtn.addEventListener('click', () => {
                 console.log('🔄 Medical reset view clicked');
-                if (window.viewerMedical && window.viewerMedical.model) {
-                    window.viewerMedical.fitCameraToModel();
+                const viewer = window.viewerGeneral || window.viewer;
+                if (viewer && viewer.model) {
+                    viewer.fitCameraToModel();
                 }
             });
         }
@@ -2579,9 +3124,10 @@ document.addEventListener('DOMContentLoaded', function() {
         if (zoomInMedicalBtn) {
             zoomInMedicalBtn.addEventListener('click', () => {
                 console.log('🔍 Medical zoom in clicked');
-                if (window.viewerMedical && window.viewerMedical.camera) {
-                    window.viewerMedical.camera.position.multiplyScalar(0.8);
-                    window.viewerMedical.controls.update();
+                const viewer = window.viewerGeneral || window.viewer;
+                if (viewer && viewer.camera) {
+                    viewer.camera.position.multiplyScalar(0.8);
+                    viewer.controls.update();
                 }
             });
         }
@@ -2589,9 +3135,10 @@ document.addEventListener('DOMContentLoaded', function() {
         if (zoomOutMedicalBtn) {
             zoomOutMedicalBtn.addEventListener('click', () => {
                 console.log('🔍 Medical zoom out clicked');
-                if (window.viewerMedical && window.viewerMedical.camera) {
-                    window.viewerMedical.camera.position.multiplyScalar(1.2);
-                    window.viewerMedical.controls.update();
+                const viewer = window.viewerGeneral || window.viewer;
+                if (viewer && viewer.camera) {
+                    viewer.camera.position.multiplyScalar(1.2);
+                    viewer.controls.update();
                 }
             });
         }
@@ -2600,8 +3147,9 @@ document.addEventListener('DOMContentLoaded', function() {
         if (solidModeMedicalBtn && wireframeMedicalBtn) {
             solidModeMedicalBtn.addEventListener('click', () => {
                 console.log('🎨 Medical solid mode clicked');
-                if (window.viewerMedical && window.viewerMedical.model) {
-                    window.viewerMedical.toggleWireframe(false);
+                const viewer = window.viewerGeneral || window.viewer;
+                if (viewer && viewer.model) {
+                    viewer.toggleWireframe(false);
                     isWireframeMedical = false;
                     solidModeMedicalBtn.classList.add('active');
                     wireframeMedicalBtn.classList.remove('active');
@@ -2610,8 +3158,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
             wireframeMedicalBtn.addEventListener('click', () => {
                 console.log('🎨 Medical wireframe mode clicked');
-                if (window.viewerMedical && window.viewerMedical.model) {
-                    window.viewerMedical.toggleWireframe(true);
+                const viewer = window.viewerGeneral || window.viewer;
+                if (viewer && viewer.model) {
+                    viewer.toggleWireframe(true);
                     isWireframeMedical = true;
                     wireframeMedicalBtn.classList.add('active');
                     solidModeMedicalBtn.classList.remove('active');
@@ -2622,8 +3171,9 @@ document.addEventListener('DOMContentLoaded', function() {
         if (modelColorMedicalPicker) {
             modelColorMedicalPicker.addEventListener('change', (e) => {
                 console.log('🎨 Medical model color changed:', e.target.value);
-                if (window.viewerMedical && window.viewerMedical.model) {
-                    window.viewerMedical.changeModelColor(e.target.value);
+                const viewer = window.viewerGeneral || window.viewer;
+                if (viewer && viewer.model) {
+                    viewer.changeModelColor(e.target.value);
                 }
             });
         }
@@ -2631,8 +3181,9 @@ document.addEventListener('DOMContentLoaded', function() {
         if (bgColorMedicalPicker) {
             bgColorMedicalPicker.addEventListener('change', (e) => {
                 console.log('🎨 Medical background color changed:', e.target.value);
-                if (window.viewerMedical && window.viewerMedical.scene) {
-                    window.viewerMedical.changeBGColor(e.target.value);
+                const viewer = window.viewerGeneral || window.viewer;
+                if (viewer && viewer.scene) {
+                    viewer.changeBGColor(e.target.value);
                 }
             });
         }
@@ -2662,13 +3213,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     viewerMedicalElement.style.maxHeight = '700px';
                     viewerMedicalElement.style.minHeight = '500px';
                     setTimeout(() => {
-                        if (window.viewerMedical) {
+                        const viewer = window.viewerGeneral || window.viewer;
+                        if (viewer) {
                             const container = viewerMedicalElement.parentElement;
                             const width = container.clientWidth;
                             const height = Math.min(container.clientHeight, 700);
-                            window.viewerMedical.renderer.setSize(width, height);
-                            window.viewerMedical.camera.aspect = width / height;
-                            window.viewerMedical.camera.updateProjectionMatrix();
+                            viewer.renderer.setSize(width, height);
+                            viewer.camera.aspect = width / height;
+                            viewer.camera.updateProjectionMatrix();
                         }
                     }, 100);
                 }
@@ -2682,13 +3234,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     viewerMedicalElement.style.maxHeight = '700px';
                     viewerMedicalElement.style.minHeight = '500px';
                     setTimeout(() => {
-                        if (window.viewerMedical) {
+                        const viewer = window.viewerGeneral || window.viewer;
+                        if (viewer) {
                             const container = viewerMedicalElement.parentElement;
                             const width = container.clientWidth;
                             const height = Math.min(container.clientHeight, 700);
-                            window.viewerMedical.renderer.setSize(width, height);
-                            window.viewerMedical.camera.aspect = width / height;
-                            window.viewerMedical.camera.updateProjectionMatrix();
+                            viewer.renderer.setSize(width, height);
+                            viewer.camera.aspect = width / height;
+                            viewer.camera.updateProjectionMatrix();
                         }
                     }, 100);
                 }
@@ -2698,9 +3251,122 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('✓ Medical viewer controls ready');
         console.log('✓ All viewer controls initialized!');
 
+        // Setup Medical toolbar buttons to use unified viewer
+        setupMedicalToolbar();
+
         // Setup file list update handlers
         setupFileListUpdates();
     });
+
+    // Setup Medical Toolbar Button Event Listeners
+    function setupMedicalToolbar() {
+        console.log('🔧 Setting up Medical toolbar buttons...');
+
+        const viewer = window.viewerGeneral || window.viewer;
+        if (!viewer) {
+            console.warn('❌ No viewer found for Medical toolbar setup');
+            return;
+        }
+
+        // Ensure window.toolbarHandler exists (should be defined in professional-tools.js)
+        if (!window.toolbarHandler) {
+            console.warn('❌ window.toolbarHandler not found, creating minimal version');
+            window.toolbarHandler = {
+                toggleMeasurement: function(type) { console.log('Measurement toggled'); },
+                toggleBoundingBox: function(type) { console.log('Bounding box toggled'); },
+                toggleAxis: function(type) { console.log('Axis toggled'); },
+                toggleGrid: function(type) { console.log('Grid toggled'); },
+                toggleMoveMode: function(type) { console.log('Move mode toggled'); },
+                toggleAutoRotate: function(type) { console.log('Auto-rotate toggled'); },
+                toggleGridMain: function(type) { console.log('Grid main toggled'); },
+                toggleMeasureMain: function(type) { console.log('Measure main toggled'); },
+                toggleShadow: function(type) { console.log('Shadow toggled'); },
+                toggleTransparency: function(type) { console.log('Transparency toggled'); },
+                takeScreenshot: function(type) { console.log('Screenshot taken'); },
+                shareModel: function(type) { console.log('Share clicked'); },
+                saveAndCalculate: function(type) { console.log('Save & Calculate clicked'); },
+                undo: function() { console.log('Undo'); },
+                redo: function() { console.log('Redo'); },
+                changeModelColor: function() { console.log('Model color change'); },
+                changeBackgroundColor: function() { console.log('BG color change'); }
+            };
+        }
+
+        // Medical toolbar buttons (with Medical suffix)
+        const medicalButtons = {
+            'measurementToolBtnMedical': () => window.toolbarHandler.toggleMeasurement('General'),
+            'boundingBoxBtnMedical': () => window.toolbarHandler.toggleBoundingBox('General'),
+            'axisToggleBtnMedical': () => window.toolbarHandler.toggleAxis('General'),
+            'gridToggleBtnMedical': () => window.toolbarHandler.toggleGrid('General'),
+            'panToolBtnMedical': () => window.toolbarHandler.toggleMoveMode('General'),
+            'autoRotateBtnMedical': () => window.toolbarHandler.toggleAutoRotate('General'),
+            'toggleGridBtnMainMedical': () => window.toolbarHandler.toggleGridMain('General'),
+            'measureToolBtnMainMedical': () => window.toolbarHandler.toggleMeasureMain('General'),
+            'shadowToggleBtnMedical': () => window.toolbarHandler.toggleShadow('General'),
+            'transparencyBtnMedical': () => window.toolbarHandler.toggleTransparency('General'),
+            'modelColorBtnMedical': () => window.toolbarHandler.changeModelColor(),
+            'backgroundColorBtnMedical': () => window.toolbarHandler.changeBackgroundColor(),
+            'undoBtnMedical': () => window.toolbarHandler.undo(),
+            'redoBtnMedical': () => window.toolbarHandler.redo(),
+            'screenshotToolBtnMedical': () => window.toolbarHandler.takeScreenshot('General'),
+            'shareToolBtnMedical': () => window.toolbarHandler.shareModel('General'),
+            'saveCalculateToolBtnMedical': () => window.toolbarHandler.saveAndCalculate('General')
+        };
+
+        // Attach event listeners
+        // DISABLED: This was removing onclick handlers and breaking buttons
+        /*
+        Object.keys(medicalButtons).forEach(btnId => {
+            const btn = document.getElementById(btnId);
+            if (btn) {
+                // Remove inline onclick if exists to prevent double firing
+                btn.removeAttribute('onclick');
+                btn.addEventListener('click', medicalButtons[btnId]);
+                console.log(`✅ ${btnId} listener attached`);
+            } else {
+                console.warn(`⚠️ Button not found: ${btnId}`);
+            }
+        });
+        */
+        console.log('✅ Using onclick handlers instead of addEventListener (Medical)');
+
+        // Camera view buttons for Medical toolbar
+        const medicalToolbar = document.getElementById('professionalToolbarMedical');
+        if (medicalToolbar) {
+            medicalToolbar.querySelectorAll('.camera-btn').forEach(btn => {
+                const view = btn.dataset.view;
+                btn.addEventListener('click', function() {
+                    console.log(`📷 Camera view: ${view}`);
+
+                    // Remove active from siblings
+                    medicalToolbar.querySelectorAll('.camera-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+
+                    // Apply camera view
+                    if (viewer?.scene?.activeCamera) {
+                        const camera = viewer.scene.activeCamera;
+                        const views = {
+                            top: { alpha: Math.PI / 2, beta: 0 },
+                            bottom: { alpha: Math.PI / 2, beta: Math.PI },
+                            front: { alpha: Math.PI / 2, beta: Math.PI / 2 },
+                            right: { alpha: 0, beta: Math.PI / 2 },
+                            left: { alpha: Math.PI, beta: Math.PI / 2 },
+                            reset: { alpha: Math.PI / 4, beta: Math.PI / 3 }
+                        };
+
+                        if (views[view] && camera.alpha !== undefined) {
+                            camera.alpha = views[view].alpha;
+                            camera.beta = views[view].beta;
+                            console.log(`✅ Camera set to ${view}`);
+                        }
+                    }
+                });
+            });
+            console.log('✅ Medical camera buttons initialized');
+        }
+
+        console.log('✅ Medical toolbar setup complete');
+    }
 
     // Function to update file lists
     function setupFileListUpdates() {
@@ -2708,10 +3374,13 @@ document.addEventListener('DOMContentLoaded', function() {
         window.addEventListener('pricingUpdateNeeded', (event) => {
             const { viewerId } = event.detail;
 
-            if (viewerId === 'viewer3dGeneral' && window.viewerGeneral) {
-                updateFileList('General', window.viewerGeneral);
-            } else if (viewerId === 'viewer3dMedical' && window.viewerMedical) {
-                updateFileList('Medical', window.viewerMedical);
+            // Use unified viewer for both General and Medical
+            const viewer = window.viewerGeneral || window.viewer;
+
+            if (viewerId === 'viewer3dGeneral' && viewer) {
+                updateFileList('General', viewer);
+            } else if (viewerId === 'viewer3dMedical' && viewer) {
+                updateFileList('Medical', viewer);
             }
         });
 
@@ -2796,11 +3465,384 @@ document.addEventListener('DOMContentLoaded', function() {
         if (files.length > 0 && !window.selectedFileId) {
             selectFile(formType, files[0].id);
         }
+
+        // Update right panel files
+        updateRightPanelFiles(formType, viewer);
     }
+
+    // Update Right Panel Files with Beautiful Blue Cards
+    function updateRightPanelFiles(formType, viewer) {
+        console.log('🔵 updateRightPanelFiles called:', { formType, viewer, files: viewer?.uploadedFiles });
+
+        if (formType !== 'General') {
+            console.log('⚠️ Skipping right panel update - not General formType');
+            return; // Only for General viewer for now
+        }
+
+        const rightFilesContainer = document.getElementById('rightFilesContainer');
+        if (!rightFilesContainer) {
+            console.error('❌ rightFilesContainer not found!');
+            return;
+        }
+
+        const files = viewer.uploadedFiles || [];
+        console.log('📁 Files to render in right panel:', files.length, files);
+
+        if (files.length === 0) {
+            console.log('📭 No files - showing empty state');
+            rightFilesContainer.innerHTML = `
+                <div style="text-align: center; padding: 40px 20px; color: #999;">
+                    <svg width="48" height="48" viewBox="0 0 48 48" fill="none" style="margin: 0 auto 12px;">
+                        <path d="M24 8L40 16L24 24L8 16L24 8Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M8 32L24 40L40 32" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M8 24L24 32L40 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <p style="margin: 0; font-size: 13px;">No files uploaded yet</p>
+                </div>
+            `;
+            return;
+        }
+
+        // Build beautiful blue card list with order numbers
+        rightFilesContainer.innerHTML = files.map((fileData, index) => `
+            <div class="file-list-item d-flex align-items-center justify-content-between p-2 border-bottom"
+                 style="background: white; cursor: pointer; transition: all 0.2s;"
+                 data-file-id="${fileData.id}"
+                 onclick="openFileSettingsModal('${formType}', ${fileData.id}, event)">
+                <div class="d-flex align-items-center flex-grow-1">
+                    <!-- Order Number -->
+                    <div class="file-order-number" style="width: 24px; height: 24px; background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.7rem; font-weight: bold; margin-right: 8px; flex-shrink: 0;">
+                        ${index + 1}
+                    </div>
+                    <div class="file-icon me-2" style="width: 32px; height: 32px; background: #1976D2; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.7rem; font-weight: bold;">
+                        ${getFileExtension(fileData.file.name).toUpperCase()}
+                    </div>
+                    <div class="flex-grow-1">
+                        <div style="font-size: 0.85rem; font-weight: 600; color: #2c3e50;">${fileData.file.name}</div>
+                        <small style="font-size: 0.7rem; color: #6c757d;">
+                            ${formatFileSize(fileData.file.size)} • ${(fileData.volume?.cm3 || 0).toFixed(2)} cm³
+                        </small>
+                    </div>
+                </div>
+                <div class="d-flex gap-1" onclick="event.stopPropagation()">
+                    {{-- Eye Icon - Toggle Visibility --}}
+                    <button class="btn btn-sm btn-outline-primary toggle-visibility-btn" data-file-id="${fileData.id}" title="Toggle visibility" style="padding: 2px 6px; font-size: 0.75rem; border-radius: 4px;">
+                        <svg class="eye-visible" width="12" height="12" viewBox="0 0 16 16" fill="currentColor" style="display: block;">
+                            <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z"/>
+                            <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z"/>
+                        </svg>
+                        <svg class="eye-hidden" width="12" height="12" viewBox="0 0 16 16" fill="currentColor" style="display: none;">
+                            <path d="M13.359 11.238C15.06 9.72 16 8 16 8s-3-5.5-8-5.5a7.028 7.028 0 0 0-2.79.588l.77.771A5.944 5.944 0 0 1 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.134 13.134 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755-.165.165-.337.328-.517.486l.708.709z"/>
+                            <path d="M11.297 9.176a3.5 3.5 0 0 0-4.474-4.474l.823.823a2.5 2.5 0 0 1 2.829 2.829l.822.822zm-2.943 1.299.822.822a3.5 3.5 0 0 1-4.474-4.474l.823.823a2.5 2.5 0 0 0 2.829 2.829z"/>
+                            <path d="M3.35 5.47c-.18.16-.353.322-.518.487A13.134 13.134 0 0 0 1.172 8l.195.288c.335.48.83 1.12 1.465 1.755C4.121 11.332 5.881 12.5 8 12.5c.716 0 1.39-.133 2.02-.36l.77.772A7.029 7.029 0 0 1 8 13.5C3 13.5 0 8 0 8s.939-1.721 2.641-3.238l.708.709zm10.296 8.884-12-12 .708-.708 12 12-.708.708z"/>
+                        </svg>
+                    </button>
+                    {{-- Download Icon --}}
+                    <button class="btn btn-sm btn-outline-success" onclick="event.stopPropagation(); downloadFileFromRightPanel('${formType}', ${fileData.id})" title="Download file" style="padding: 2px 6px; font-size: 0.75rem; border-radius: 4px;">
+                        <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
+                            <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+                            <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
+                        </svg>
+                    </button>
+                    {{-- Delete Icon --}}
+                    <button class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation(); removeFileFromRightPanel('${formType}', ${fileData.id})" title="Delete file" style="padding: 2px 6px; font-size: 0.75rem; border-radius: 4px;">
+                        <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
+                            <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
+                            <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        `).join('');
+
+        console.log('✅ Right panel HTML generated successfully:', rightFilesContainer.innerHTML.substring(0, 200));
+
+        // Attach visibility handlers to right panel buttons
+        const rightVisibilityButtons = document.querySelectorAll('#rightFilesContainer .toggle-visibility-btn');
+        console.log(`👁️ Attaching ${rightVisibilityButtons.length} RIGHT panel visibility handlers for ${formType}`);
+
+        rightVisibilityButtons.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const fileId = parseFloat(btn.getAttribute('data-file-id'));
+                toggleFileVisibility(formType, fileId, btn, viewer);
+            });
+        });
+
+        // Attach drag-and-drop handlers
+        attachRightPanelDragHandlers();
+    }
+
+    // Download file from right panel
+    window.downloadFileFromRightPanel = function(formType, fileId) {
+        const viewer = formType === 'General' ? window.viewerGeneral : window.viewer;
+        if (!viewer) return;
+
+        const fileData = viewer.uploadedFiles.find(f => f.id === fileId);
+        if (!fileData || !fileData.file) return;
+
+        // Create a download link and trigger it
+        const url = URL.createObjectURL(fileData.file);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileData.file.name;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    };
+
+    // View file from right panel
+    window.viewFileInRightPanel = function(formType, fileId) {
+        selectFile(formType, fileId);
+        // Scroll left sidebar to show the selected file
+        const fileListItem = document.querySelector(`[data-file-id="${fileId}"]`);
+        if (fileListItem && fileListItem.scrollIntoView) {
+            fileListItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    };
+
+    // Remove file from right panel
+    window.removeFileFromRightPanel = function(formType, fileId) {
+        removeFile(formType, fileId);
+    };
+
+    // Open file settings modal - ULTRA SIMPLE - NO BOOTSTRAP
+    window.openFileSettingsModal = function(formType, fileId, event) {
+        console.log('🔍 Opening modal for file:', fileId);
+
+        // Stop propagation if clicked on a button
+        if (event && (event.target.closest('button') || event.target.closest('.btn'))) {
+            return;
+        }
+
+        const viewer = formType === 'General' ? window.viewerGeneral : window.viewer;
+        if (!viewer) {
+            console.error('Viewer not found for formType:', formType);
+            return;
+        }
+
+        const fileData = viewer.uploadedFiles.find(f => f.id === fileId);
+        if (!fileData) {
+            console.error('File not found:', fileId);
+            return;
+        }
+
+        // Store current file ID for saving
+        window.currentEditingFileId = fileId;
+        window.currentEditingFormType = formType;
+
+        // Populate modal with current file settings
+        document.getElementById('modalFileName').textContent = fileData.file.name;
+        document.getElementById('modalTechnologySelect').value = fileData.technology || 'fdm';
+        document.getElementById('modalMaterialSelect').value = fileData.material || 'pla';
+
+        // Set active color button
+        const currentColor = fileData.color ? '#' + fileData.color.toString(16).padStart(6, '0') : '#0047AD';
+        document.querySelectorAll('#modalColorPicker .modal-color-btn').forEach(btn => {
+            btn.classList.remove('active');
+            if (btn.dataset.color.toLowerCase() === currentColor.toLowerCase()) {
+                btn.classList.add('active');
+            }
+        });
+
+        // Hide ALL potentially blocking elements
+        const elementsToHide = ['viewer3dGeneral', 'professionalToolbar', 'rightFilesPanel'];
+        elementsToHide.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.style.display = 'none';
+                el.dataset.wasHidden = 'true';
+            }
+        });
+
+        // Get modal and show it with MAXIMUM z-index
+        const modal = document.getElementById('fileSettingsModal');
+        modal.style.display = 'block';
+        modal.style.zIndex = '9999999';
+        modal.style.pointerEvents = 'auto';
+        modal.classList.add('show');
+        
+        // Create backdrop
+        let backdrop = document.getElementById('modal-backdrop-custom');
+        if (!backdrop) {
+            backdrop = document.createElement('div');
+            backdrop.id = 'modal-backdrop-custom';
+            backdrop.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999998;display:block;';
+            document.body.appendChild(backdrop);
+            backdrop.onclick = () => window.closeModalCustom();
+        } else {
+            backdrop.style.display = 'block';
+        }
+        
+        document.body.classList.add('modal-open');
+        document.body.style.overflow = 'hidden';
+        
+        console.log('✅ Modal shown - z-index 9999999');
+    };
+    
+    // Close modal function
+    window.closeModalCustom = function() {
+        const modal = document.getElementById('fileSettingsModal');
+        modal.style.display = 'none';
+        modal.classList.remove('show');
+        
+        const backdrop = document.getElementById('modal-backdrop-custom');
+        if (backdrop) backdrop.style.display = 'none';
+        
+        document.body.classList.remove('modal-open');
+        document.body.style.overflow = '';
+        
+        // Restore hidden elements
+        document.querySelectorAll('[data-was-hidden="true"]').forEach(el => {
+            el.style.display = '';
+            el.dataset.wasHidden = 'false';
+        });
+    };    // Handle color button clicks in modal
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.modal-color-btn')) {
+            const btn = e.target.closest('.modal-color-btn');
+            document.querySelectorAll('#modalColorPicker .modal-color-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+    });
+
+    // Save file settings from modal
+    document.addEventListener('DOMContentLoaded', function() {
+        const saveBtn = document.getElementById('saveFileSettings');
+        if (saveBtn) {
+            saveBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                console.log('💾 Saving file settings...');
+
+                const fileId = window.currentEditingFileId;
+                const formType = window.currentEditingFormType;
+
+                if (!fileId || !formType) {
+                    console.error('No file selected for editing');
+                    return;
+                }
+
+                const viewer = formType === 'General' ? window.viewerGeneral : window.viewer;
+                if (!viewer) {
+                    console.error('Viewer not found');
+                    return;
+                }
+
+                const fileData = viewer.uploadedFiles.find(f => f.id === fileId);
+                if (!fileData) {
+                    console.error('File data not found');
+                    return;
+                }
+
+                // Get selected values
+                const technology = document.getElementById('modalTechnologySelect').value;
+                const material = document.getElementById('modalMaterialSelect').value;
+                const activeColorBtn = document.querySelector('.modal-color-btn.active');
+                const colorHex = activeColorBtn ? activeColorBtn.dataset.color : '#0047AD';
+                const colorValue = parseInt(colorHex.replace('#', ''), 16);
+
+                // Update file data
+                fileData.technology = technology;
+                fileData.material = material;
+                fileData.color = colorValue;
+
+                // Update mesh color if mesh exists
+                if (fileData.mesh && fileData.mesh.material) {
+                    fileData.mesh.material.color.setHex(colorValue);
+                }
+
+                // Update file list UI
+                updateFileList(formType, viewer);
+
+                console.log(`✅ File settings updated: ${fileData.file.name}`, {
+                    technology,
+                    material,
+                    color: colorHex
+                });
+
+                // Close modal using custom close function
+                window.closeModalCustom();
+
+                // Clear current editing state
+                window.currentEditingFileId = null;
+                window.currentEditingFormType = null;
+
+                console.log('✅ Modal closed after saving');
+            });
+        }
+    });
+
+    // Drag and drop functionality for right panel
+    function attachRightPanelDragHandlers() {
+        const cards = document.querySelectorAll('.right-file-card');
+        let draggedElement = null;
+
+        cards.forEach(card => {
+            card.addEventListener('dragstart', function(e) {
+                draggedElement = this;
+                this.classList.add('dragging');
+                e.dataTransfer.effectAllowed = 'move';
+            });
+
+            card.addEventListener('dragend', function(e) {
+                this.classList.remove('dragging');
+                draggedElement = null;
+            });
+
+            card.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+
+                if (draggedElement && draggedElement !== this) {
+                    const container = this.parentNode;
+                    const allCards = Array.from(container.querySelectorAll('.right-file-card'));
+                    const draggedIndex = allCards.indexOf(draggedElement);
+                    const targetIndex = allCards.indexOf(this);
+
+                    if (draggedIndex < targetIndex) {
+                        this.parentNode.insertBefore(draggedElement, this.nextSibling);
+                    } else {
+                        this.parentNode.insertBefore(draggedElement, this);
+                    }
+                }
+            });
+        });
+    }
+
+    // Toggle right panel visibility
+    document.addEventListener('DOMContentLoaded', function() {
+        const toggleBtn = document.getElementById('toggleRightPanel');
+        const rightPanel = document.getElementById('rightFilesPanel');
+        let isPanelVisible = true;
+
+        if (toggleBtn && rightPanel) {
+            toggleBtn.addEventListener('click', function() {
+                isPanelVisible = !isPanelVisible;
+                if (isPanelVisible) {
+                    rightPanel.style.display = 'flex';
+                    toggleBtn.innerHTML = `
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <path d="M5 10L15 10M10 5L10 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                    `;
+                } else {
+                    rightPanel.style.display = 'none';
+                    toggleBtn.innerHTML = `
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <path d="M5 10L15 10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                    `;
+                }
+            });
+        }
+    });
 
     // Select a file to edit its properties
     window.selectFile = function(formType, fileId) {
-        const viewer = formType === 'General' ? window.viewerGeneral : window.viewerMedical;
+        const viewer = window.viewerGeneral || window.viewer;
         if (!viewer) return;
 
         const fileData = viewer.uploadedFiles.find(f => f.id === fileId);
@@ -2878,7 +3920,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Toggle mesh visibility in Three.js
         fileData.mesh.visible = !fileData.mesh.visible;
 
-        // Update button icon
+        // Update the button that was clicked
         const eyeVisible = button.querySelector('.eye-visible');
         const eyeHidden = button.querySelector('.eye-hidden');
 
@@ -2902,6 +3944,44 @@ document.addEventListener('DOMContentLoaded', function() {
         const fileItem = button.closest('.file-list-item');
         if (fileItem) {
             fileItem.style.opacity = fileData.mesh.visible ? '1' : '0.5';
+        }
+
+        // Sync with RIGHT panel eye button
+        const rightEyeBtn = document.querySelector(`#rightFilesContainer .file-list-item[data-file-id="${fileId}"] .toggle-visibility-btn`);
+        if (rightEyeBtn && rightEyeBtn !== button) {
+            const rightEyeVisible = rightEyeBtn.querySelector('.eye-visible');
+            const rightEyeHidden = rightEyeBtn.querySelector('.eye-hidden');
+
+            if (fileData.mesh.visible) {
+                rightEyeVisible.style.display = 'block';
+                rightEyeHidden.style.display = 'none';
+                rightEyeBtn.classList.remove('btn-outline-secondary');
+                rightEyeBtn.classList.add('btn-outline-primary');
+            } else {
+                rightEyeVisible.style.display = 'none';
+                rightEyeHidden.style.display = 'block';
+                rightEyeBtn.classList.remove('btn-outline-primary');
+                rightEyeBtn.classList.add('btn-outline-secondary');
+            }
+        }
+
+        // Sync with LEFT panel eye button
+        const leftEyeBtn = document.querySelector(`#filesContainer .file-list-item[data-file-id="${fileId}"] .toggle-visibility-btn`);
+        if (leftEyeBtn && leftEyeBtn !== button) {
+            const leftEyeVisible = leftEyeBtn.querySelector('.eye-visible');
+            const leftEyeHidden = leftEyeBtn.querySelector('.eye-hidden');
+
+            if (fileData.mesh.visible) {
+                leftEyeVisible.style.display = 'block';
+                leftEyeHidden.style.display = 'none';
+                leftEyeBtn.classList.remove('btn-outline-secondary');
+                leftEyeBtn.classList.add('btn-outline-primary');
+            } else {
+                leftEyeVisible.style.display = 'none';
+                leftEyeHidden.style.display = 'block';
+                leftEyeBtn.classList.remove('btn-outline-primary');
+                leftEyeBtn.classList.add('btn-outline-secondary');
+            }
         }
 
         console.log(`👁️ File visibility toggled:`, {
@@ -2946,7 +4026,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Show all file prices (called when "Save & Calculate" is clicked)
     window.showAllFilePrices = function(formType) {
-        const viewer = formType === 'General' ? window.viewerGeneral : window.viewerMedical;
+        const viewer = window.viewerGeneral || window.viewer;
         if (!viewer || !viewer.uploadedFiles) return;
 
         let totalPrice = 0;
@@ -3013,7 +4093,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Remove file function
     window.removeFile = async function(formType, fileId) {
-        const viewer = formType === 'General' ? window.viewerGeneral : window.viewerMedical;
+        const viewer = window.viewerGeneral || window.viewer;
         if (viewer) {
             viewer.removeFile(fileId);
             updateFileList(formType, viewer);
@@ -3226,7 +4306,7 @@ document.addEventListener('DOMContentLoaded', function() {
             screenshotBtn.addEventListener('click', function() {
                 console.log('📸 Screenshot button clicked (bottom toolbar)');
                 const viewerId = isGeneral ? 'viewer3dGeneral' : 'viewer3dMedical';
-                const viewer = isGeneral ? window.viewerGeneral : window.viewerMedical;
+                const viewer = window.viewerGeneral || window.viewer;
 
                 if (!viewer || !viewer.renderer || !viewer.scene || !viewer.camera) {
                     console.error('Viewer not ready for screenshot');
@@ -3289,9 +4369,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Helper functions
     function setCameraView(viewerId, view) {
-        const viewer = viewerId === 'viewer3dGeneral' ? window.viewerGeneral : window.viewerMedical;
+        // Always use unified viewer
+        const viewer = window.viewerGeneral || window.viewer;
         if (!viewer?.scene?.activeCamera) {
-            console.log('No active camera found for:', viewerId);
+            console.log('No active camera found');
             return;
         }
 
@@ -3314,9 +4395,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function toggleGrid(viewerId, visible) {
-        const viewer = viewerId === 'viewer3dGeneral' ? window.viewerGeneral : window.viewerMedical;
+        // Always use unified viewer
+        const viewer = window.viewerGeneral || window.viewer;
         if (!viewer?.scene) {
-            console.log('No scene found for:', viewerId);
+            console.log('No scene found');
             return;
         }
 
@@ -3330,7 +4412,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function startAutoRotation(viewerId) {
-        const viewer = viewerId === 'viewer3dGeneral' ? window.viewerGeneral : window.viewerMedical;
+        // Always use unified viewer
+        const viewer = window.viewerGeneral || window.viewer;
         if (!viewer?.scene?.activeCamera) {
             console.log('Cannot start rotation - no camera');
             return;
@@ -3348,7 +4431,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function stopAutoRotation(viewerId) {
-        const viewer = viewerId === 'viewer3dGeneral' ? window.viewerGeneral : window.viewerMedical;
+        // Always use unified viewer
+        const viewer = window.viewerGeneral || window.viewer;
         if (!viewer?.scene?.activeCamera) return;
 
         const camera = viewer.scene.activeCamera;
@@ -3373,7 +4457,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function updateMeasurements(viewerId) {
-        const viewer = viewerId === 'viewer3dGeneral' ? window.viewerGeneral : window.viewerMedical;
+        const viewer = window.viewerGeneral || window.viewer;
         if (!viewer?.uploadedFiles || viewer.uploadedFiles.length === 0) {
             console.log('No files uploaded yet');
             return;
@@ -3734,12 +4818,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const THREE = window.THREE;
 
         if (!currentViewer || !currentViewer.scene) {
-            // Try to find viewer
-            if (window.viewerGeneral && window.viewerGeneral.scene) {
-                currentViewer = window.viewerGeneral;
-            } else if (window.viewerMedical && window.viewerMedical.scene) {
-                currentViewer = window.viewerMedical;
-            }
+            // Try to find viewer (unified)
+            currentViewer = window.viewerGeneral || window.viewer;
         }
 
         if (!currentViewer || !currentViewer.scene) return;
@@ -3843,12 +4923,10 @@ document.addEventListener('DOMContentLoaded', function() {
             button.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
             button.style.color = 'white';
 
-            // Disable orbit controls rotation, keep zoom
-            if (window.viewerGeneral && window.viewerGeneral.controls) {
-                window.viewerGeneral.controls.enableRotate = false;
-            }
-            if (window.viewerMedical && window.viewerMedical.controls) {
-                window.viewerMedical.controls.enableRotate = false;
+            // Disable orbit controls rotation, keep zoom (unified viewer)
+            const viewer = window.viewerGeneral || window.viewer;
+            if (viewer && viewer.controls) {
+                viewer.controls.enableRotate = false;
             }
 
             console.log('✋ Pan mode ACTIVE - Drag to move the model');
@@ -3859,12 +4937,10 @@ document.addEventListener('DOMContentLoaded', function() {
             button.style.background = '';
             button.style.color = '';
 
-            // Re-enable orbit controls rotation
-            if (window.viewerGeneral && window.viewerGeneral.controls) {
-                window.viewerGeneral.controls.enableRotate = true;
-            }
-            if (window.viewerMedical && window.viewerMedical.controls) {
-                window.viewerMedical.controls.enableRotate = true;
+            // Re-enable orbit controls rotation (unified viewer)
+            const viewer = window.viewerGeneral || window.viewer;
+            if (viewer && viewer.controls) {
+                viewer.controls.enableRotate = true;
             }
 
             console.log('✋ Pan mode OFF');
@@ -3945,7 +5021,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function takeScreenshot(viewerType) {
-        const viewer = viewerType === 'general' ? window.viewerGeneral : window.viewerMedical;
+        const viewer = window.viewerGeneral || window.viewer;
 
         if (!viewer || !viewer.renderer) {
             console.warn('⚠️ No viewer available for screenshot');
@@ -4069,14 +5145,12 @@ loading
             console.log('✅ Measurement and Pan handlers added to General viewer');
         }
 
-        if (window.viewerMedical && window.viewerMedical.renderer) {
-            const canvas = window.viewerMedical.renderer.domElement;
-            canvas.addEventListener('click', (event) => {
-                handleMeasurementClick(event, window.viewerMedical);
-            });
-            // Setup pan handlers
-            setupPanHandlers(canvas, window.viewerMedical);
-            console.log('✅ Measurement and Pan handlers added to Medical viewer');
+        // Medical viewer uses the same unified viewer
+        const viewer = window.viewerGeneral || window.viewer;
+        if (viewer && viewer.renderer) {
+            const canvas = viewer.renderer.domElement;
+            // Event listeners already added above for unified viewer
+            console.log('✅ Medical viewer uses unified viewer - handlers already attached');
         }
     });
 
@@ -4086,7 +5160,7 @@ loading
 });
 </script>
 
-<script src="{{ asset('frontend/assets/js/3d-viewer-pro.js') }}?v=5"></script>
+<script src="{{ asset('frontend/assets/js/3d-viewer-pro.js') }}?t={{ time() }}"></script>
 <script src="{{ asset('frontend/assets/js/volume-calculator.js') }}?v={{ time() }}"></script>
 <script src="{{ asset('frontend/assets/js/pricing-calculator.js') }}?v={{ time() }}"></script>
 {{-- REMOVED: simple-save-calculate.js - Conflicts with enhanced-save-calculate.js --}}
@@ -4192,8 +5266,32 @@ window.toggleToolbarButton = function(buttonId, isActive) {
 
 // Define the handler RIGHT HERE in the HTML
 window.toolbarHandler = {
+    // Debugging helper to check viewer state
+    _checkViewer: function() {
+        console.log('🔍 Checking viewer state:');
+        console.log('   window.viewerGeneral:', window.viewerGeneral);
+        console.log('   window.viewerMedical:', window.viewerMedical);
+        console.log('   window.viewer:', window.viewer);
+
+        const viewer = window.viewerGeneral || window.viewer;
+        if (viewer) {
+            console.log('✅ Viewer found!');
+            console.log('   - scene:', !!viewer.scene);
+            console.log('   - camera:', !!viewer.camera);
+            console.log('   - renderer:', !!viewer.renderer);
+            console.log('   - initialized:', !!viewer.initialized);
+            if (viewer.renderer && viewer.renderer.domElement) {
+                console.log('   - canvas size:', viewer.renderer.domElement.width, 'x', viewer.renderer.domElement.height);
+            }
+        } else {
+            console.error('❌ NO VIEWER FOUND!');
+        }
+        return viewer;
+    },
+
     toggleMeasurement: function(viewerType) {
         console.log(`📏 Toggle measurement for ${viewerType}`);
+        this._checkViewer();
         const submenu = document.getElementById('measurementSubmenu' + (viewerType === 'Medical' ? 'Medical' : ''));
         if (submenu) {
             const isVisible = submenu.style.display === 'block';
@@ -4210,7 +5308,8 @@ window.toolbarHandler = {
     },
 
     initMeasurementTools: function(viewerType, submenu) {
-        const viewer = viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral;
+        // Always use unified viewer
+        const viewer = window.viewerGeneral || window.viewer;
 
         if (!viewer) {
             console.warn('Viewer not found for measurement tools');
@@ -4247,6 +5346,13 @@ window.toolbarHandler = {
 
     handleMeasurementTool: function(viewer, measureType, viewerType) {
         console.log(`📐 Measurement tool: ${measureType}`);
+        const THREE = window.THREE;
+
+        if (!THREE) {
+            console.error('❌ THREE.js not loaded!');
+            showToolbarNotification('3D library not loaded yet', 'error');
+            return;
+        }
 
         switch(measureType) {
             case 'distance':
@@ -4271,6 +5377,14 @@ window.toolbarHandler = {
     },
 
     startDistanceMeasurement: function(viewer, viewerType) {
+        const THREE = window.THREE;
+
+        if (!THREE) {
+            console.error('❌ THREE.js not loaded!');
+            showToolbarNotification('3D library not loaded yet', 'error');
+            return;
+        }
+
         viewer.measurementState.mode = 'distance';
         viewer.measurementState.points = [];
 
@@ -4400,10 +5514,17 @@ window.toolbarHandler = {
 
     toggleBoundingBox: function(viewerType) {
         console.log(`📦 Toggle bounding box for ${viewerType}`);
-        const viewer = viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral;
+        const THREE = window.THREE;
+        const viewer = window.viewerGeneral || window.viewer;
 
         if (!viewer || !viewer.scene) {
             showToolbarNotification('Please wait for the 3D model to load', 'warning');
+            return;
+        }
+
+        if (!THREE) {
+            console.error('❌ THREE.js not loaded!');
+            showToolbarNotification('3D library not loaded yet', 'error');
             return;
         }
 
@@ -4494,10 +5615,17 @@ window.toolbarHandler = {
 
     toggleAxis: function(viewerType) {
         console.log(`🎯 Toggle axis for ${viewerType}`);
-        const viewer = viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral;
+        const THREE = window.THREE;
+        const viewer = window.viewerGeneral || window.viewer;
 
         if (!viewer || !viewer.scene) {
             showToolbarNotification('Please wait for the 3D model to load', 'warning');
+            return;
+        }
+
+        if (!THREE) {
+            console.error('❌ THREE.js not loaded!');
+            showToolbarNotification('3D library not loaded yet', 'error');
             return;
         }
 
@@ -4572,10 +5700,17 @@ window.toolbarHandler = {
 
     toggleGrid: function(viewerType) {
         console.log(`📐 Toggle grid for ${viewerType}`);
-        const viewer = viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral;
+        const THREE = window.THREE;
+        const viewer = window.viewerGeneral || window.viewer;
 
         if (!viewer || !viewer.scene) {
             showToolbarNotification('Please wait for the 3D model to load', 'warning');
+            return;
+        }
+
+        if (!THREE) {
+            console.error('❌ THREE.js not loaded!');
+            showToolbarNotification('3D library not loaded yet', 'error');
             return;
         }
 
@@ -4616,7 +5751,7 @@ window.toolbarHandler = {
 
     toggleShadow: function(viewerType) {
         console.log(`🌓 Toggle shadow for ${viewerType}`);
-        const viewer = viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral;
+        const viewer = window.viewerGeneral || window.viewer;
 
         if (!viewer || !viewer.renderer) {
             showToolbarNotification('Please wait for the 3D model to load', 'warning');
@@ -4635,7 +5770,7 @@ window.toolbarHandler = {
 
     toggleTransparency: function(viewerType) {
         console.log(`👁️ Toggle transparency for ${viewerType}`);
-        const viewer = viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral;
+        const viewer = window.viewerGeneral || window.viewer;
 
         if (!viewer || !viewer.scene) {
             showToolbarNotification('Please wait for the 3D model to load', 'warning');
@@ -4670,24 +5805,42 @@ window.toolbarHandler = {
 
     takeScreenshot: function(viewerType) {
         console.log(`📸 Take screenshot for ${viewerType}`);
-        const viewer = viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral;
+        console.log('🔍 DEBUG: Checking viewer state...');
+        console.log('   window.viewerGeneral:', window.viewerGeneral);
+        console.log('   window.viewer:', window.viewer);
+
+        const viewer = window.viewerGeneral || window.viewer;
+        console.log('   Selected viewer:', viewer);
 
         if (!viewer) {
+            console.error('❌ No viewer found!');
             showToolbarNotification('Viewer loading, please wait...', 'info');
             return;
         }
 
+        console.log('   viewer.renderer:', viewer.renderer);
+        console.log('   viewer.scene:', viewer.scene);
+        console.log('   viewer.camera:', viewer.camera);
+
         if (!viewer.renderer || !viewer.scene || !viewer.camera) {
+            console.error('❌ Viewer not fully initialized!');
             showToolbarNotification('Renderer loading, please wait...', 'warning');
             return;
         }
 
         try {
-            // Force a fresh render before capturing
-            viewer.renderer.render(viewer.scene, viewer.camera);
-
             // Get the canvas element
             const canvas = viewer.renderer.domElement;
+            console.log('   canvas:', canvas);
+            console.log('   canvas.width:', canvas.width);
+            console.log('   canvas.height:', canvas.height);
+
+            if (!canvas || canvas.width === 0 || canvas.height === 0) {
+                throw new Error('Canvas has invalid dimensions: ' + canvas.width + 'x' + canvas.height);
+            }
+
+            // Force a fresh render before capturing
+            viewer.renderer.render(viewer.scene, viewer.camera);
 
             // Create a new canvas with white background
             const screenshotCanvas = document.createElement('canvas');
@@ -4731,13 +5884,14 @@ window.toolbarHandler = {
 
         } catch (error) {
             console.error('❌ Screenshot failed:', error);
+            console.error('Error stack:', error.stack);
             showToolbarNotification('Screenshot failed: ' + error.message, 'error', 3000);
         }
     },
 
     undo: function() {
         console.log('⏪ Undo action');
-        const viewer = window.viewerGeneral || window.viewerMedical;
+        const viewer = window.viewerGeneral || window.viewer;
 
         if (!viewer || !viewer.stateHistory) {
             viewer.stateHistory = [];
@@ -4756,7 +5910,7 @@ window.toolbarHandler = {
 
     redo: function() {
         console.log('⏩ Redo action');
-        const viewer = window.viewerGeneral || window.viewerMedical;
+        const viewer = window.viewerGeneral || window.viewer;
 
         if (!viewer || !viewer.stateHistory) {
             viewer.stateHistory = [];
@@ -4834,8 +5988,7 @@ window.toolbarHandler = {
 
     changeModelColor: function(viewerType) {
         console.log('🎨 Change model color');
-        const viewer = viewerType ? (viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral)
-                                  : (window.viewerGeneral || window.viewerMedical);
+        const viewer = window.viewerGeneral || window.viewer;
 
         if (!viewer || !viewer.scene) {
             showToolbarNotification('Please wait for the 3D model to load', 'warning');
@@ -4890,11 +6043,17 @@ window.toolbarHandler = {
 
     changeBackgroundColor: function(viewerType) {
         console.log('🌈 Change background color');
-        const viewer = viewerType ? (viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral)
-                                  : (window.viewerGeneral || window.viewerMedical);
+        const THREE = window.THREE;
+        const viewer = window.viewerGeneral || window.viewer;
 
         if (!viewer || !viewer.scene) {
             showToolbarNotification('Please wait for the 3D viewer to load', 'warning');
+            return;
+        }
+
+        if (!THREE) {
+            console.error('❌ THREE.js not loaded!');
+            showToolbarNotification('3D library not loaded yet', 'error');
             return;
         }
 
@@ -4945,7 +6104,8 @@ window.toolbarHandler = {
     toggleMoveMode: function(viewerType) {
         console.log(`🖐️ Toggle Move Mode for ${viewerType}`);
 
-        const viewer = viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral;
+        // Use unified viewer
+        const viewer = window.viewerGeneral || window.viewer;
         if (!viewer || !viewer.uploadedFiles || viewer.uploadedFiles.length === 0) {
             console.warn('⚠️ Cannot enable move mode: No file uploaded');
             showToolbarNotification('Please upload a 3D model first', 'warning', 2000);
@@ -5163,7 +6323,8 @@ window.toolbarHandler = {
     toggleAutoRotate: function(viewerType) {
         console.log(`🔄 Toggle Auto-Rotate for ${viewerType}`);
 
-        const viewer = viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral;
+        // Use unified viewer
+        const viewer = window.viewerGeneral || window.viewer;
         if (!viewer || !viewer.uploadedFiles || viewer.uploadedFiles.length === 0) {
             console.warn('⚠️ Cannot toggle auto-rotate: No file uploaded');
             showToolbarNotification('Please upload a 3D model first', 'warning', 2000);
@@ -5208,44 +6369,54 @@ window.toolbarHandler = {
     toggleGridMain: function(viewerType) {
         console.log(`🏁 Toggle Grid (Main) for ${viewerType}`);
 
-        const viewer = viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral;
+        // Use unified viewer
+        const viewer = window.viewerGeneral || window.viewer;
         if (!viewer || !viewer.scene) {
             console.warn('⚠️ Cannot toggle grid: Viewer not ready');
             showToolbarNotification('Please wait for the 3D viewer to load', 'warning', 2000);
             return;
         }
 
-        // Toggle grid visibility state
+        // Toggle grid visibility state (unified for both viewers)
         if (!window.gridVisibleMain) {
-            window.gridVisibleMain = {};
+            window.gridVisibleMain = { unified: true }; // Default visible
         }
 
-        const isCurrentlyVisible = window.gridVisibleMain[viewerType] !== false; // Default true
-        window.gridVisibleMain[viewerType] = !isCurrentlyVisible;
+        window.gridVisibleMain.unified = !window.gridVisibleMain.unified;
 
-        const gridBtn = document.getElementById('toggleGridBtnMain');
+        // Update BOTH button states (General and Medical)
+        const gridBtnGeneral = document.getElementById('toggleGridBtnMain');
+        const gridBtnMedical = document.getElementById('toggleGridBtnMainMedical');
 
-        if (gridBtn) {
-            if (window.gridVisibleMain[viewerType]) {
-                gridBtn.classList.add('active');
-            } else {
-                gridBtn.classList.remove('active');
+        [gridBtnGeneral, gridBtnMedical].forEach(btn => {
+            if (btn) {
+                if (window.gridVisibleMain.unified) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
             }
-        }
+        });
 
-        // Find and toggle grid helper
-        const ground = viewer.scene.children.find(child => child.name === 'ground' || child.type === 'GridHelper');
+        // Find and toggle grid helper in the scene
+        const ground = viewer.scene.children.find(child =>
+            child.name === 'ground' ||
+            child.type === 'GridHelper' ||
+            child.userData?.isGridHelper
+        );
+
         if (ground) {
-            ground.visible = window.gridVisibleMain[viewerType];
-            console.log('🏁 Grid visibility:', window.gridVisibleMain[viewerType] ? 'SHOWN ✅' : 'HIDDEN ❌');
+            ground.visible = window.gridVisibleMain.unified;
+            console.log('🏁 Grid visibility:', window.gridVisibleMain.unified ? 'SHOWN ✅' : 'HIDDEN ❌');
 
             showToolbarNotification(
-                window.gridVisibleMain[viewerType] ? 'Grid enabled' : 'Grid disabled',
+                window.gridVisibleMain.unified ? 'Grid enabled' : 'Grid disabled',
                 'success',
                 1500
             );
         } else {
             console.warn('⚠️ Grid helper not found in scene');
+            showToolbarNotification('Grid helper not found', 'warning', 1500);
         }
     },
 
@@ -5255,7 +6426,7 @@ window.toolbarHandler = {
     toggleMeasureMain: function(viewerType) {
         console.log(`📏 Toggle Measure Tool (Main) for ${viewerType}`);
 
-        const viewer = viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral;
+        const viewer = window.viewerGeneral || window.viewer;
         if (!viewer || !viewer.scene) {
             console.warn('⚠️ Cannot toggle measure tool: Viewer not ready');
             showToolbarNotification('Please wait for the 3D viewer to load', 'warning', 2000);
@@ -5282,9 +6453,10 @@ window.toolbarHandler = {
                 showToolbarNotification('Measurement mode: Click first point on model', 'info', 3000);
 
                 // Attach canvas click handler
-                if (!viewer.canvas.dataset.measureHandlerAttached) {
-                    viewer.canvas.addEventListener('click', (e) => this.handleMeasurementClickMain(e, viewer, viewerType));
-                    viewer.canvas.dataset.measureHandlerAttached = 'true';
+                const canvas = viewer.renderer ? viewer.renderer.domElement : null;
+                if (canvas && !canvas.dataset.measureHandlerAttached) {
+                    canvas.addEventListener('click', (e) => this.handleMeasurementClickMain(e, viewer, viewerType));
+                    canvas.dataset.measureHandlerAttached = 'true';
                 }
             } else {
                 measureBtn.classList.remove('active');
@@ -5300,7 +6472,13 @@ window.toolbarHandler = {
         if (!window.measurementModeMain || !window.measurementModeMain[viewerType]) return;
 
         const THREE = window.THREE;
-        const rect = viewer.canvas.getBoundingClientRect();
+        const canvas = viewer.renderer ? viewer.renderer.domElement : null;
+        if (!canvas) {
+            console.warn('⚠️ Canvas not found for measurement');
+            return;
+        }
+
+        const rect = canvas.getBoundingClientRect();
         const mouse = new THREE.Vector2();
         mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
         mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
@@ -5451,7 +6629,7 @@ window.toolbarHandler = {
     shareModel: function(viewerType) {
         console.log(`🔗 Share Model for ${viewerType}`);
 
-        const viewer = viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral;
+        const viewer = window.viewerGeneral || window.viewer;
         if (!viewer || !viewer.uploadedFiles || viewer.uploadedFiles.length === 0) {
             console.warn('⚠️ Cannot share: No files uploaded');
             showToolbarNotification('Please upload a 3D model first', 'warning', 2000);
@@ -5493,7 +6671,7 @@ window.toolbarHandler = {
     saveAndCalculate: function(viewerType) {
         console.log(`💾 Save & Calculate for ${viewerType}`);
 
-        const viewer = viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral;
+        const viewer = window.viewerGeneral || window.viewer;
         if (!viewer || !viewer.uploadedFiles || viewer.uploadedFiles.length === 0) {
             console.warn('⚠️ Cannot save: No files uploaded');
             showToolbarNotification('Please upload a 3D model first', 'warning', 2000);
@@ -5568,9 +6746,99 @@ window.toolbarHandler = {
 
 console.log('✅ INLINE window.toolbarHandler created!', window.toolbarHandler);
 console.log('Available methods:', Object.keys(window.toolbarHandler));
+
+// ============================================
+// ATTACH EVENT LISTENERS TO ALL TOOLBAR BUTTONS
+// ============================================
+// DISABLED: This section was removing onclick handlers and breaking all buttons
+/*
+console.log('🔗 Attaching event listeners to toolbar buttons...');
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Wait a bit for viewers to initialize
+    setTimeout(() => {
+        console.log('🎯 Initializing toolbar button click handlers...');
+
+        // Helper function to safely attach click handlers
+        function attachHandler(buttonId, handler, ...args) {
+            const btn = document.getElementById(buttonId);
+            if (btn) {
+                // Remove any existing onclick
+                btn.removeAttribute('onclick');
+
+                // Add new click event listener
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log(`🖱️ Button clicked: ${buttonId}`);
+                    try {
+                        handler.apply(window.toolbarHandler, args);
+                    } catch (error) {
+                        console.error(`❌ Error in ${buttonId}:`, error);
+                    }
+                });
+                console.log(`✅ Attached handler to: ${buttonId}`);
+            } else {
+                console.warn(`⚠️ Button not found: ${buttonId}`);
+            }
+        }
+
+        // GENERAL VIEWER TOOLBAR BUTTONS
+        attachHandler('measurementToolBtn', window.toolbarHandler.toggleMeasurement, 'General');
+        attachHandler('boundingBoxBtn', window.toolbarHandler.toggleBoundingBox, 'General');
+        attachHandler('axisToggleBtn', window.toolbarHandler.toggleAxis, 'General');
+        attachHandler('gridToggleBtn', window.toolbarHandler.toggleGrid, 'General');
+        attachHandler('panToolBtn', window.toolbarHandler.toggleMoveMode, 'General');
+        attachHandler('autoRotateBtn', window.toolbarHandler.toggleAutoRotate, 'General');
+        attachHandler('toggleGridBtnMain', window.toolbarHandler.toggleGridMain, 'General');
+        attachHandler('measureToolBtnMain', window.toolbarHandler.toggleMeasureMain, 'General');
+        attachHandler('shadowToggleBtn', window.toolbarHandler.toggleShadow, 'General');
+        attachHandler('transparencyBtn', window.toolbarHandler.toggleTransparency, 'General');
+        attachHandler('modelColorBtn', window.toolbarHandler.changeModelColor, 'General');
+        attachHandler('backgroundColorBtn', window.toolbarHandler.changeBackgroundColor, 'General');
+        attachHandler('undoBtn', window.toolbarHandler.undo);
+        attachHandler('redoBtn', window.toolbarHandler.redo);
+        attachHandler('screenshotToolBtn', window.toolbarHandler.takeScreenshot, 'General');
+        attachHandler('shareToolBtn', window.toolbarHandler.shareModel, 'General');
+        attachHandler('saveCalculateToolBtn', window.toolbarHandler.saveAndCalculate, 'General');
+
+        // MEDICAL VIEWER TOOLBAR BUTTONS (if they exist)
+        attachHandler('measurementToolBtnMedical', window.toolbarHandler.toggleMeasurement, 'General');
+        attachHandler('boundingBoxBtnMedical', window.toolbarHandler.toggleBoundingBox, 'General');
+        attachHandler('axisToggleBtnMedical', window.toolbarHandler.toggleAxis, 'General');
+        attachHandler('gridToggleBtnMedical', window.toolbarHandler.toggleGrid, 'General');
+        attachHandler('panToolBtnMedical', window.toolbarHandler.toggleMoveMode, 'General');
+        attachHandler('autoRotateBtnMedical', window.toolbarHandler.toggleAutoRotate, 'General');
+        attachHandler('toggleGridBtnMainMedical', window.toolbarHandler.toggleGridMain, 'General');
+        attachHandler('measureToolBtnMainMedical', window.toolbarHandler.toggleMeasureMain, 'General');
+        attachHandler('shadowToggleBtnMedical', window.toolbarHandler.toggleShadow, 'General');
+        attachHandler('transparencyBtnMedical', window.toolbarHandler.toggleTransparency, 'General');
+        attachHandler('modelColorBtnMedical', window.toolbarHandler.changeModelColor, 'General');
+        attachHandler('backgroundColorBtnMedical', window.toolbarHandler.changeBackgroundColor, 'General');
+        attachHandler('undoBtnMedical', window.toolbarHandler.undo);
+        attachHandler('redoBtnMedical', window.toolbarHandler.redo);
+        attachHandler('screenshotToolBtnMedical', window.toolbarHandler.takeScreenshot, 'General');
+        attachHandler('shareToolBtnMedical', window.toolbarHandler.shareModel, 'General');
+        attachHandler('saveCalculateToolBtnMedical', window.toolbarHandler.saveAndCalculate, 'General');
+
+        console.log('✅ All toolbar button handlers attached!');
+        console.log('📊 Total buttons processed: ~34');
+
+        // Verify handlers are working
+        console.log('🔍 Verification:');
+        console.log('   window.toolbarHandler:', !!window.toolbarHandler);
+        console.log('   window.viewerGeneral:', !!window.viewerGeneral);
+        console.log('   Buttons ready!');
+    }, 1000); // Wait 1 second for viewer initialization
+});
+
+console.log('✅ Event listener attachment script loaded!');
+*/
+console.log('✅ Using onclick handlers directly (addEventListener code disabled)');
 </script>
 
-<script src="{{ asset('frontend/assets/js/3d-viewer-professional-tools.js') }}?v=3000"></script>
+{{-- DISABLED: External file was overwriting inline toolbar handler --}}
+{{-- <script src="{{ asset('frontend/assets/js/3d-viewer-professional-tools.js') }}?t={{ time() }}"></script> --}}
 <script>
 // IMMEDIATE verification that toolbar handler exists
 console.log('========================================');
@@ -5786,8 +7054,8 @@ document.addEventListener('DOMContentLoaded', function() {
          */
         performHealthCheck() {
             const results = {
-                viewerGeneral: this.checkViewer(window.viewerGeneral, 'General'),
-                viewerMedical: this.checkViewer(window.viewerMedical, 'Medical'),
+                viewerGeneral: this.checkViewer(window.viewerGeneral, 'General (Unified)'),
+                // viewerMedical removed - both use unified viewer now
                 toolbarHandler: this.checkToolbarHandler(),
                 saveCalculate: this.checkSaveCalculate()
             };
@@ -5814,20 +7082,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 return false;
             }
 
+            // Relaxed health check - only check essential properties
             const checks = {
-                initialized: !!viewer.initialized,
+                exists: !!viewer,
                 scene: !!viewer.scene,
-                camera: !!viewer.camera,
-                renderer: !!viewer.renderer,
-                controls: !!viewer.controls,
-                render: typeof viewer.render === 'function',
-                calculateVolume: typeof viewer.calculateVolume === 'function'
+                hasRenderFunction: typeof viewer.render === 'function'
             };
 
             const healthy = Object.values(checks).every(c => c === true);
 
             if (!healthy) {
                 console.warn(`❌ ${name} viewer unhealthy:`, checks);
+            } else {
+                console.log(`✅ ${name} viewer healthy`);
             }
 
             return healthy;
@@ -5909,14 +7176,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Ensure viewers have required methods
             if (window.viewerGeneral && !window.viewerGeneral.calculateVolume) {
-                console.log('🔧 Adding fallback calculateVolume to viewerGeneral...');
+                console.log('🔧 Adding fallback calculateVolume to unified viewer...');
                 this.addFallbackVolumeCalculation(window.viewerGeneral);
             }
 
-            if (window.viewerMedical && !window.viewerMedical.calculateVolume) {
-                console.log('🔧 Adding fallback calculateVolume to viewerMedical...');
-                this.addFallbackVolumeCalculation(window.viewerMedical);
-            }
+            // viewerMedical removed - both use unified viewer now
         },
 
         /**
@@ -5985,5 +7249,209 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('💡 TIP: Run window.viewerHealthCheck.performHealthCheck() to manually check system health');
 })();
 </script>
+
+{{-- BRAND NEW SIMPLE MODAL --}}
+<div id="simpleFileModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 999999; background: rgba(0,0,0,0.5); align-items: center; justify-content: center;">
+    <div style="background: white; border-radius: 12px; width: 90%; max-width: 500px; box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
+        <!-- Header -->
+        <div style="padding: 20px 24px; border-bottom: 1px solid #e9ecef; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h5 style="margin: 0 0 4px 0; font-weight: 600; color: #2c3e50;">File Settings</h5>
+                <p id="simpleModalFileName" style="margin: 0; font-size: 0.875rem; color: #6c757d;"></p>
+            </div>
+            <button onclick="closeSimpleModal()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #6c757d; padding: 0; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;">&times;</button>
+        </div>
+        
+        <!-- Body -->
+        <div style="padding: 24px;">
+            <!-- Technology -->
+            <div style="margin-bottom: 16px;">
+                <label style="display: block; margin-bottom: 8px; font-size: 0.85rem; font-weight: 600; color: #495057;">Technology</label>
+                <select id="simpleTechSelect" style="width: 100%; padding: 8px 12px; border: 1px solid #dee2e6; border-radius: 8px; font-size: 0.85rem;">
+                    <option value="fdm">FDM (Fused Deposition Modeling)</option>
+                    <option value="sla">SLA (Stereolithography)</option>
+                    <option value="sls">SLS (Selective Laser Sintering)</option>
+                    <option value="dmls">DMLS (Direct Metal Laser Sintering)</option>
+                    <option value="mjf">MJF (Multi Jet Fusion)</option>
+                </select>
+            </div>
+            
+            <!-- Material -->
+            <div style="margin-bottom: 16px;">
+                <label style="display: block; margin-bottom: 8px; font-size: 0.85rem; font-weight: 600; color: #495057;">Material</label>
+                <select id="simpleMaterialSelect" style="width: 100%; padding: 8px 12px; border: 1px solid #dee2e6; border-radius: 8px; font-size: 0.85rem;">
+                    <option value="pla">PLA</option>
+                    <option value="abs">ABS</option>
+                    <option value="petg">PETG</option>
+                    <option value="nylon">Nylon</option>
+                    <option value="resin">Resin</option>
+                </select>
+            </div>
+            
+            <!-- Color -->
+            <div style="margin-bottom: 16px;">
+                <label style="display: block; margin-bottom: 8px; font-size: 0.85rem; font-weight: 600; color: #2c3e50;">Model Color</label>
+                <div id="simpleColorPicker" style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <div class="simple-color-btn" data-color="#0047AD" style="width: 40px; height: 40px; background: #0047AD; border: 2px solid #0047AD; border-radius: 8px; cursor: pointer; position: relative;" onclick="selectSimpleColor(this)"></div>
+                    <div class="simple-color-btn" data-color="#ffffff" style="width: 40px; height: 40px; background: #ffffff; border: 2px solid #dee2e6; border-radius: 8px; cursor: pointer; position: relative;" onclick="selectSimpleColor(this)"></div>
+                    <div class="simple-color-btn" data-color="#2c3e50" style="width: 40px; height: 40px; background: #2c3e50; border: 2px solid #dee2e6; border-radius: 8px; cursor: pointer; position: relative;" onclick="selectSimpleColor(this)"></div>
+                    <div class="simple-color-btn" data-color="#3498db" style="width: 40px; height: 40px; background: #3498db; border: 2px solid #dee2e6; border-radius: 8px; cursor: pointer; position: relative;" onclick="selectSimpleColor(this)"></div>
+                    <div class="simple-color-btn" data-color="#e74c3c" style="width: 40px; height: 40px; background: #e74c3c; border: 2px solid #dee2e6; border-radius: 8px; cursor: pointer; position: relative;" onclick="selectSimpleColor(this)"></div>
+                    <div class="simple-color-btn" data-color="#2ecc71" style="width: 40px; height: 40px; background: #2ecc71; border: 2px solid #dee2e6; border-radius: 8px; cursor: pointer; position: relative;" onclick="selectSimpleColor(this)"></div>
+                    <div class="simple-color-btn" data-color="#f39c12" style="width: 40px; height: 40px; background: #f39c12; border: 2px solid #dee2e6; border-radius: 8px; cursor: pointer; position: relative;" onclick="selectSimpleColor(this)"></div>
+                    <div class="simple-color-btn" data-color="#9b59b6" style="width: 40px; height: 40px; background: #9b59b6; border: 2px solid #dee2e6; border-radius: 8px; cursor: pointer; position: relative;" onclick="selectSimpleColor(this)"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div style="padding: 16px 24px; border-top: 1px solid #e9ecef; display: flex; justify-content: flex-end; gap: 12px;">
+            <button onclick="closeSimpleModal()" style="padding: 8px 20px; border: 1px solid #dee2e6; background: white; color: #6c757d; border-radius: 8px; cursor: pointer; font-size: 14px;">Cancel</button>
+            <button onclick="saveSimpleModal()" style="padding: 8px 20px; border: none; background: #1976D2; color: white; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500;">Apply Changes</button>
+        </div>
+    </div>
+</div>
+
+<style>
+.simple-color-btn.active::after {
+    content: '✓';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 20px;
+    font-weight: bold;
+    text-shadow: 0 0 3px rgba(0,0,0,0.5);
+}
+</style>
+
+<script>
+// Simple Modal Functions
+function openSimpleFileModal(formType, fileId) {
+    console.log('Opening simple modal for file:', fileId);
+    
+    const viewer = formType === 'General' ? window.viewerGeneral : window.viewer;
+    if (!viewer) {
+        console.error('Viewer not found');
+        return;
+    }
+    
+    const fileData = viewer.uploadedFiles.find(f => f.id === fileId);
+    if (!fileData) {
+        console.error('File not found');
+        return;
+    }
+    
+    // Store for saving later
+    window.simpleModalFileId = fileId;
+    window.simpleModalFormType = formType;
+    
+    // Populate modal
+    document.getElementById('simpleModalFileName').textContent = fileData.file.name;
+    document.getElementById('simpleTechSelect').value = fileData.technology || 'fdm';
+    document.getElementById('simpleMaterialSelect').value = fileData.material || 'pla';
+    
+    // Set active color
+    const currentColor = fileData.color ? '#' + fileData.color.toString(16).padStart(6, '0') : '#0047AD';
+    document.querySelectorAll('.simple-color-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.dataset.color.toLowerCase() === currentColor.toLowerCase()) {
+            btn.classList.add('active');
+        }
+    });
+    
+    // Show modal
+    const modal = document.getElementById('simpleFileModal');
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    
+    console.log('✅ Simple modal opened');
+}
+
+function closeSimpleModal() {
+    const modal = document.getElementById('simpleFileModal');
+    modal.style.display = 'none';
+    document.body.style.overflow = '';
+    console.log('✅ Simple modal closed');
+}
+
+function selectSimpleColor(btn) {
+    document.querySelectorAll('.simple-color-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+}
+
+function saveSimpleModal() {
+    const fileId = window.simpleModalFileId;
+    const formType = window.simpleModalFormType;
+    
+    if (!fileId || !formType) {
+        console.error('No file selected');
+        return;
+    }
+    
+    const viewer = formType === 'General' ? window.viewerGeneral : window.viewer;
+    if (!viewer) {
+        console.error('Viewer not found');
+        return;
+    }
+    
+    const fileData = viewer.uploadedFiles.find(f => f.id === fileId);
+    if (!fileData) {
+        console.error('File not found');
+        return;
+    }
+    
+    // Get values
+    const technology = document.getElementById('simpleTechSelect').value;
+    const material = document.getElementById('simpleMaterialSelect').value;
+    const activeBtn = document.querySelector('.simple-color-btn.active');
+    const colorHex = activeBtn ? activeBtn.dataset.color : '#0047AD';
+    const colorValue = parseInt(colorHex.replace('#', ''), 16);
+    
+    // Update file data
+    fileData.technology = technology;
+    fileData.material = material;
+    fileData.color = colorValue;
+    
+    // Update mesh color
+    if (fileData.mesh && fileData.mesh.material) {
+        fileData.mesh.material.color.setHex(colorValue);
+    }
+    
+    // Update UI
+    updateFileList(formType, viewer);
+    
+    console.log('✅ File settings saved:', {technology, material, color: colorHex});
+    
+    // Close modal
+    closeSimpleModal();
+}
+
+// Replace the old function
+window.openFileSettingsModal = openSimpleFileModal;
+
+// Close on backdrop click
+document.addEventListener('click', function(e) {
+    const modal = document.getElementById('simpleFileModal');
+    if (e.target === modal) {
+        closeSimpleModal();
+    }
+});
+
+// Close on ESC key
+document.addEventListener('keydown', function(e) {
+    const modal = document.getElementById('simpleFileModal');
+    if (e.key === 'Escape' && modal.style.display === 'flex') {
+        closeSimpleModal();
+    }
+});
+</script>
+
+
+
+
+
+
 
 

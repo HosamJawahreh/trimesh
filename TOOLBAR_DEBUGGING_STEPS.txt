@@ -1,0 +1,159 @@
+========================================
+TOOLBAR BUTTONS NOT WORKING - DEBUG STEPS
+========================================
+
+Your diagnostic showed:
+- ✅ window.viewerGeneral exists
+- ✅ window.toolbarHandler exists
+- ❌ Canvas is 0x0 (container not sized properly)
+- ❌ hasRenderFunction: false (render() method not loading)
+
+================================================================================
+STEP 1: HARD REFRESH TO LOAD NEW CODE
+================================================================================
+
+Press: Ctrl + Shift + R (Windows/Linux) or Cmd + Shift + R (Mac)
+
+OR try Incognito mode to completely bypass cache:
+- Ctrl + Shift + N (Chrome)
+- Ctrl + Shift + P (Firefox)
+
+================================================================================
+STEP 2: CHECK CONSOLE FOR THESE SPECIFIC MESSAGES
+================================================================================
+
+After page load, you MUST see these console logs:
+
+1. From 3d-viewer-pro.js loading:
+   "🚀 Loading 3D Viewer System..."
+
+2. From viewer initialization:
+   "✅ Viewers exported to window object:"
+   "   🔧 render() method exists: true"  <-- MUST BE TRUE!
+   "   🔧 animate() method exists: true"
+
+3. From professional-tools.js loading:
+   "🔧 Loading Professional 3D Viewer Tools..."
+   "🚀 SCRIPT EXECUTING NOW - CHECK IF YOU SEE THIS!"
+
+================================================================================
+STEP 3: RUN THIS IN BROWSER CONSOLE
+================================================================================
+
+Open console (F12) and paste this ONE LINE at a time:
+
+// Check if render method exists
+console.log('render() exists:', typeof window.viewerGeneral?.render === 'function');
+
+// Try to call render manually
+if (window.viewerGeneral && window.viewerGeneral.render) {
+    window.viewerGeneral.render();
+    console.log('✅ Manual render() worked!');
+} else {
+    console.error('❌ render() method NOT FOUND');
+}
+
+// Check canvas size
+if (window.viewerGeneral && window.viewerGeneral.renderer) {
+    const canvas = window.viewerGeneral.renderer.domElement;
+    console.log('Canvas size:', canvas.width, 'x', canvas.height);
+} else {
+    console.error('❌ Renderer not found');
+}
+
+// Check container size
+const container = document.getElementById('viewer3dGeneral');
+console.log('Container:', container);
+console.log('Container size:', container.clientWidth, 'x', container.clientHeight);
+console.log('Container display:', window.getComputedStyle(container).display);
+console.log('Container visibility:', window.getComputedStyle(container).visibility);
+
+// Try clicking grid toggle manually
+if (window.toolbarHandler && window.toolbarHandler.toggleGridMain) {
+    window.toolbarHandler.toggleGridMain('General');
+} else {
+    console.error('❌ toggleGridMain not found');
+}
+
+================================================================================
+STEP 4: WHAT TO LOOK FOR
+================================================================================
+
+GOOD RESULTS (Everything working):
+✅ render() exists: true
+✅ Canvas size: 800 x 600 (or any non-zero numbers)
+✅ Container size: 800 x 600 (or any non-zero numbers)
+✅ toggleGridMain executed without errors
+
+BAD RESULTS (Still broken):
+❌ render() exists: false --> Browser loaded OLD cached file
+❌ Canvas size: 0 x 0 --> Container is collapsed/hidden
+❌ Container size: 0 x 0 --> CSS issue, container not visible
+❌ toggleGridMain error --> Method not found or has bugs
+
+================================================================================
+STEP 5: IF STILL BROKEN
+================================================================================
+
+A. Try Incognito Mode (bypasses ALL caches completely)
+
+B. Check Network Tab in DevTools:
+   - Go to Network tab
+   - Reload page
+   - Find "3d-viewer-pro.js" in the list
+   - Check the "Size" column
+   - Should show actual file size (like "45 KB")
+   - If it shows "(disk cache)" or "(memory cache)", browser is STILL using old file!
+
+C. Check file timestamp in URL:
+   - Look for: 3d-viewer-pro.js?t=1234567890
+   - The number should be current Unix timestamp
+   - If same number appears twice, timestamp isn't changing
+
+D. Nuclear option - Clear browser cache completely:
+   - Chrome: Settings > Privacy > Clear browsing data > Cached images and files
+   - Firefox: Settings > Privacy > Clear Data > Cached Web Content
+
+================================================================================
+STEP 6: REPORT BACK
+================================================================================
+
+Tell me the results of:
+1. Does console show "🔧 render() method exists: true" ?
+2. What is the canvas size? (0x0 or real numbers?)
+3. What is the container size?
+4. Does toggleGridMain() work when called manually in console?
+5. Are there ANY JavaScript errors in console?
+
+================================================================================
+FILES I MODIFIED:
+================================================================================
+
+1. public/frontend/assets/js/3d-viewer-pro.js
+   - Added render() method at line 614
+   - Added console logging for render/animate methods at line 1111
+
+2. resources/views/frontend/pages/quote-viewer.blade.php
+   - Fixed toggleMeasureMain canvas access (line ~5669)
+   - Fixed handleMeasurementClickMain canvas access (line ~5692)
+   - Already using time() for cache-busting (line 4423)
+
+3. Cleared Laravel caches:
+   - php artisan cache:clear
+   - php artisan config:clear
+   - php artisan view:clear
+   - php artisan route:clear
+
+================================================================================
+WHAT SHOULD HAPPEN AFTER HARD REFRESH:
+================================================================================
+
+1. Page loads fresh JavaScript files (not from cache)
+2. viewer.render() method exists
+3. Canvas gets proper dimensions (not 0x0)
+4. Health checks pass (hasRenderFunction: true)
+5. All toolbar buttons work
+
+================================================================================
+
+NOW: Hard refresh browser and check console logs!
