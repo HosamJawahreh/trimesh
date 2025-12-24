@@ -20,32 +20,16 @@
                                 <div class="col-12 col-lg-3">
                                     <div class="p-3 p-lg-4">
 
-                                        {{-- Site Logo --}}
-                                        <div class="text-center" style="padding: 0 0 15px 0;">
+                                        {{-- Site Logo - Moved to top toolbar --}}
+                                        {{-- <div class="text-center" style="padding: 0 0 15px 0;">
                                             <img src="{{ asset($settings->logo) }}" alt="{{ $settings->app_name }}" style="max-width: 200px; height: auto;">
-                                        </div>
+                                        </div> --}}
 
-                                        {{-- Category Tabs --}}
-                                        <div class="btn-group w-100 mb-3" role="group">
-                                            <button type="button" class="btn btn-sm category-tab-btn active" data-category="general" style="border-radius: 8px 0 0 8px; padding: 10px; font-size: 0.85rem; font-weight: 600;">
-                                                General
-                                            </button>
-                                            <button type="button" class="btn btn-sm category-tab-btn" data-category="medical" style="border-radius: 0 8px 8px 0; padding: 10px; font-size: 0.85rem; font-weight: 600;">
-                                                Medical
-                                            </button>
-                                        </div>
+                                        {{-- Category tabs removed - upload from bottom bar --}}
+                                        {{-- Upload area hidden - use bottom bar upload button --}}
 
-                                        <!-- Upload Area -->
-                                        <div class="upload-drop-zone-3d text-center p-3 mb-3" style="border: 2px dashed #cbd5e0; border-radius: 10px; background: white; cursor: pointer; transition: all 0.3s;">
-                                            <input type="file" id="fileInput3d" style="display: none;" accept=".stl,.obj,.ply" multiple>
-                                            <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" class="mb-2">
-                                                <circle cx="20" cy="20" r="20" fill="#e8f4f8"/>
-                                                <path d="M20 10L26 16L20 22L14 16L20 10Z" stroke="#4a90e2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                                <path d="M14 22L20 28L26 22" stroke="#4a90e2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/>
-                                            </svg>
-                                            <p class="mb-1" style="font-size: 0.9rem; font-weight: 600; color: #2c3e50;">Drop files or click</p>
-                                            <small class="text-muted" style="font-size: 0.8rem;">STL, OBJ, PLY (Max 100MB each) • Multiple files supported</small>
-                                        </div>
+                                        <!-- Hidden file inputs for compatibility -->
+                                        <input type="file" id="fileInput3d" style="display: none;" accept=".stl,.obj,.ply" multiple>
 
                                         <!-- Uploaded Files List -->
                                         <div id="uploadedFilesList" class="mb-3" style="display: none;">
@@ -93,14 +77,70 @@
                                             </div>
                                         </div>
 
-                                        <!-- Price Summary -->
+                                        <!-- Price Summary - Hidden, now shown in bottom bar -->
                                         <div id="priceSummaryGeneral" class="mt-3 p-3" style="display: none !important; background: white; border-radius: 12px; border: 2px solid #e9ecef; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
 
 <script>
-// Hide price summary and sidebar price by default, only show after Save & Calculate and after repair
+// Price display moved to bottom bar
 document.addEventListener('DOMContentLoaded', function() {
     const priceSummaryGeneral = document.getElementById('priceSummaryGeneral');
     if (priceSummaryGeneral) priceSummaryGeneral.style.display = 'none';
+
+    // Hide price from bottom bar initially
+    const bottomPriceDisplay = document.getElementById('bottomPriceDisplay');
+    if (bottomPriceDisplay) bottomPriceDisplay.classList.remove('show');
+
+    // Sync sidebar price to bottom bar
+    function syncPriceToBottomBar() {
+        const sidebarPrice = document.getElementById('quoteTotalPriceGeneral');
+        const sidebarVolume = document.getElementById('quoteTotalVolumeGeneral');
+        const bottomPrice = document.getElementById('bottomTotalPrice');
+        const bottomVolume = document.getElementById('bottomTotalVolume');
+        const bottomDisplay = document.getElementById('bottomPriceDisplay');
+
+        if (sidebarPrice && bottomPrice && bottomDisplay) {
+            const priceText = sidebarPrice.textContent || '$0.00';
+            bottomPrice.textContent = priceText;
+
+            // Sync volume
+            if (sidebarVolume && bottomVolume) {
+                const volumeText = sidebarVolume.textContent || '0 cm³';
+                bottomVolume.textContent = volumeText;
+            }
+
+            // Show bottom price if sidebar price is visible and has value
+            if (sidebarPrice.style.display !== 'none' && priceText !== '$0' && priceText !== '$0.00') {
+                bottomDisplay.classList.add('show');
+            } else {
+                bottomDisplay.classList.remove('show');
+            }
+        }
+    }
+
+    // Watch for price and volume changes
+    const observer = new MutationObserver(syncPriceToBottomBar);
+    const priceElement = document.getElementById('quoteTotalPriceGeneral');
+    const volumeElement = document.getElementById('quoteTotalVolumeGeneral');
+
+    if (priceElement) {
+        observer.observe(priceElement, {
+            childList: true,
+            characterData: true,
+            subtree: true,
+            attributes: true,
+            attributeFilter: ['style']
+        });
+    }
+
+    if (volumeElement) {
+        observer.observe(volumeElement, {
+            childList: true,
+            characterData: true,
+            subtree: true,
+            attributes: true,
+            attributeFilter: ['style']
+        });
+    }
 
     // Hide price summary and sidebar price on file upload or removal
     function hidePriceSummary() {
@@ -111,6 +151,9 @@ document.addEventListener('DOMContentLoaded', function() {
         // Hide volume
         const volumeSidebar = document.getElementById('quoteTotalVolumeGeneral');
         if (volumeSidebar) volumeSidebar.textContent = '';
+        // Hide bottom bar price
+        const bottomDisplay = document.getElementById('bottomPriceDisplay');
+        if (bottomDisplay) bottomDisplay.classList.remove('show');
     }
     const fileInput = document.getElementById('fileInput3d');
     if (fileInput) fileInput.addEventListener('change', hidePriceSummary);
@@ -200,21 +243,24 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
-                                            <div class="d-flex justify-content-between align-items-center mb-2 pb-2" style="border-bottom: 1px solid #f1f3f5;">
-                                                <span style="font-size: 0.8rem; color: #6c757d; font-weight: 500;">Volume</span>
-                                                <strong id="quoteTotalVolumeGeneral" style="font-weight: 600; font-size: 0.85rem; color: #2c3e50; display: none;">0 cm³</strong>
+                                            {{-- Pricing Section - Completely removed, now in bottom bar --}}
+                                            <div style="display: none !important;">
+                                                <div class="d-flex justify-content-between align-items-center mb-2 pb-2" style="border-bottom: 1px solid #f1f3f5;">
+                                                    <span style="font-size: 0.8rem; color: #6c757d; font-weight: 500;">Volume</span>
+                                                    <strong id="quoteTotalVolumeGeneral" style="font-weight: 600; font-size: 0.85rem; color: #2c3e50; display: none;">0 cm³</strong>
+                                                </div>
+                                                <div class="d-flex justify-content-between align-items-center mb-2 pb-2" style="border-bottom: 1px solid #f1f3f5;">
+                                                    <span style="font-size: 0.8rem; color: #6c757d; font-weight: 500;">Print Time</span>
+                                                    <strong id="quotePrintTimeGeneral" style="font-weight: 600; font-size: 0.85rem; color: #2c3e50;">0h</strong>
+                                                </div>
+                                                <div class="d-flex justify-content-between align-items-center mt-2 pt-2">
+                                                    <span style="font-size: 0.85rem; font-weight: 600; color: #495057; text-transform: uppercase; letter-spacing: 0.3px;">Total Price</span>
+                                                    <h4 class="mb-0" id="quoteTotalPriceGeneral" style="font-weight: 700; font-size: 1.3rem; color: #2c3e50; display: none;">$0</h4>
+                                                </div>
+                                                <button type="button" class="btn w-100 mt-2" id="btnRequestQuoteGeneral" style="border-radius: 10px; font-weight: 600; font-size: 0.85rem; padding: 10px; background: #4a90e2; color: white; border: none; transition: all 0.3s; box-shadow: 0 2px 8px rgba(74, 144, 226, 0.3);">
+                                                    Request Quote →
+                                                </button>
                                             </div>
-                                            <div class="d-flex justify-content-between align-items-center mb-2 pb-2" style="border-bottom: 1px solid #f1f3f5;">
-                                                <span style="font-size: 0.8rem; color: #6c757d; font-weight: 500;">Print Time</span>
-                                                <strong id="quotePrintTimeGeneral" style="font-weight: 600; font-size: 0.85rem; color: #2c3e50;">0h</strong>
-                                            </div>
-                                            <div class="d-flex justify-content-between align-items-center mt-2 pt-2">
-                                                <span style="font-size: 0.85rem; font-weight: 600; color: #495057; text-transform: uppercase; letter-spacing: 0.3px;">Total Price</span>
-                                                <h4 class="mb-0" id="quoteTotalPriceGeneral" style="font-weight: 700; font-size: 1.3rem; color: #2c3e50; display: none;">$0</h4>
-                                            </div>
-                                            <button type="button" class="btn w-100 mt-2" id="btnRequestQuoteGeneral" style="border-radius: 10px; font-weight: 600; font-size: 0.85rem; padding: 10px; background: #4a90e2; color: white; border: none; transition: all 0.3s; box-shadow: 0 2px 8px rgba(74, 144, 226, 0.3);">
-                                                Request Quote →
-                                            </button>
                                         </div>
                                     </div>
                                 </div>
@@ -239,6 +285,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
                                         {{-- Professional Toolbar - Top Right --}}
                                         <div class="viewer-professional-toolbar" id="professionalToolbar" style="position: absolute !important; top: 20px !important; right: 20px !important; display: flex !important; visibility: visible !important; opacity: 1 !important; z-index: 9999 !important; background: rgba(255, 255, 255, 0.95) !important; padding: 8px !important; border-radius: 12px !important; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important; pointer-events: auto !important; gap: 8px !important;">
+
+                                            {{-- Logo Group --}}
+                                            <div class="toolbar-group" style="display: flex !important; align-items: center !important; padding-right: 8px !important;">
+                                                <img src="{{ asset($settings->logo) }}" alt="{{ $settings->app_name }}" style="max-height: 36px; width: auto;">
+                                            </div>
+
+                                            <div class="toolbar-divider"></div>
 
                                             {{-- Tools Group --}}
                                             <div class="toolbar-group" style="display: flex !important; gap: 4px !important; visibility: visible !important; opacity: 1 !important;">
@@ -266,6 +319,37 @@ document.addEventListener('DOMContentLoaded', function() {
                                                 <button type="button" class="toolbar-btn" id="gridToggleBtn" title="Measurement Grid" data-tool="grid" onclick="window.toolbarHandler.toggleGrid('General')">
                                                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                                                         <path d="M2 6H18M2 10H18M2 14H18M6 2V18M10 2V18M14 2V18" stroke="currentColor" stroke-width="1.5" opacity="0.6"/>
+                                                    </svg>
+                                                </button>
+                                                <button type="button" class="toolbar-btn" id="panToolBtn" title="Move Model - Drag to reposition" data-tool="pan" onclick="window.toolbarHandler.toggleMoveMode('General')">
+                                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                                        <path d="M13 5L13 11M13 11L10 8M13 11L16 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                        <path d="M13 19L13 13M13 13L10 16M13 13L16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                        <path d="M5 13L11 13M11 13L8 10M11 13L8 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                        <path d="M19 13L13 13M13 13L16 10M13 13L16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                        <circle cx="13" cy="13" r="2" fill="currentColor"/>
+                                                    </svg>
+                                                </button>
+                                                <button type="button" class="toolbar-btn" id="autoRotateBtn" title="Auto-rotate Model" data-tool="autoRotate" onclick="window.toolbarHandler.toggleAutoRotate('General')">
+                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                                        <path d="M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C12.0605 3 13.8792 3.91099 15 5.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                                                        <path d="M17 3V7H13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                                                    </svg>
+                                                </button>
+                                                {{-- Bottom Control Bar Functions - Now in Top Toolbar --}}
+                                                <button type="button" class="toolbar-btn" id="toggleGridBtnMain" title="Toggle grid visibility" data-tool="gridMain" onclick="window.toolbarHandler.toggleGridMain('General')">
+                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                                        <rect x="3" y="3" width="5" height="5" stroke="currentColor" stroke-width="1.5"/>
+                                                        <rect x="11" y="3" width="5" height="5" stroke="currentColor" stroke-width="1.5"/>
+                                                        <rect x="3" y="11" width="5" height="5" stroke="currentColor" stroke-width="1.5"/>
+                                                        <rect x="11" y="11" width="5" height="5" stroke="currentColor" stroke-width="1.5"/>
+                                                    </svg>
+                                                </button>
+                                                <button type="button" class="toolbar-btn" id="measureToolBtnMain" title="Measure distance between two points" data-tool="measureMain" onclick="window.toolbarHandler.toggleMeasureMain('General')">
+                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                                        <path d="M2 2L18 18M2 2L2 18M18 2L18 18M2 18L18 18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                                                        <circle cx="2" cy="2" r="1.5" fill="currentColor"/>
+                                                        <circle cx="18" cy="18" r="1.5" fill="currentColor"/>
                                                     </svg>
                                                 </button>
                                             </div>
@@ -321,6 +405,65 @@ document.addEventListener('DOMContentLoaded', function() {
                                                         <rect x="2" y="5" width="16" height="12" rx="2" stroke="currentColor" stroke-width="1.8"/>
                                                         <circle cx="10" cy="11" r="2.5" stroke="currentColor" stroke-width="1.8"/>
                                                         <path d="M6 5L7 3H13L14 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                                                    </svg>
+                                                </button>
+                                            </div>
+
+                                            <div class="toolbar-divider"></div>
+
+                                            {{-- Camera View Controls --}}
+                                            <div class="toolbar-group">
+                                                <button type="button" class="toolbar-btn camera-btn" data-view="top" title="Top View">
+                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                                                        <path d="M12 5L12 19M12 5L8 9M12 5L16 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                                    </svg>
+                                                </button>
+                                                <button type="button" class="toolbar-btn camera-btn active" data-view="front" title="Front View">
+                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                                                        <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/>
+                                                        <circle cx="12" cy="12" r="3" fill="currentColor"/>
+                                                    </svg>
+                                                </button>
+                                                <button type="button" class="toolbar-btn camera-btn" data-view="right" title="Right View">
+                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                                                        <path d="M19 12L5 12M19 12L15 8M19 12L15 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                                    </svg>
+                                                </button>
+                                                <button type="button" class="toolbar-btn camera-btn" data-view="left" title="Left View">
+                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                                                        <path d="M5 12L19 12M5 12L9 8M5 12L9 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                                    </svg>
+                                                </button>
+                                                <button type="button" class="toolbar-btn camera-btn" data-view="bottom" title="Bottom View">
+                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                                                        <path d="M12 19L12 5M12 19L8 15M12 19L16 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                                    </svg>
+                                                </button>
+                                                <button type="button" class="toolbar-btn camera-btn" data-view="reset" title="Reset Camera">
+                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                                                        <path d="M12 4V1L8 5L12 9V6C15.31 6 18 8.69 18 12C18 13.01 17.75 13.97 17.3 14.8L18.76 16.26C19.54 15.03 20 13.57 20 12C20 7.58 16.42 4 12 4ZM12 18C8.69 18 6 15.31 6 12C6 10.99 6.25 10.03 6.7 9.2L5.24 7.74C4.46 8.97 4 10.43 4 12C4 16.42 7.58 20 12 20V23L16 19L12 15V18Z" fill="currentColor"/>
+                                                    </svg>
+                                                </button>
+                                            </div>
+
+                                            {{-- Divider --}}
+                                            <div style="width: 1px; height: 32px; background: rgba(0,0,0,0.1); margin: 0 4px;"></div>
+
+                                            {{-- Action Buttons Group --}}
+                                            <div class="toolbar-group" style="display: flex !important; gap: 4px !important; visibility: visible !important; opacity: 1 !important;">
+                                                <button type="button" class="toolbar-btn" id="shareToolBtn" title="Share Model" data-action="share" onclick="window.toolbarHandler.shareModel('General')">
+                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                                        <circle cx="15" cy="4" r="3" stroke="currentColor" stroke-width="1.8"/>
+                                                        <circle cx="5" cy="10" r="3" stroke="currentColor" stroke-width="1.8"/>
+                                                        <circle cx="15" cy="16" r="3" stroke="currentColor" stroke-width="1.8"/>
+                                                        <path d="M7.5 11.5L12.5 14.5M12.5 5.5L7.5 8.5" stroke="currentColor" stroke-width="1.8"/>
+                                                    </svg>
+                                                </button>
+                                                <button type="button" class="toolbar-btn toolbar-btn-primary" id="saveCalculateToolBtn" title="Save & Calculate Pricing" data-action="saveCalculate" onclick="window.toolbarHandler.saveAndCalculate('General')">
+                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                                        <path d="M16 18H4C3 18 2 17 2 16V4C2 3 3 2 4 2H13L18 7V16C18 17 17 18 16 18Z" stroke="currentColor" stroke-width="1.8"/>
+                                                        <path d="M5 11H15V18H5V11Z" stroke="currentColor" stroke-width="1.8"/>
+                                                        <path d="M14 2V6H6V2" stroke="currentColor" stroke-width="1.8"/>
                                                     </svg>
                                                 </button>
                                             </div>
@@ -526,27 +669,11 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <!-- Left Side: Controls -->
                                 <div class="col-12 col-lg-3" style="background: #f8f9fa; border-right: 1px solid #e9ecef;">
                                     <div class="">
-                                        <!-- Category Tabs -->
-                                        <div class="btn-group w-100 mb-3" role="group">
-                                            <button type="button" class="btn btn-sm category-tab-btn" data-category="general" style="border-radius: 8px 0 0 8px; padding: 10px; font-size: 0.85rem; font-weight: 600;">
-                                                General
-                                            </button>
-                                            <button type="button" class="btn btn-sm category-tab-btn active" data-category="medical" style="border-radius: 0 8px 8px 0; padding: 10px; font-size: 0.85rem; font-weight: 600;">
-                                                Medical
-                                            </button>
-                                        </div>
+                                        {{-- Category tabs removed - upload from bottom bar --}}
+                                        {{-- Upload area hidden - use bottom bar upload button --}}
 
-                                        <!-- Upload Area -->
-                                        <div class="upload-drop-zone-3d text-center p-3 mb-3" style="border: 2px dashed #cbd5e0; border-radius: 10px; background: white; cursor: pointer; transition: all 0.3s;">
-                                            <input type="file" id="fileInput3dMedical" style="display: none;" accept=".stl,.obj,.ply" multiple>
-                                            <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" class="mb-2">
-                                                <circle cx="20" cy="20" r="20" fill="#e8f4f8"/>
-                                                <path d="M20 10L26 16L20 22L14 16L20 10Z" stroke="#4a90e2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                                <path d="M14 22L20 28L26 22" stroke="#4a90e2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/>
-                                            </svg>
-                                            <p class="mb-1" style="font-size: 0.9rem; font-weight: 600; color: #2c3e50;">Drop files or click</p>
-                                            <small class="text-muted" style="font-size: 0.8rem;">STL, OBJ, PLY (Max 100MB each) • Multiple files supported</small>
-                                        </div>
+                                        <!-- Hidden file inputs for compatibility -->
+                                        <input type="file" id="fileInput3dMedical" style="display: none;" accept=".stl,.obj,.ply" multiple>
 
                                         <!-- Uploaded Files List -->
                                         <div id="uploadedFilesListMedical" class="mb-3" style="display: none;">
@@ -1462,6 +1589,23 @@ document.addEventListener('DOMContentLoaded', function() {
     color: white;
     border-color: #4a90e2;
     box-shadow: 0 2px 8px rgba(74, 144, 226, 0.4);
+}
+
+.toolbar-btn-primary {
+    background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%) !important;
+    color: white !important;
+    border-color: #357abd !important;
+    font-weight: 600;
+}
+
+.toolbar-btn-primary:hover {
+    background: linear-gradient(135deg, #357abd 0%, #2868a8 100%) !important;
+    box-shadow: 0 6px 16px rgba(74, 144, 226, 0.4) !important;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
 }
 
 .toolbar-btn:disabled {
@@ -2602,6 +2746,10 @@ document.addEventListener('DOMContentLoaded', function() {
                  data-file-id="${fileData.id}"
                  onclick="selectFile('${formType}', ${fileData.id})">
                 <div class="d-flex align-items-center flex-grow-1">
+                    <!-- Order Number -->
+                    <div class="file-order-number" style="width: 24px; height: 24px; background: linear-gradient(135deg, #0047AD 0%, #003580 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.7rem; font-weight: bold; margin-right: 8px; flex-shrink: 0;">
+                        ${index + 1}
+                    </div>
                     <div class="file-icon me-2" style="width: 32px; height: 32px; background: #0047AD; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.7rem; font-weight: bold;">
                         ${getFileExtension(fileData.file.name).toUpperCase()}
                     </div>
@@ -2635,6 +2783,11 @@ document.addEventListener('DOMContentLoaded', function() {
         `).join('');
 
         console.log(`✓ File list updated for ${formType}: ${files.length} files`);
+
+        // Dispatch event to notify bottom bar of file count
+        window.dispatchEvent(new CustomEvent('filesUploaded', {
+            detail: { count: files.length, formType: formType }
+        }));
 
         // Attach visibility toggle handlers
         attachVisibilityHandlers(formType, viewer);
@@ -3032,9 +3185,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // }
     console.log('ℹ️ Save & Calculate handler delegated to quote.blade.php (EnhancedSaveCalculate module)');
 
-    // Inject Screenshot and Share buttons into bottom toolbar
+    // Inject Screenshot button into bottom toolbar (Share & Save moved to top toolbar)
     function injectToolbarButtons() {
-        console.log('🔧 Injecting screenshot and share buttons...');
+        console.log('🔧 Injecting screenshot button (Share & Save moved to top toolbar)...');
 
         // Find the tools section in the bottom control bar
         const toolsSections = document.querySelectorAll('.tool-buttons');
@@ -3048,9 +3201,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const isGeneral = index === 0;
             const screenshotId = isGeneral ? 'screenshotBtnMain' : 'screenshotBtnMedicalMain';
-            const shareId = isGeneral ? 'shareBtnMain' : 'shareBtnMedicalMain';
 
-            // Create Screenshot button
+            // Create Screenshot button only (Share and Save now in top toolbar)
             const screenshotBtn = document.createElement('button');
             screenshotBtn.type = 'button';
             screenshotBtn.className = 'control-btn tool-btn';
@@ -3065,73 +3217,63 @@ document.addEventListener('DOMContentLoaded', function() {
                 <span>Screenshot</span>
             `;
 
-            // Create Share button
-            const shareBtn = document.createElement('button');
-            shareBtn.type = 'button';
-            shareBtn.className = 'control-btn tool-btn';
-            shareBtn.id = shareId;
-            shareBtn.title = 'Share Model';
-            shareBtn.innerHTML = `
-                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                    <circle cx="13" cy="4" r="2.5" stroke="currentColor" stroke-width="1.5"/>
-                    <circle cx="5" cy="9" r="2.5" stroke="currentColor" stroke-width="1.5"/>
-                    <circle cx="13" cy="14" r="2.5" stroke="currentColor" stroke-width="1.5"/>
-                    <path d="M7.5 10L10.5 12.5M7.5 8L10.5 5.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                </svg>
-                <span>Share</span>
-            `;
-
-            // Add buttons to toolbar
+            // Add button to toolbar
             toolsSection.appendChild(screenshotBtn);
-            toolsSection.appendChild(shareBtn);
 
-            console.log(`✅ Added screenshot and share buttons to toolbar ${index}`);
+            console.log(`✅ Added screenshot button to toolbar ${index}`);
 
-            // Add event listeners
+            // Add event listener for screenshot
             screenshotBtn.addEventListener('click', function() {
-                console.log('📸 Screenshot button clicked');
+                console.log('📸 Screenshot button clicked (bottom toolbar)');
                 const viewerId = isGeneral ? 'viewer3dGeneral' : 'viewer3dMedical';
                 const viewer = isGeneral ? window.viewerGeneral : window.viewerMedical;
 
-                if (!viewer) {
-                    console.error('Viewer not found!');
+                if (!viewer || !viewer.renderer || !viewer.scene || !viewer.camera) {
+                    console.error('Viewer not ready for screenshot');
+                    showToolbarNotification('Viewer not ready, please wait...', 'warning', 2000);
                     return;
                 }
 
                 try {
-                    // Render the scene
+                    // Force a fresh render before capturing
                     viewer.renderer.render(viewer.scene, viewer.camera);
 
-                    // Get the canvas as data URL
-                    const dataURL = viewer.renderer.domElement.toDataURL('image/png');
+                    // Get the canvas element
+                    const canvas = viewer.renderer.domElement;
+
+                    // Create a new canvas with white background
+                    const screenshotCanvas = document.createElement('canvas');
+                    screenshotCanvas.width = canvas.width;
+                    screenshotCanvas.height = canvas.height;
+                    const ctx = screenshotCanvas.getContext('2d');
+
+                    // Fill with white background
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(0, 0, screenshotCanvas.width, screenshotCanvas.height);
+
+                    // Draw the 3D viewer canvas on top
+                    ctx.drawImage(canvas, 0, 0);
+
+                    // Convert to data URL with high quality
+                    const dataURL = screenshotCanvas.toDataURL('image/png', 1.0);
 
                     // Create download link
+                    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').substring(0, 19);
+                    const filename = `3d-model-${isGeneral ? 'general' : 'medical'}-${timestamp}.png`;
                     const link = document.createElement('a');
-                    link.download = `3d-model-screenshot-${Date.now()}.png`;
+                    link.download = filename;
                     link.href = dataURL;
                     link.click();
 
-                    console.log('✅ Screenshot captured successfully');
+                    console.log('✅ Screenshot captured successfully:', filename);
+                    showToolbarNotification('Screenshot saved! ✓', 'success', 2000);
 
                     // Visual feedback
                     this.classList.add('active');
                     setTimeout(() => this.classList.remove('active'), 500);
                 } catch (error) {
                     console.error('Screenshot error:', error);
-                }
-            });
-
-            shareBtn.addEventListener('click', function() {
-                console.log('🔗 Share button clicked');
-
-                if (window.shareModal) {
-                    // Get the first file ID if available
-                    const filesList = document.querySelectorAll('[data-file-id]');
-                    const firstFileId = filesList.length > 0 ? filesList[0].dataset.fileId : null;
-
-                    window.shareModal.open(firstFileId);
-                } else {
-                    console.error('Share modal not found!');
+                    showToolbarNotification('Screenshot failed: ' + error.message, 'error', 3000);
                 }
             });
         });
@@ -4535,22 +4677,39 @@ window.toolbarHandler = {
             return;
         }
 
-        if (!viewer.renderer) {
+        if (!viewer.renderer || !viewer.scene || !viewer.camera) {
             showToolbarNotification('Renderer loading, please wait...', 'warning');
             return;
         }
 
         try {
-            if (viewer.render && typeof viewer.render === 'function') {
-                viewer.render();
-            }
+            // Force a fresh render before capturing
+            viewer.renderer.render(viewer.scene, viewer.camera);
 
+            // Get the canvas element
             const canvas = viewer.renderer.domElement;
-            const dataURL = canvas.toDataURL('image/png');
 
+            // Create a new canvas with white background
+            const screenshotCanvas = document.createElement('canvas');
+            screenshotCanvas.width = canvas.width;
+            screenshotCanvas.height = canvas.height;
+            const ctx = screenshotCanvas.getContext('2d');
+
+            // Fill with white background
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, screenshotCanvas.width, screenshotCanvas.height);
+
+            // Draw the 3D viewer canvas on top
+            ctx.drawImage(canvas, 0, 0);
+
+            // Convert to data URL
+            const dataURL = screenshotCanvas.toDataURL('image/png', 1.0);
+
+            // Generate filename with timestamp
             const timestamp = new Date().toISOString().replace(/[:.]/g, '-').substring(0, 19);
             const filename = `3d-model-${viewerType.toLowerCase()}-${timestamp}.png`;
 
+            // Create download link
             const link = document.createElement('a');
             link.href = dataURL;
             link.download = filename;
@@ -4558,7 +4717,17 @@ window.toolbarHandler = {
             link.click();
             document.body.removeChild(link);
 
-            showToolbarNotification('Screenshot saved successfully!', 'success', 2000);
+            // Show success message
+            showToolbarNotification('Screenshot saved successfully! ✓', 'success', 2000);
+
+            // Visual feedback on button
+            const screenshotBtn = document.getElementById('screenshotToolBtn');
+            if (screenshotBtn) {
+                screenshotBtn.classList.add('active');
+                setTimeout(() => screenshotBtn.classList.remove('active'), 500);
+            }
+
+            console.log('✅ Screenshot captured:', filename);
 
         } catch (error) {
             console.error('❌ Screenshot failed:', error);
@@ -4768,6 +4937,632 @@ window.toolbarHandler = {
                 picker.remove();
             });
         });
+    },
+
+    // ============================================
+    // MOVE/PAN TOOL - Drag models to reposition
+    // ============================================
+    toggleMoveMode: function(viewerType) {
+        console.log(`🖐️ Toggle Move Mode for ${viewerType}`);
+
+        const viewer = viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral;
+        if (!viewer || !viewer.uploadedFiles || viewer.uploadedFiles.length === 0) {
+            console.warn('⚠️ Cannot enable move mode: No file uploaded');
+            showToolbarNotification('Please upload a 3D model first', 'warning', 2000);
+            return;
+        }
+
+        // Toggle pan mode state
+        window.panMode = !window.panMode;
+        const panToolBtn = document.getElementById('panToolBtn');
+
+        if (panToolBtn) {
+            if (window.panMode) {
+                panToolBtn.classList.add('active');
+            } else {
+                panToolBtn.classList.remove('active');
+            }
+        }
+
+        console.log('👋 Pan mode:', window.panMode ? 'ENABLED ✅' : 'DISABLED ❌');
+        console.log('   Viewer:', viewer ? 'Available ✅' : 'Not available ❌');
+        console.log('   Files loaded:', viewer.uploadedFiles.length);
+
+        // Attach/detach handlers directly to canvas
+        if (window.panMode && viewer.renderer && viewer.renderer.domElement) {
+            const canvas = viewer.renderer.domElement;
+            console.log('🎯 Attaching pan handlers directly to canvas');
+
+            // Store handlers for later removal
+            if (!window.canvasPanHandlers) {
+                window.canvasPanHandlers = {
+                    pointerdown: (e) => this.handleCanvasMouseDown(e, viewer),
+                    pointermove: (e) => this.handleCanvasMouseMove(e, viewer),
+                    pointerup: (e) => this.handleCanvasMouseUp(e, viewer)
+                };
+            }
+
+            // Use POINTER events (modern browsers)
+            canvas.addEventListener('pointerdown', window.canvasPanHandlers.pointerdown);
+            document.addEventListener('pointermove', window.canvasPanHandlers.pointermove);
+            document.addEventListener('pointerup', window.canvasPanHandlers.pointerup);
+
+            canvas.style.cursor = 'grab';
+            console.log('✅ Canvas pan handlers attached');
+            showToolbarNotification('Move mode enabled - Drag models to reposition', 'success', 2000);
+        } else if (!window.panMode && window.canvasPanHandlers && viewer.renderer) {
+            const canvas = viewer.renderer.domElement;
+            console.log('🔌 Removing pan handlers from canvas');
+
+            // Remove handlers
+            canvas.removeEventListener('pointerdown', window.canvasPanHandlers.pointerdown);
+            document.removeEventListener('pointermove', window.canvasPanHandlers.pointermove);
+            document.removeEventListener('pointerup', window.canvasPanHandlers.pointerup);
+
+            canvas.style.cursor = 'default';
+            console.log('✅ Canvas pan handlers removed');
+            showToolbarNotification('Move mode disabled', 'info', 1500);
+        }
+
+        // When pan mode is active, disable rotation but keep zoom
+        if (viewer.controls) {
+            viewer.controls.enableRotate = !window.panMode;
+            viewer.controls.enablePan = false; // Always disable OrbitControls pan
+            viewer.controls.enableZoom = true; // Keep zoom enabled always
+        }
+    },
+
+    // Canvas-specific pan handlers
+    handleCanvasMouseDown: function(e, viewer) {
+        console.log('🖱️ CANVAS MOUSEDOWN - Pan drag starting');
+
+        if (!viewer || !window.THREE) return;
+
+        const canvas = viewer.renderer.domElement;
+        const rect = canvas.getBoundingClientRect();
+        const mouse = new window.THREE.Vector2(
+            ((e.clientX - rect.left) / rect.width) * 2 - 1,
+            -((e.clientY - rect.top) / rect.height) * 2 + 1
+        );
+
+        const raycaster = new window.THREE.Raycaster();
+        raycaster.setFromCamera(mouse, viewer.camera);
+
+        // Find all model meshes
+        const meshes = [];
+        if (viewer.uploadedFiles && viewer.uploadedFiles.length > 0) {
+            viewer.uploadedFiles.forEach(fileData => {
+                if (fileData.mesh) {
+                    meshes.push(fileData.mesh);
+                }
+            });
+        }
+
+        console.log('   Meshes found for raycasting:', meshes.length);
+
+        const intersects = raycaster.intersectObjects(meshes, true);
+        console.log('   Intersections found:', intersects.length);
+
+        if (intersects.length > 0) {
+            let clickedObject = intersects[0].object;
+            window.selectedModel = null;
+
+            // Find which fileData mesh was clicked
+            for (const fileData of viewer.uploadedFiles) {
+                if (fileData.mesh === clickedObject) {
+                    window.selectedModel = fileData.mesh;
+                    break;
+                }
+
+                // Check if clickedObject is a descendant
+                let parent = clickedObject.parent;
+                while (parent) {
+                    if (parent === fileData.mesh) {
+                        window.selectedModel = fileData.mesh;
+                        break;
+                    }
+                    if (parent.name === 'modelGroup' || parent.type === 'Group' && parent.parent?.type === 'Scene') {
+                        break;
+                    }
+                    parent = parent.parent;
+                }
+                if (window.selectedModel) break;
+            }
+
+            if (!window.selectedModel) {
+                console.log('   ❌ Could not find matching mesh');
+                return;
+            }
+
+            window.isPanning = true;
+            canvas.style.cursor = 'grabbing';
+
+            // Highlight the selected model
+            if (window.selectedModel.material) {
+                window.originalMaterialEmissive = window.selectedModel.material.emissive
+                    ? window.selectedModel.material.emissive.getHex()
+                    : 0x000000;
+                window.selectedModel.material.emissive = new window.THREE.Color(0x4488ff);
+                window.selectedModel.material.emissiveIntensity = 0.3;
+            }
+
+            // Create drag plane
+            const normal = new window.THREE.Vector3(0, 0, 1);
+            normal.applyQuaternion(viewer.camera.quaternion);
+            window.dragPlane = new window.THREE.Plane();
+            window.dragPlane.setFromNormalAndCoplanarPoint(normal, window.selectedModel.position);
+
+            // Calculate offset
+            const intersectionPoint = new window.THREE.Vector3();
+            raycaster.ray.intersectPlane(window.dragPlane, intersectionPoint);
+            window.dragOffset = new window.THREE.Vector3();
+            window.dragOffset.subVectors(window.selectedModel.position, intersectionPoint);
+
+            console.log('👆 Drag started - Moving model:', window.selectedModel.name || 'unnamed');
+
+            // Disable orbit controls while dragging
+            if (viewer.controls) {
+                viewer.controls.enabled = false;
+            }
+        }
+    },
+
+    handleCanvasMouseMove: function(e, viewer) {
+        if (!window.isPanning || !window.selectedModel || !viewer || !viewer.camera) return;
+        if (!window.THREE) return;
+
+        const canvas = viewer.renderer.domElement;
+        const rect = canvas.getBoundingClientRect();
+        const mouse = new window.THREE.Vector2(
+            ((e.clientX - rect.left) / rect.width) * 2 - 1,
+            -((e.clientY - rect.top) / rect.height) * 2 + 1
+        );
+
+        const raycaster = new window.THREE.Raycaster();
+        raycaster.setFromCamera(mouse, viewer.camera);
+
+        // Find intersection with drag plane
+        const intersectionPoint = new window.THREE.Vector3();
+        if (raycaster.ray.intersectPlane(window.dragPlane, intersectionPoint)) {
+            // Move model to new position
+            window.selectedModel.position.copy(intersectionPoint).add(window.dragOffset);
+        }
+
+        e.preventDefault();
+    },
+
+    handleCanvasMouseUp: function(e, viewer) {
+        if (window.isPanning && window.THREE) {
+            // Remove highlight from selected model
+            if (window.selectedModel && window.selectedModel.material) {
+                window.selectedModel.material.emissive = new window.THREE.Color(window.originalMaterialEmissive || 0x000000);
+                window.selectedModel.material.emissiveIntensity = 0;
+            }
+
+            window.isPanning = false;
+            window.selectedModel = null;
+            window.dragPlane = null;
+            window.originalMaterialEmissive = null;
+
+            console.log('✋ Drag ended - Model repositioned');
+
+            if (viewer && viewer.renderer) {
+                viewer.renderer.domElement.style.cursor = window.panMode ? 'grab' : 'default';
+            }
+
+            // Re-enable orbit controls
+            if (viewer && viewer.controls) {
+                viewer.controls.enabled = true;
+            }
+        }
+    },
+
+    // ============================================
+    // AUTO-ROTATE TOGGLE
+    // ============================================
+    toggleAutoRotate: function(viewerType) {
+        console.log(`🔄 Toggle Auto-Rotate for ${viewerType}`);
+
+        const viewer = viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral;
+        if (!viewer || !viewer.uploadedFiles || viewer.uploadedFiles.length === 0) {
+            console.warn('⚠️ Cannot toggle auto-rotate: No file uploaded');
+            showToolbarNotification('Please upload a 3D model first', 'warning', 2000);
+            return;
+        }
+
+        // Toggle auto-rotate state
+        if (!window.autoRotateEnabled) {
+            window.autoRotateEnabled = {};
+        }
+
+        const isCurrentlyEnabled = window.autoRotateEnabled[viewerType] || false;
+        window.autoRotateEnabled[viewerType] = !isCurrentlyEnabled;
+
+        const autoRotateBtn = document.getElementById('autoRotateBtn');
+
+        if (autoRotateBtn) {
+            if (window.autoRotateEnabled[viewerType]) {
+                autoRotateBtn.classList.add('active');
+            } else {
+                autoRotateBtn.classList.remove('active');
+            }
+        }
+
+        // Enable/disable auto-rotation in controls
+        if (viewer.controls) {
+            viewer.controls.autoRotate = window.autoRotateEnabled[viewerType];
+            viewer.controls.autoRotateSpeed = 2.0;
+            console.log('🔄 Auto-rotate:', window.autoRotateEnabled[viewerType] ? 'ENABLED ✅' : 'DISABLED ❌');
+
+            showToolbarNotification(
+                window.autoRotateEnabled[viewerType] ? 'Auto-rotate enabled' : 'Auto-rotate disabled',
+                'success',
+                1500
+            );
+        }
+    },
+
+    // ============================================
+    // GRID TOGGLE - From Bottom Control Bar
+    // ============================================
+    toggleGridMain: function(viewerType) {
+        console.log(`🏁 Toggle Grid (Main) for ${viewerType}`);
+
+        const viewer = viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral;
+        if (!viewer || !viewer.scene) {
+            console.warn('⚠️ Cannot toggle grid: Viewer not ready');
+            showToolbarNotification('Please wait for the 3D viewer to load', 'warning', 2000);
+            return;
+        }
+
+        // Toggle grid visibility state
+        if (!window.gridVisibleMain) {
+            window.gridVisibleMain = {};
+        }
+
+        const isCurrentlyVisible = window.gridVisibleMain[viewerType] !== false; // Default true
+        window.gridVisibleMain[viewerType] = !isCurrentlyVisible;
+
+        const gridBtn = document.getElementById('toggleGridBtnMain');
+
+        if (gridBtn) {
+            if (window.gridVisibleMain[viewerType]) {
+                gridBtn.classList.add('active');
+            } else {
+                gridBtn.classList.remove('active');
+            }
+        }
+
+        // Find and toggle grid helper
+        const ground = viewer.scene.children.find(child => child.name === 'ground' || child.type === 'GridHelper');
+        if (ground) {
+            ground.visible = window.gridVisibleMain[viewerType];
+            console.log('🏁 Grid visibility:', window.gridVisibleMain[viewerType] ? 'SHOWN ✅' : 'HIDDEN ❌');
+
+            showToolbarNotification(
+                window.gridVisibleMain[viewerType] ? 'Grid enabled' : 'Grid disabled',
+                'success',
+                1500
+            );
+        } else {
+            console.warn('⚠️ Grid helper not found in scene');
+        }
+    },
+
+    // ============================================
+    // MEASURE TOOL - From Bottom Control Bar (Two-Point Distance)
+    // ============================================
+    toggleMeasureMain: function(viewerType) {
+        console.log(`📏 Toggle Measure Tool (Main) for ${viewerType}`);
+
+        const viewer = viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral;
+        if (!viewer || !viewer.scene) {
+            console.warn('⚠️ Cannot toggle measure tool: Viewer not ready');
+            showToolbarNotification('Please wait for the 3D viewer to load', 'warning', 2000);
+            return;
+        }
+
+        // Toggle measurement mode state
+        if (!window.measurementModeMain) {
+            window.measurementModeMain = {};
+            window.measurementPointsMain = {};
+            window.measurementMarkersMain = {};
+            window.measurementLineMain = {};
+            window.measurementLabelMain = {};
+        }
+
+        const isCurrentlyActive = window.measurementModeMain[viewerType] || false;
+        window.measurementModeMain[viewerType] = !isCurrentlyActive;
+
+        const measureBtn = document.getElementById('measureToolBtnMain');
+
+        if (measureBtn) {
+            if (window.measurementModeMain[viewerType]) {
+                measureBtn.classList.add('active');
+                showToolbarNotification('Measurement mode: Click first point on model', 'info', 3000);
+
+                // Attach canvas click handler
+                if (!viewer.canvas.dataset.measureHandlerAttached) {
+                    viewer.canvas.addEventListener('click', (e) => this.handleMeasurementClickMain(e, viewer, viewerType));
+                    viewer.canvas.dataset.measureHandlerAttached = 'true';
+                }
+            } else {
+                measureBtn.classList.remove('active');
+                showToolbarNotification('Measurement mode disabled', 'info', 1500);
+
+                // Clear measurements
+                this.clearMeasurementMain(viewer, viewerType);
+            }
+        }
+    },
+
+    handleMeasurementClickMain: function(event, viewer, viewerType) {
+        if (!window.measurementModeMain || !window.measurementModeMain[viewerType]) return;
+
+        const THREE = window.THREE;
+        const rect = viewer.canvas.getBoundingClientRect();
+        const mouse = new THREE.Vector2();
+        mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+        const raycaster = new THREE.Raycaster();
+        raycaster.setFromCamera(mouse, viewer.camera);
+
+        let intersects = [];
+        if (viewer.modelGroup) {
+            intersects = raycaster.intersectObjects(viewer.modelGroup.children, true);
+        }
+
+        if (intersects.length === 0) return;
+
+        const point = intersects[0].point;
+
+        if (!window.measurementPointsMain[viewerType]) {
+            window.measurementPointsMain[viewerType] = [];
+            window.measurementMarkersMain[viewerType] = [];
+        }
+
+        if (window.measurementPointsMain[viewerType].length === 0) {
+            // First point
+            window.measurementPointsMain[viewerType].push(point);
+            this.createMeasurementMarkerMain(viewer, point, viewerType, 0);
+            showToolbarNotification('First point set! Click second point', 'info', 2000);
+        } else if (window.measurementPointsMain[viewerType].length === 1) {
+            // Second point - calculate distance
+            window.measurementPointsMain[viewerType].push(point);
+            this.createMeasurementMarkerMain(viewer, point, viewerType, 1);
+            this.drawMeasurementLineMain(viewer, viewerType);
+            this.calculateDistanceMain(viewer, viewerType);
+        } else {
+            // Reset for new measurement
+            this.clearMeasurementMain(viewer, viewerType);
+            window.measurementPointsMain[viewerType] = [point];
+            this.createMeasurementMarkerMain(viewer, point, viewerType, 0);
+            showToolbarNotification('New measurement: Click second point', 'info', 2000);
+        }
+    },
+
+    createMeasurementMarkerMain: function(viewer, position, viewerType, index) {
+        const THREE = window.THREE;
+        const geometry = new THREE.SphereGeometry(2, 16, 16);
+        const material = new THREE.MeshBasicMaterial({
+            color: index === 0 ? 0x00ff00 : 0xff0000,
+            transparent: true,
+            opacity: 0.8
+        });
+        const marker = new THREE.Mesh(geometry, material);
+        marker.position.copy(position);
+        viewer.scene.add(marker);
+
+        if (!window.measurementMarkersMain[viewerType]) {
+            window.measurementMarkersMain[viewerType] = [];
+        }
+        window.measurementMarkersMain[viewerType].push(marker);
+    },
+
+    drawMeasurementLineMain: function(viewer, viewerType) {
+        const THREE = window.THREE;
+        const points = window.measurementPointsMain[viewerType];
+        if (points.length < 2) return;
+
+        const curve = new THREE.LineCurve3(points[0], points[1]);
+        const tubeGeometry = new THREE.TubeGeometry(curve, 1, 0.5, 8, false);
+        const material = new THREE.MeshBasicMaterial({
+            color: 0x0000ff,
+            transparent: true,
+            opacity: 0.8
+        });
+        const line = new THREE.Mesh(tubeGeometry, material);
+        viewer.scene.add(line);
+        window.measurementLineMain[viewerType] = line;
+    },
+
+    calculateDistanceMain: function(viewer, viewerType) {
+        const THREE = window.THREE;
+        const points = window.measurementPointsMain[viewerType];
+        if (points.length < 2) return;
+
+        const distance = points[0].distanceTo(points[1]);
+        const midPoint = new THREE.Vector3().addVectors(points[0], points[1]).multiplyScalar(0.5);
+
+        // Create label
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        canvas.width = 512;
+        canvas.height = 128;
+
+        context.fillStyle = 'rgba(0, 0, 0, 0.8)';
+        context.fillRect(0, 0, canvas.width, canvas.height);
+        context.strokeStyle = '#ffff00';
+        context.lineWidth = 4;
+        context.strokeRect(2, 2, canvas.width - 4, canvas.height - 4);
+
+        const text = `${distance.toFixed(2)} mm`;
+        context.font = 'bold 48px Arial';
+        context.fillStyle = 'white';
+        context.textAlign = 'center';
+        context.textBaseline = 'middle';
+        context.fillText(text, canvas.width / 2, canvas.height / 2);
+
+        const texture = new THREE.CanvasTexture(canvas);
+        const geometry = new THREE.PlaneGeometry(40, 10);
+        const material = new THREE.MeshBasicMaterial({
+            map: texture,
+            transparent: true,
+            side: THREE.DoubleSide
+        });
+        const label = new THREE.Mesh(geometry, material);
+        label.position.copy(midPoint);
+        label.position.y += 15;
+        viewer.scene.add(label);
+        window.measurementLabelMain[viewerType] = label;
+
+        showToolbarNotification(`Distance: ${distance.toFixed(2)} mm`, 'success', 3000);
+    },
+
+    clearMeasurementMain: function(viewer, viewerType) {
+        // Clear markers
+        if (window.measurementMarkersMain[viewerType]) {
+            window.measurementMarkersMain[viewerType].forEach(marker => viewer.scene.remove(marker));
+            window.measurementMarkersMain[viewerType] = [];
+        }
+
+        // Clear line
+        if (window.measurementLineMain[viewerType]) {
+            viewer.scene.remove(window.measurementLineMain[viewerType]);
+            window.measurementLineMain[viewerType] = null;
+        }
+
+        // Clear label
+        if (window.measurementLabelMain[viewerType]) {
+            viewer.scene.remove(window.measurementLabelMain[viewerType]);
+            window.measurementLabelMain[viewerType] = null;
+        }
+
+        // Clear points
+        if (window.measurementPointsMain[viewerType]) {
+            window.measurementPointsMain[viewerType] = [];
+        }
+    },
+
+    // ============================================
+    // SHARE MODEL - From Top Toolbar
+    // ============================================
+    shareModel: function(viewerType) {
+        console.log(`🔗 Share Model for ${viewerType}`);
+
+        const viewer = viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral;
+        if (!viewer || !viewer.uploadedFiles || viewer.uploadedFiles.length === 0) {
+            console.warn('⚠️ Cannot share: No files uploaded');
+            showToolbarNotification('Please upload a 3D model first', 'warning', 2000);
+            return;
+        }
+
+        // Get the first file ID
+        const firstFile = viewer.uploadedFiles[0];
+        const fileId = firstFile.id;
+
+        // Check if share modal exists
+        if (window.shareModal) {
+            console.log('✓ Opening share modal with file ID:', fileId);
+            window.shareModal.open(fileId);
+            showToolbarNotification('Opening share options...', 'info', 1500);
+        } else {
+            console.warn('⚠️ Share modal not found');
+
+            // Fallback: Show share URL
+            const currentUrl = window.location.origin + window.location.pathname;
+            const shareUrl = `${currentUrl}?file=${fileId}`;
+
+            // Copy to clipboard
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(shareUrl).then(() => {
+                    showToolbarNotification('Share URL copied to clipboard! ✓', 'success', 3000);
+                }).catch(() => {
+                    showToolbarNotification('Share URL: ' + shareUrl, 'info', 5000);
+                });
+            } else {
+                showToolbarNotification('Share URL: ' + shareUrl, 'info', 5000);
+            }
+        }
+    },
+
+    // ============================================
+    // SAVE & CALCULATE - From Top Toolbar
+    // ============================================
+    saveAndCalculate: function(viewerType) {
+        console.log(`💾 Save & Calculate for ${viewerType}`);
+
+        const viewer = viewerType === 'Medical' ? window.viewerMedical : window.viewerGeneral;
+        if (!viewer || !viewer.uploadedFiles || viewer.uploadedFiles.length === 0) {
+            console.warn('⚠️ Cannot save: No files uploaded');
+            showToolbarNotification('Please upload a 3D model first', 'warning', 2000);
+            return;
+        }
+
+        const formType = viewerType === 'Medical' ? 'Medical' : 'General';
+
+        // Visual feedback on button
+        const saveBtn = document.getElementById('saveCalculateToolBtn');
+        if (saveBtn) {
+            saveBtn.style.pointerEvents = 'none';
+            const originalHTML = saveBtn.innerHTML;
+            saveBtn.innerHTML = `
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style="animation: spin 1s linear infinite;">
+                    <circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="2" stroke-dasharray="4"/>
+                </svg>
+            `;
+
+            setTimeout(() => {
+                saveBtn.innerHTML = originalHTML;
+                saveBtn.style.pointerEvents = '';
+            }, 2000);
+        }
+
+        // Check if EnhancedSaveCalculate module exists (from quote.blade.php)
+        if (window.EnhancedSaveCalculate && typeof window.EnhancedSaveCalculate.execute === 'function') {
+            console.log('✓ Using EnhancedSaveCalculate module');
+            window.EnhancedSaveCalculate.execute();
+            showToolbarNotification('Calculating pricing...', 'info', 2000);
+        } else {
+            console.log('✓ Using fallback calculation method');
+
+            // Fallback: Calculate and display prices for all files
+            let totalPrice = 0;
+            let totalVolume = 0;
+
+            viewer.uploadedFiles.forEach((fileData, index) => {
+                const volume = fileData.volume?.cm3 || 0;
+                const settings = fileData.settings || {};
+                const materialCost = settings.materialCost || 0.02;
+                const technologyMultiplier = settings.technologyMultiplier || 1.0;
+                const price = volume * materialCost * technologyMultiplier;
+
+                totalVolume += volume;
+                totalPrice += price;
+
+                console.log(`📦 File ${index + 1}: ${fileData.file.name}`);
+                console.log(`   Volume: ${volume.toFixed(2)} cm³`);
+                console.log(`   Price: $${price.toFixed(2)}`);
+            });
+
+            console.log(`\n💰 TOTAL PRICE: $${totalPrice.toFixed(2)}`);
+            console.log(`📊 TOTAL VOLUME: ${totalVolume.toFixed(2)} cm³`);
+
+            // Show results
+            showToolbarNotification(
+                `Total: $${totalPrice.toFixed(2)} | Volume: ${totalVolume.toFixed(2)} cm³`,
+                'success',
+                4000
+            );
+
+            // Update file manager if available
+            if (window.fileManagerGeneral && formType === 'General') {
+                window.fileManagerGeneral.updateQuote();
+            } else if (window.fileManagerMedical && formType === 'Medical') {
+                window.fileManagerMedical.updateQuote();
+            }
+        }
     }
 };
 

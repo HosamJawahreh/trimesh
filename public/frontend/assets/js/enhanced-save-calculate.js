@@ -173,26 +173,54 @@ window.EnhancedSaveCalculate = {
             return new Promise((resolve, reject) => {
                 loader.load(repairedUrl, (geometry) => {
                     try {
-                        console.log('✅ Repaired mesh loaded, adding to scene...');
+                        console.log('✅ Repaired mesh loaded, updating scene...');
 
-                        // Remove old mesh if exists
-                        if (fileData.mesh && viewer.scene) {
-                            viewer.scene.remove(fileData.mesh);
-                            console.log('   Removed old mesh from scene');
-                        }
+                        geometry.computeVertexNormals();
+                        geometry.center();
 
-                        // Create material for MAIN mesh - slightly transparent to show repairs
                         const mainMaterial = new THREE.MeshPhongMaterial({
-                            color: 0xCCCCCC, // Light gray for repaired mesh
+                            color: 0xCCCCCC,
                             flatShading: false,
                             side: THREE.DoubleSide,
                             transparent: true,
                             opacity: 0.95
                         });
 
-                        // Create new mesh
-                        const mesh = new THREE.Mesh(geometry, mainMaterial);
-                        mesh.userData = {
+                        let targetMesh = fileData.mesh;
+
+                        if (targetMesh && targetMesh.parent) {
+                            const oldGeometry = targetMesh.geometry;
+                            const oldMaterial = targetMesh.material;
+
+                            targetMesh.geometry = geometry;
+                            targetMesh.material = mainMaterial;
+                            targetMesh.material.needsUpdate = true;
+
+                            if (oldGeometry) {
+                                oldGeometry.dispose();
+                            }
+                            if (oldMaterial) {
+                                if (Array.isArray(oldMaterial)) {
+                                    oldMaterial.forEach(mat => mat.dispose?.());
+                                } else {
+                                    oldMaterial.dispose?.();
+                                }
+                            }
+                        } else {
+                            targetMesh = new THREE.Mesh(geometry, mainMaterial);
+
+                            if (viewer.modelGroup) {
+                                viewer.modelGroup.add(targetMesh);
+                            } else if (viewer.scene) {
+                                viewer.scene.add(targetMesh);
+                            }
+                        }
+
+                        if (!targetMesh.parent && viewer.scene) {
+                            viewer.scene.add(targetMesh);
+                        }
+
+                        targetMesh.userData = {
                             fileName: fileData.file.name,
                             volume: repairResult.repaired_volume_cm3,
                             repaired: true,
@@ -200,18 +228,62 @@ window.EnhancedSaveCalculate = {
                             watertight: repairResult.repaired_watertight
                         };
 
-                        // Add to scene
-                        viewer.scene.add(mesh);
-                        
-                        // Update fileData reference
-                        fileData.mesh = mesh;
+                        fileData.mesh = targetMesh;
 
-                        // Update viewer.uploadedFiles reference
                         if (viewer.uploadedFiles) {
                             const fileIndex = viewer.uploadedFiles.findIndex(f => f.file?.name === fileData.file?.name);
                             if (fileIndex !== -1) {
-                                viewer.uploadedFiles[fileIndex].mesh = mesh;
+                                viewer.uploadedFiles[fileIndex].mesh = targetMesh;
                             }
+                        }
+
+                        const cleanupDuplicates = (collection) => {
+                            if (!collection) {
+                                return;
+                            }
+
+                            const toRemove = [];
+                            collection.forEach((child) => {
+                                if (child === targetMesh) {
+                                    return;
+                                }
+
+                                if (child.userData && child.userData.fileName === fileData.file.name) {
+                                    toRemove.push(child);
+                                }
+                            });
+
+                            toRemove.forEach((child) => {
+                                if (child.parent) {
+                                    child.parent.remove(child);
+                                }
+
+                                if (child.geometry) {
+                                    child.geometry.dispose?.();
+                                }
+
+                                if (child.material) {
+                                    if (Array.isArray(child.material)) {
+                                        child.material.forEach(mat => mat.dispose?.());
+                                    } else {
+                                        child.material.dispose?.();
+                                    }
+                                }
+                            });
+                        };
+
+                        if (viewer.modelGroup) {
+                            cleanupDuplicates(viewer.modelGroup.children);
+                        }
+                        if (viewer.scene) {
+                            cleanupDuplicates(viewer.scene.children);
+                        }
+
+                        if (viewer.fitCameraToModel) {
+                            viewer.fitCameraToModel();
+                        }
+                        if (viewer.renderer && viewer.scene && viewer.camera) {
+                            viewer.renderer.render(viewer.scene, viewer.camera);
                         }
 
                         // Add visual indicators for repaired areas
@@ -220,7 +292,6 @@ window.EnhancedSaveCalculate = {
                             this.addRepairVisualization(viewer, repairResult.repair_visualization);
                         }
 
-                        // Add info box to indicate repaired mesh
                         if (viewer.showInfoBox) {
                             viewer.showInfoBox(
                                 `<div style="background: linear-gradient(135deg, #4CAF50, #45a049); color: white; padding: 15px; border-radius: 8px;">
@@ -244,7 +315,6 @@ window.EnhancedSaveCalculate = {
                         console.log(`   Holes filled: ${repairResult.holes_filled}`);
                         console.log(`   Volume: ${repairResult.repaired_volume_cm3.toFixed(4)} cm³`);
 
-                        // Clean up URL
                         URL.revokeObjectURL(repairedUrl);
 
                         resolve();

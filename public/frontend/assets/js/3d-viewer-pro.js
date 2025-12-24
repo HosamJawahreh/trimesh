@@ -218,8 +218,12 @@ class Professional3DViewer {
         this.camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 10000);
         this.camera.position.set(100, 100, 200);
 
-        // Setup renderer with shadow support
-        this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        // Setup renderer with shadow support and screenshot capability
+        this.renderer = new THREE.WebGLRenderer({
+            antialias: true,
+            alpha: true,
+            preserveDrawingBuffer: true  // Enable screenshot capability
+        });
         this.renderer.setSize(width, height);
         this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         this.renderer.shadowMap.enabled = true;
@@ -631,6 +635,14 @@ class Professional3DViewer {
         let meshReference = null;
         if (this.modelGroup && this.modelGroup.children.length > 0) {
             meshReference = this.modelGroup.children[this.modelGroup.children.length - 1];
+        }
+
+        if (meshReference) {
+            meshReference.userData = {
+                ...(meshReference.userData || {}),
+                fileName: file.name,
+                storageId: storageId || null
+            };
         }
 
         const fileData = {

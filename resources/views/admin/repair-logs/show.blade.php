@@ -145,12 +145,12 @@
                             $originalPercent = 50;
                             $changePercent = ($log->volume_change_percent / 100) * 50;
                         @endphp
-                        <div class="progress-bar bg-primary" role="progressbar" 
+                        <div class="progress-bar bg-primary" role="progressbar"
                              style="width: {{ $originalPercent }}%">
                             Original
                         </div>
-                        <div class="progress-bar {{ $log->volume_change_cm3 > 0 ? 'bg-success' : 'bg-danger' }}" 
-                             role="progressbar" 
+                        <div class="progress-bar {{ $log->volume_change_cm3 > 0 ? 'bg-success' : 'bg-danger' }}"
+                             role="progressbar"
                              style="width: {{ abs($changePercent) }}%">
                             Change
                         </div>

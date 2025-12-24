@@ -65,39 +65,13 @@ class ShareModal {
                         </div>
 
                         <div class="share-expiry">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <circle cx="12" cy="12" r="10"></circle>
                                 <polyline points="12 6 12 12 16 14"></polyline>
                             </svg>
                             <span id="shareExpiryTime">72 hours remaining</span>
                         </div>
 
-                        <div class="share-features">
-                            <div class="share-feature">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <polyline points="20 6 9 17 4 12"></polyline>
-                                </svg>
-                                <span>All edits and transformations saved</span>
-                            </div>
-                            <div class="share-feature">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <polyline points="20 6 9 17 4 12"></polyline>
-                                </svg>
-                                <span>Camera position preserved</span>
-                            </div>
-                            <div class="share-feature">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <polyline points="20 6 9 17 4 12"></polyline>
-                                </svg>
-                                <span>Measurements included</span>
-                            </div>
-                            <div class="share-feature">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <polyline points="20 6 9 17 4 12"></polyline>
-                                </svg>
-                                <span>No server storage - saved locally</span>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>

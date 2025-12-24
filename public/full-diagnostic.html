@@ -153,7 +153,7 @@
 
     <script>
         const log = document.getElementById('diagnosticLog');
-        
+
         function addLog(message, type = 'info') {
             const entry = document.createElement('div');
             entry.className = `log-entry log-${type}`;
@@ -180,7 +180,7 @@
 
                 const version = window.EnhancedSaveCalculate.version || 'V3 or older';
                 addLog(`JavaScript Version: ${version}`, version === '4.0' ? 'success' : 'error');
-                
+
                 if (version === '4.0') {
                     updateStatus('jsVersionStatus', 'V4.0 ✅', 'ok');
                     addLog('✅ Correct version loaded!', 'success');
@@ -207,14 +207,14 @@
                         'Pragma': 'no-cache'
                     }
                 });
-                
+
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
-                
+
                 const data = await response.json();
                 addLog(`Server response: ${JSON.stringify(data)}`, 'info');
-                
+
                 if (data.available === true) {
                     addLog('✅ Server API: AVAILABLE', 'success');
                     updateStatus('serverStatus', 'AVAILABLE ✅', 'ok');
@@ -237,14 +237,14 @@
                 const response = await fetch('http://localhost:8001/health', {
                     cache: 'no-cache'
                 });
-                
+
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}`);
                 }
-                
+
                 const data = await response.json();
                 addLog(`Python service: ${JSON.stringify(data)}`, 'info');
-                
+
                 if (data.status === 'healthy') {
                     addLog('✅ Python service: HEALTHY', 'success');
                     updateStatus('pythonStatus', 'HEALTHY ✅', 'ok');
@@ -271,7 +271,7 @@
 
         async function testRepairFlow() {
             addLog('=== TESTING COMPLETE REPAIR FLOW ===', 'info');
-            
+
             // Step 1: Check JS version
             addLog('Step 1: Checking JavaScript...', 'info');
             const jsOk = await testJavaScriptVersion();
@@ -279,7 +279,7 @@
                 addLog('❌ STOP: JavaScript version wrong. Clear cache first!', 'error');
                 return;
             }
-            
+
             // Step 2: Check server API
             addLog('Step 2: Checking server API...', 'info');
             const serverOk = await testServerAPI();
@@ -287,7 +287,7 @@
                 addLog('❌ STOP: Server API unavailable.', 'error');
                 return;
             }
-            
+
             // Step 3: Check Python
             addLog('Step 3: Checking Python service...', 'info');
             const pythonOk = await testPythonService();
@@ -295,7 +295,7 @@
                 addLog('❌ STOP: Python service unavailable.', 'error');
                 return;
             }
-            
+
             // Step 4: Test server check function
             addLog('Step 4: Testing EnhancedSaveCalculate.checkServerRepairStatus()...', 'info');
             if (window.EnhancedSaveCalculate && window.EnhancedSaveCalculate.checkServerRepairStatus) {
@@ -312,7 +312,7 @@
             } else {
                 addLog('❌ checkServerRepairStatus function not found!', 'error');
             }
-            
+
             addLog('=== REPAIR FLOW TEST COMPLETE ===', 'info');
             addLog('📋 If all ✅, repairs should work! If not, check errors above.', 'info');
         }
@@ -320,26 +320,26 @@
         async function runFullDiagnostic() {
             log.innerHTML = '';
             addLog('=== STARTING FULL DIAGNOSTIC ===', 'info');
-            
+
             await testJavaScriptVersion();
             await new Promise(r => setTimeout(r, 500));
-            
+
             await testServerAPI();
             await new Promise(r => setTimeout(r, 500));
-            
+
             await testPythonService();
             await new Promise(r => setTimeout(r, 500));
-            
+
             await checkDatabase();
             await new Promise(r => setTimeout(r, 500));
-            
+
             addLog('=== DIAGNOSTIC COMPLETE ===', 'success');
             addLog('📋 Review results above. All should be ✅ for repairs to work.', 'info');
         }
 
         function forceClearCache() {
             addLog('Forcing cache clear...', 'info');
-            
+
             // Clear service workers
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.getRegistrations().then(registrations => {
@@ -347,7 +347,7 @@
                     addLog('✅ Service workers cleared', 'success');
                 });
             }
-            
+
             // Clear caches
             if ('caches' in window) {
                 caches.keys().then(names => {
@@ -355,7 +355,7 @@
                     addLog('✅ Cache storage cleared', 'success');
                 });
             }
-            
+
             addLog('⚠️ Now redirecting with cache-bust...', 'warning');
             setTimeout(() => {
                 window.location.href = '/quote?_nocache=' + Date.now();

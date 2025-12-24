@@ -182,6 +182,7 @@
     }
 
     /* Control Bar - Shapeways style with proper spacing */
+    /* Bottom Bar - Simplified Toolbar Style */
     .viewer-bottom-controls {
         position: fixed !important;
         bottom: 20px !important;
@@ -189,18 +190,161 @@
         right: 20px !important;
         width: calc(100vw - 420px) !important;
         height: auto !important;
-        background: rgba(255, 255, 255, 0.98) !important;
-        backdrop-filter: blur(20px) !important;
-        border: 1px solid rgba(184, 198, 219, 0.3) !important;
+        background: rgba(255, 255, 255, 0.95) !important;
+        backdrop-filter: blur(10px) !important;
         border-radius: 12px !important;
         display: flex !important;
         align-items: center !important;
         justify-content: space-between !important;
-        padding: 16px 28px !important;
-        gap: 20px !important;
+        padding: 8px 12px !important;
+        gap: 12px !important;
         z-index: 999999 !important;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12) !important;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important;
         pointer-events: auto !important;
+    }
+
+    /* Bottom Bar Groups */
+    .bottom-bar-group {
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+    }
+
+    /* Bottom Bar Divider */
+    .bottom-bar-divider {
+        width: 1px;
+        height: 32px;
+        background: rgba(0,0,0,0.1);
+        margin: 0 4px;
+    }
+
+    /* Upload Button - Simplified */
+    .upload-btn-simple {
+        display: flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+        padding: 8px 14px !important;
+        background: linear-gradient(135deg, #0047AD 0%, #003580 100%) !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 8px !important;
+        font-size: 13px !important;
+        font-weight: 500 !important;
+        cursor: pointer !important;
+        transition: all 0.2s ease !important;
+        position: relative !important;
+    }
+
+    .upload-btn-simple:hover {
+        transform: translateY(-1px) !important;
+        box-shadow: 0 4px 12px rgba(0, 71, 173, 0.3) !important;
+    }
+
+    .upload-btn-simple svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    /* File Count Badge - Small behind button */
+    .upload-file-badge {
+        position: absolute !important;
+        top: -6px !important;
+        right: -6px !important;
+        background: #10b981 !important;
+        color: white !important;
+        border-radius: 10px !important;
+        padding: 2px 6px !important;
+        font-size: 10px !important;
+        font-weight: 700 !important;
+        line-height: 1 !important;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+        display: none !important;
+        min-width: 18px !important;
+        text-align: center !important;
+    }
+
+    .upload-file-badge.show {
+        display: block !important;
+    }
+
+    /* Price Display in Bottom Bar */
+    .bottom-price-display {
+        display: none !important;
+        align-items: center !important;
+        gap: 16px !important;
+        padding: 6px 16px !important;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
+        border-radius: 8px !important;
+        border: 1px solid #dee2e6 !important;
+    }
+
+    .bottom-price-display.show {
+        display: flex !important;
+    }
+
+    .info-item {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+    }
+
+    .info-label {
+        font-size: 10px !important;
+        font-weight: 600 !important;
+        color: #6c757d !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.5px !important;
+        margin-bottom: 2px;
+    }
+
+    .info-value {
+        font-size: 15px !important;
+        font-weight: 700 !important;
+        color: #2c3e50 !important;
+    }
+
+    .info-value.price {
+        font-size: 18px !important;
+        color: #0047AD !important;
+    }
+
+    .info-divider {
+        width: 1px;
+        height: 30px;
+        background: rgba(0,0,0,0.1);
+    }
+
+    /* Request Quote Button in Bottom Bar */
+    .bottom-quote-btn {
+        padding: 8px 20px !important;
+        background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%) !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 8px !important;
+        font-size: 13px !important;
+        font-weight: 600 !important;
+        cursor: pointer !important;
+        transition: all 0.2s ease !important;
+        white-space: nowrap;
+    }
+
+    .bottom-quote-btn:hover {
+        transform: translateY(-1px) !important;
+        box-shadow: 0 4px 12px rgba(74, 144, 226, 0.4) !important;
+    }
+
+    .price-label {
+        font-size: 11px !important;
+        font-weight: 600 !important;
+        color: #6c757d !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.5px !important;
+    }
+
+    .price-value {
+        font-size: 18px !important;
+        font-weight: 700 !important;
+        color: #0047AD !important;
     }
 
     /* Control Sections */
@@ -361,6 +505,68 @@
 
     .control-btn svg {
         pointer-events: none !important;
+    }
+
+    /* Upload Button */
+    .upload-btn {
+        flex-direction: row !important;
+        gap: 10px !important;
+        padding: 12px 24px !important;
+        background: linear-gradient(135deg, #0047AD 0%, #003580 100%) !important;
+        border: none !important;
+        color: #fff !important;
+        font-size: 0.9rem !important;
+        font-weight: 700 !important;
+        box-shadow: 0 4px 16px rgba(0, 71, 173, 0.3) !important;
+        min-width: auto !important;
+        transition: all 0.3s ease !important;
+    }
+
+    .upload-btn:hover {
+        background: linear-gradient(135deg, #003580 0%, #002461 100%) !important;
+        transform: translateY(-3px) !important;
+        box-shadow: 0 6px 24px rgba(0, 71, 173, 0.5) !important;
+    }
+
+    .upload-btn svg {
+        stroke: #fff !important;
+    }
+
+    .upload-section {
+        display: flex !important;
+        align-items: center !important;
+        gap: 12px !important;
+    }
+
+    .upload-count {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        gap: 2px !important;
+    }
+
+    .count-badge {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+        color: white !important;
+        font-size: 16px !important;
+        font-weight: 700 !important;
+        padding: 4px 12px !important;
+        border-radius: 20px !important;
+        box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3) !important;
+        animation: pulse 2s infinite !important;
+    }
+
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+
+    .count-label {
+        font-size: 11px !important;
+        font-weight: 600 !important;
+        color: #666 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.5px !important;
     }
 
     /* Share Button */
@@ -638,116 +844,50 @@
         <!-- The 3D canvas will be inserted here by JavaScript -->
     </div>
 
-    <!-- Control Bar -->
+    <!-- Control Bar - Simplified Toolbar Design -->
     <div class="viewer-bottom-controls" id="mainControlBar">
 
-        <div class="control-divider"></div>
+        <!-- Left Group: Upload Button -->
+        <div class="bottom-bar-group">
+            <input type="file" id="fileInputBottomBar" style="display: none;" accept=".stl,.obj,.ply" multiple>
+            <button type="button" class="upload-btn-simple" onclick="document.getElementById('fileInputBottomBar').click()" title="Upload 3D Files">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="17 8 12 3 7 8"></polyline>
+                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+                <span>Upload Files</span>
+                <span class="upload-file-badge" id="uploadFileBadge">0</span>
+            </button>
+        </div>
 
-        <!-- Tools -->
-        <div class="control-section tools-section">
-            <div class="control-label">Tools</div>
-            <div class="tools-grid">
-                <!-- Camera View Buttons -->
-                <button type="button" class="control-btn camera-btn" data-view="top" title="Top View">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                        <path d="M12 5L12 19M12 5L8 9M12 5L16 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                    </svg>
-                    <span>Top</span>
-                </button>
-                <button type="button" class="control-btn camera-btn active" data-view="front" title="Front View">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                        <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/>
-                        <circle cx="12" cy="12" r="3" fill="currentColor"/>
-                    </svg>
-                    <span>Front</span>
-                </button>
-                <button type="button" class="control-btn camera-btn" data-view="right" title="Right View">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                        <path d="M19 12L5 12M19 12L15 8M19 12L15 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                    </svg>
-                    <span>Right</span>
-                </button>
-                <button type="button" class="control-btn camera-btn" data-view="left" title="Left View">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                        <path d="M5 12L19 12M5 12L9 8M5 12L9 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                    </svg>
-                    <span>Left</span>
-                </button>
-                <button type="button" class="control-btn camera-btn" data-view="bottom" title="Bottom View">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                        <path d="M12 19L12 5M12 19L8 15M12 19L16 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                    </svg>
-                    <span>Bottom</span>
-                </button>
-                <button type="button" class="control-btn camera-btn" data-view="reset" title="Reset Camera">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                        <path d="M12 4V1L8 5L12 9V6C15.31 6 18 8.69 18 12C18 13.01 17.75 13.97 17.3 14.8L18.76 16.26C19.54 15.03 20 13.57 20 12C20 7.58 16.42 4 12 4ZM12 18C8.69 18 6 15.31 6 12C6 10.99 6.25 10.03 6.7 9.2L5.24 7.74C4.46 8.97 4 10.43 4 12C4 16.42 7.58 20 12 20V23L16 19L12 15V18Z" fill="currentColor"/>
-                    </svg>
-                    <span>Reset</span>
-                </button>
+        <!-- Center: Spacer -->
+        <div style="flex: 1;"></div>
 
-                <button type="button" class="control-btn active" id="toggleGridBtnMain" title="Toggle Grid">
-                    <svg width="16" height="16" viewBox="0 0 18 18" fill="none">
-                        <rect x="2" y="2" width="14" height="14" stroke="currentColor" stroke-width="1.5"/>
-                        <line x1="9" y1="2" x2="9" y2="16" stroke="currentColor" stroke-width="1.5"/>
-                        <line x1="2" y1="9" x2="16" y2="9" stroke="currentColor" stroke-width="1.5"/>
-                    </svg>
-                    <span>Grid</span>
-                </button>
-                <button type="button" class="control-btn" id="measureToolBtnMain" title="Measure distances on model">
-                    <svg width="16" height="16" viewBox="0 0 18 18" fill="none">
-                        <line x1="3" y1="15" x2="15" y2="3" stroke="currentColor" stroke-width="1.5"/>
-                        <line x1="3" y1="12" x2="3" y2="15" stroke="currentColor" stroke-width="1.5"/>
-                        <line x1="6" y1="15" x2="3" y2="15" stroke="currentColor" stroke-width="1.5"/>
-                        <line x1="15" y1="6" x2="15" y2="3" stroke="currentColor" stroke-width="1.5"/>
-                        <line x1="12" y1="3" x2="15" y2="3" stroke="currentColor" stroke-width="1.5"/>
-                    </svg>
-                    <span>Measure</span>
-                </button>
-                <!-- Repair & Fill button removed - now automated in Save & Calculate -->
-                <button type="button" class="control-btn" id="autoRotateBtnMain" title="Auto-rotate model">
-                    <svg width="16" height="16" viewBox="0 0 18 18" fill="none">
-                        <path d="M15 9C15 12.3137 12.3137 15 9 15C5.68629 15 3 12.3137 3 9C3 5.68629 5.68629 3 9 3C11.0605 3 12.8792 4.01099 14 5.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                        <path d="M15 3V7H11" stroke="currentColor" stroke-width="1.5"/>
-                    </svg>
-                    <span>Rotate</span>
-                </button>
-                <button type="button" class="control-btn" id="panToolBtnMain" title="Pan/Move model - Click and drag to move view">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                        <!-- Hand/Move icon -->
-                        <path d="M13 5L13 11M13 11L10 8M13 11L16 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M13 19L13 13M13 13L10 16M13 13L16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M5 13L11 13M11 13L8 10M11 13L8 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M19 13L13 13M13 13L16 10M13 13L16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <circle cx="13" cy="13" r="2" fill="currentColor"/>
-                    </svg>
-                    <span>Move</span>
-                </button>
+        <!-- Right Group: Volume, Price & Quote Button -->
+        <div class="bottom-price-display" id="bottomPriceDisplay">
+            <!-- Volume -->
+            <div class="info-item">
+                <span class="info-label">Volume</span>
+                <span class="info-value" id="bottomTotalVolume">0 cm³</span>
             </div>
-        </div>
 
-        <div class="control-divider"></div>
+            <div class="info-divider"></div>
 
-        <!-- Action Buttons -->
-        <div class="control-section actions-section">
-            <button type="button" class="control-btn share-btn" id="shareBtnMain" title="Share this 3D model" style="margin-right: 12px;">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                    <circle cx="18" cy="5" r="3" stroke="currentColor" stroke-width="2"/>
-                    <circle cx="6" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
-                    <circle cx="18" cy="19" r="3" stroke="currentColor" stroke-width="2"/>
-                    <path d="M8.59 13.51L15.42 17.49M15.41 6.51L8.59 10.49" stroke="currentColor" stroke-width="2"/>
-                </svg>
-                <span>Share</span>
-            </button>
+            <!-- Price -->
+            <div class="info-item">
+                <span class="info-label">Total Price</span>
+                <span class="info-value price" id="bottomTotalPrice">$0.00</span>
+            </div>
 
-            <button type="button" class="control-btn save-btn" id="saveCalculationsBtnMain" title="Save and calculate pricing">
-                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                    <path d="M15 16H3C2.44772 16 2 15.5523 2 15V3C2 2.44772 2.44772 2 3 2H12L16 6V15C16 15.5523 15.5523 16 15 16Z" stroke="currentColor" stroke-width="1.5"/>
-                    <path d="M5 10H13V16H5V10Z" stroke="currentColor" stroke-width="1.5"/>
-                </svg>
-                <span>Save & Calculate</span>
+            <div class="info-divider"></div>
+
+            <!-- Request Quote Button -->
+            <button type="button" class="bottom-quote-btn" id="bottomRequestQuoteBtn" onclick="handleRequestQuote()">
+                Request Quote →
             </button>
         </div>
+
     </div>
 </div>
 
@@ -782,7 +922,140 @@
 
         // Small delay to ensure quote-viewer is fully initialized
         setTimeout(initControls, 500);
+        setTimeout(initFileUpload, 600);
     });
+
+    // ============================================
+    // FILE UPLOAD FROM BOTTOM BAR
+    // ============================================
+    function initFileUpload() {
+        const fileInputBottomBar = document.getElementById('fileInputBottomBar');
+        const fileBadge = document.getElementById('uploadFileBadge');
+
+        if (!fileInputBottomBar) {
+            console.error('❌ Bottom bar file input not found!');
+            return;
+        }
+
+        console.log('📤 File upload initialized from bottom bar');
+
+        // Handle file selection
+        fileInputBottomBar.addEventListener('change', function(e) {
+            const files = e.target.files;
+            if (files && files.length > 0) {
+                console.log(`📁 Selected ${files.length} file(s) from bottom bar`);
+
+                // Delegate to existing file handler
+                const mainFileInput = document.getElementById('fileInput3d') || document.getElementById('fileInput3dMedical');
+                if (mainFileInput) {
+                    // Transfer files to main input
+                    const dataTransfer = new DataTransfer();
+                    for (let i = 0; i < files.length; i++) {
+                        dataTransfer.items.add(files[i]);
+                    }
+                    mainFileInput.files = dataTransfer.files;
+
+                    // Trigger change event
+                    mainFileInput.dispatchEvent(new Event('change', { bubbles: true }));
+
+                    // Update file count badge
+                    updateFileBadge();
+
+                    // Show success notification
+                    if (window.showToolbarNotification) {
+                        showToolbarNotification(
+                            `✅ ${files.length} file${files.length > 1 ? 's' : ''} uploaded successfully`,
+                            'success',
+                            3000
+                        );
+                    }
+                } else {
+                    console.error('❌ Main file input not found!');
+                }
+            }
+
+            // Reset input
+            e.target.value = '';
+        });
+
+        // Update file count badge
+        function updateFileBadge() {
+            // Get file count from viewer
+            let fileCount = 0;
+
+            if (window.viewer && window.viewer.uploadedFiles) {
+                fileCount = window.viewer.uploadedFiles.length;
+            } else if (window.viewerGeneral && window.viewerGeneral.uploadedFiles) {
+                fileCount = window.viewerGeneral.uploadedFiles.length;
+            }
+
+            if (fileBadge) {
+                if (fileCount > 0) {
+                    fileBadge.textContent = fileCount;
+                    fileBadge.classList.add('show');
+                } else {
+                    fileBadge.classList.remove('show');
+                }
+            }
+        }
+
+        // Listen for file uploads from other sources to update badge
+        window.addEventListener('filesUploaded', function(e) {
+            updateFileBadge();
+        });
+
+        // Listen for file removals to update badge
+        document.addEventListener('fileRemoved', function() {
+            updateFileBadge();
+        });
+
+        // Make updateFileBadge globally accessible
+        window.updateFileBadge = updateFileBadge;
+
+        console.log('✅ Bottom bar file upload ready');
+    }
+
+    // PRICE SYNC TO BOTTOM BAR
+    window.syncPriceToBottomBar = function() {
+        const sidebarPrice = document.getElementById('quoteTotalPriceGeneral');
+        const sidebarVolume = document.getElementById('quoteTotalVolumeGeneral');
+        const bottomPrice = document.getElementById('bottomTotalPrice');
+        const bottomVolume = document.getElementById('bottomTotalVolume');
+        const bottomDisplay = document.getElementById('bottomPriceDisplay');
+
+        if (sidebarPrice && bottomPrice && bottomDisplay) {
+            const priceText = sidebarPrice.textContent || '$0.00';
+            bottomPrice.textContent = priceText;
+
+            // Sync volume if available
+            if (sidebarVolume && bottomVolume) {
+                const volumeText = sidebarVolume.textContent || '0 cm³';
+                bottomVolume.textContent = volumeText;
+            }
+
+            // Show bottom price if sidebar price is visible and has value
+            if (sidebarPrice.style.display !== 'none' && priceText !== '$0' && priceText !== '$0.00' && priceText.trim() !== '') {
+                bottomDisplay.classList.add('show');
+                console.log('💰 Price and volume synced to bottom bar:', priceText, bottomVolume?.textContent);
+            } else {
+                bottomDisplay.classList.remove('show');
+            }
+        }
+    };
+
+    // Handle Request Quote button click
+    window.handleRequestQuote = function() {
+        const sidebarBtn = document.getElementById('btnRequestQuoteGeneral');
+        if (sidebarBtn) {
+            sidebarBtn.click();
+        } else {
+            console.error('❌ Request Quote button not found in sidebar');
+        }
+    };
+
+    // Call sync whenever price might change
+    document.addEventListener('priceCalculated', window.syncPriceToBottomBar);
+    document.addEventListener('priceUpdated', window.syncPriceToBottomBar);
 
     function initControls() {
         const controlBar = document.getElementById('mainControlBar');
@@ -1161,6 +1434,12 @@
             });
         }
 
+        // ============================================
+        // PAN TOOL - MOVED TO QUOTE-VIEWER.BLADE.PHP TOP TOOLBAR
+        // The Move/Pan functionality is now in the professional toolbar
+        // in quote-viewer.blade.php as part of window.toolbarHandler
+        // ============================================
+        /*
         // Pan Tool - Drag to move model (variables declared at top level)
         const panToolBtn = document.getElementById('panToolBtnMain');
         console.log('🔍 Pan button found:', panToolBtn ? 'YES ✅' : 'NO ❌');
@@ -1169,264 +1448,14 @@
         let canvasPanHandlers = null;
 
         if (panToolBtn) {
-            panToolBtn.addEventListener('click', function(e) {
-                e.stopPropagation(); // Prevent click from reaching document mousedown handler
-
-                const viewer = window.viewerGeneral || window.viewerMedical;
-                if (!viewer || !viewer.uploadedFiles || viewer.uploadedFiles.length === 0) {
-                    console.warn('⚠️ Cannot enable pan: No file uploaded');
-                    return;
-                }
-
-                panMode = !panMode;
-                this.classList.toggle('active', panMode);
-                console.log('👋 Pan mode:', panMode ? 'ENABLED ✅' : 'DISABLED ❌');
-                console.log('   Viewer:', viewer ? 'Available ✅' : 'Not available ❌');
-                console.log('   Files loaded:', viewer.uploadedFiles.length);
-
-                // Attach/detach handlers directly to canvas
-                if (panMode && viewer.renderer && viewer.renderer.domElement) {
-                    const canvas = viewer.renderer.domElement;
-                    console.log('🎯 Attaching pan handlers directly to canvas');
-                    console.log('   Canvas element:', canvas);
-                    console.log('   Canvas tag:', canvas.tagName);
-                    console.log('   Canvas width:', canvas.width, 'height:', canvas.height);
-
-                    // Create handlers
-                    canvasPanHandlers = {
-                        pointerdown: handleCanvasMouseDown,
-                        pointermove: handleCanvasMouseMove,
-                        pointerup: handleCanvasMouseUp
-                    };
-
-                    // Use POINTER events instead of mouse events (modern browsers)
-                    canvas.addEventListener('pointerdown', canvasPanHandlers.pointerdown);
-                    document.addEventListener('pointermove', canvasPanHandlers.pointermove);
-                    document.addEventListener('pointerup', canvasPanHandlers.pointerup);
-
-                    canvas.style.cursor = 'grab';
-                    console.log('✅ Canvas pan handlers attached (using pointer events)');
-                    console.log('   Handlers:', canvasPanHandlers);
-                } else if (!panMode && canvasPanHandlers) {
-                    const canvas = viewer.renderer.domElement;
-                    console.log('🔌 Removing pan handlers from canvas');
-
-                    // Remove handlers
-                    canvas.removeEventListener('pointerdown', canvasPanHandlers.pointerdown);
-                    document.removeEventListener('pointermove', canvasPanHandlers.pointermove);
-                    document.removeEventListener('pointerup', canvasPanHandlers.pointerup);
-
-                    canvasPanHandlers = null;
-                    canvas.style.cursor = 'default';
-                    console.log('✅ Canvas pan handlers removed');
-                }
-
-                // When pan mode is active, disable measurement mode
-                if (panMode && measurementMode) {
-                    measurementMode = false;
-                    const measureToolBtn = document.getElementById('measureToolBtnMain');
-                    if (measureToolBtn) {
-                        measureToolBtn.classList.remove('active');
-                    }
-                    const measurementPanel = document.getElementById('measurementPanel');
-                    if (measurementPanel) {
-                        measurementPanel.classList.remove('active');
-                    }
-                    console.log('📏 Measurement mode disabled by pan mode');
-                }
-
-                // When pan mode is active, disable rotation AND built-in orbit pan
-                if (viewer.controls) {
-                    viewer.controls.enableRotate = !panMode;
-                    viewer.controls.enablePan = false; // Always disable OrbitControls pan, we have custom one
-                    viewer.controls.enableZoom = true; // Keep zoom enabled always
-                }
-            });
+            ... [CODE REMOVED - NOW IN QUOTE-VIEWER.BLADE.PHP] ...
         }
 
         // Canvas-specific pan handlers
-        function handleCanvasMouseDown(e) {
-            console.log('🖱️🖱️🖱️ CANVAS MOUSEDOWN FIRED! 🖱️🖱️🖱️');
-            console.log('   Event:', e);
-            console.log('   Target:', e.target);
-            console.log('   CurrentTarget:', e.currentTarget);
-
-            const viewer = window.viewerGeneral || window.viewerMedical;
-            if (!viewer) {
-                console.log('   ❌ No viewer');
-                return;
-            }
-            if (!window.THREE) {
-                console.log('   ❌ No THREE.js');
-                return;
-            }
-
-            console.log('   ✅ Starting pan drag');
-            console.log('   Files loaded:', viewer.uploadedFiles ? viewer.uploadedFiles.length : 0);
-
-            const canvas = viewer.renderer.domElement;
-
-            // Raycasting to detect which model was clicked
-            const rect = canvas.getBoundingClientRect();
-            const mouse = new window.THREE.Vector2(
-                ((e.clientX - rect.left) / rect.width) * 2 - 1,
-                -((e.clientY - rect.top) / rect.height) * 2 + 1
-            );
-
-            const raycaster = new window.THREE.Raycaster();
-            raycaster.setFromCamera(mouse, viewer.camera);
-
-            // Find all model meshes (can be Mesh or Group containing meshes)
-            const meshes = [];
-            if (viewer.uploadedFiles && viewer.uploadedFiles.length > 0) {
-                viewer.uploadedFiles.forEach(fileData => {
-                    if (fileData.mesh) {
-                        meshes.push(fileData.mesh);
-                    }
-                });
-            }
-
-            console.log('   Meshes found for raycasting:', meshes.length);
-            console.log('   Mesh types:', meshes.map(m => m.type || m.constructor.name));
-
-            const intersects = raycaster.intersectObjects(meshes, true);
-            console.log('   Intersections found:', intersects.length);
-
-            if (intersects.length > 0) {
-                // Find which fileData mesh was clicked
-                let clickedObject = intersects[0].object;
-                selectedModel = null;
-
-                console.log('   Clicked object:', clickedObject);
-                console.log('   Clicked object type:', clickedObject.type || clickedObject.constructor.name);
-
-                // Find the exact mesh from uploadedFiles that was clicked
-                for (const fileData of viewer.uploadedFiles) {
-                    // Direct match
-                    if (fileData.mesh === clickedObject) {
-                        selectedModel = fileData.mesh;
-                        console.log('   ✓ Direct match found');
-                        break;
-                    }
-
-                    // Check if clickedObject is a descendant of this mesh
-                    let parent = clickedObject.parent;
-                    while (parent) {
-                        if (parent === fileData.mesh) {
-                            selectedModel = fileData.mesh;
-                            console.log('   ✓ Parent match found');
-                            break;
-                        }
-                        // Stop at modelGroup level to avoid selecting all files
-                        if (parent.name === 'modelGroup' || parent.type === 'Group' && parent.parent?.type === 'Scene') {
-                            break;
-                        }
-                        parent = parent.parent;
-                    }
-                    if (selectedModel) break;
-                }
-
-                if (!selectedModel) {
-                    console.log('   ❌ Could not find matching mesh in uploadedFiles');
-                    console.log('   Available meshes:', viewer.uploadedFiles.map(f => f.mesh));
-                    return;
-                }
-
-                isPanning = true;
-                canvas.style.cursor = 'grabbing';
-
-                // Highlight the selected model
-                if (selectedModel.material) {
-                    originalMaterialEmissive = selectedModel.material.emissive ? selectedModel.material.emissive.getHex() : 0x000000;
-                    selectedModel.material.emissive = new window.THREE.Color(0x4488ff);
-                    selectedModel.material.emissiveIntensity = 0.3;
-                }
-
-                // Create an invisible plane at the model's position for dragging
-                const normal = new window.THREE.Vector3(0, 0, 1);
-                normal.applyQuaternion(viewer.camera.quaternion);
-                dragPlane = new window.THREE.Plane();
-                dragPlane.setFromNormalAndCoplanarPoint(normal, selectedModel.position);
-
-                // Calculate offset between intersection point and model position
-                const intersectionPoint = new window.THREE.Vector3();
-                raycaster.ray.intersectPlane(dragPlane, intersectionPoint);
-                dragOffset = new window.THREE.Vector3(); // Initialize dragOffset
-                dragOffset.subVectors(selectedModel.position, intersectionPoint);
-
-                console.log('👆 Drag started - Moving model:', selectedModel.name || 'unnamed');
-                console.log('   Multiple models:', viewer.uploadedFiles.length > 1 ? 'Yes ✅' : 'No (single model)');
-
-                // Disable orbit controls while dragging
-                if (viewer.controls) {
-                    viewer.controls.enabled = false;
-                }
-            }
-        }
-
-        function handleCanvasMouseMove(e) {
-            const viewer = window.viewerGeneral || window.viewerMedical;
-            if (!isPanning || !selectedModel || !viewer || !viewer.camera) return;
-            if (!window.THREE) return;
-
-            const canvas = viewer.renderer.domElement;
-            const rect = canvas.getBoundingClientRect();
-            const mouse = new window.THREE.Vector2(
-                ((e.clientX - rect.left) / rect.width) * 2 - 1,
-                -((e.clientY - rect.top) / rect.height) * 2 + 1
-            );
-
-            const raycaster = new window.THREE.Raycaster();
-            raycaster.setFromCamera(mouse, viewer.camera);
-
-            // Find intersection with drag plane
-            const intersectionPoint = new window.THREE.Vector3();
-            if (raycaster.ray.intersectPlane(dragPlane, intersectionPoint)) {
-                // Move model to new position
-                selectedModel.position.copy(intersectionPoint).add(dragOffset);
-
-                // Log occasionally to avoid spam
-                if (!window.panMoveCount) window.panMoveCount = 0;
-                window.panMoveCount++;
-                if (window.panMoveCount % 30 === 0) {
-                    console.log('🔄 Moving model to:',
-                        selectedModel.position.x.toFixed(1),
-                        selectedModel.position.y.toFixed(1),
-                        selectedModel.position.z.toFixed(1)
-                    );
-                }
-            }
-
-            e.preventDefault();
-        }
-
-        function handleCanvasMouseUp(e) {
-            const viewer = window.viewerGeneral || window.viewerMedical;
-            if (isPanning && window.THREE) {
-                // Remove highlight from selected model
-                if (selectedModel && selectedModel.material) {
-                    selectedModel.material.emissive = new window.THREE.Color(originalMaterialEmissive || 0x000000);
-                    selectedModel.material.emissiveIntensity = 0;
-                }
-
-                isPanning = false;
-                selectedModel = null;
-                dragPlane = null;
-                originalMaterialEmissive = null;
-                window.panMoveCount = 0;
-
-                console.log('✋ Drag ended - Model repositioned');
-
-                if (viewer && viewer.renderer) {
-                    viewer.renderer.domElement.style.cursor = panMode ? 'grab' : 'default';
-                }
-
-                // Re-enable orbit controls
-                if (viewer && viewer.controls) {
-                    viewer.controls.enabled = true;
-                }
-            }
-        }
+        function handleCanvasMouseDown(e) { ... }
+        function handleCanvasMouseMove(e) { ... }
+        function handleCanvasMouseUp(e) { ... }
+        */
 
         // ============================================
         // SAVE & CALCULATE BUTTON - Connect to EnhancedSaveCalculate module
@@ -1867,13 +1896,13 @@
         shareBtnMain.style.opacity = '0.5';
         shareBtnMain.style.cursor = 'not-allowed';
         shareBtnMain.title = 'Save & Calculate first to enable sharing';
-        
+
         shareBtnMain.addEventListener('click', async function() {
             try {
                 // Get file ID from URL (set by Save & Calculate)
                 const urlParams = new URLSearchParams(window.location.search);
                 let fileId = urlParams.get('files');
-                
+
                 console.log('🔍 Share button clicked - File ID from URL:', fileId);
 
                 // Validate file ID
@@ -1898,12 +1927,12 @@
                 showNotification('❌ Failed to share: ' + error.message, 'error');
             }
         });
-        
+
         // Listen for URL changes to enable/disable share button
         window.addEventListener('urlUpdated', function() {
             const urlParams = new URLSearchParams(window.location.search);
             const fileId = urlParams.get('files');
-            
+
             if (fileId && fileId.startsWith('file_')) {
                 shareBtnMain.disabled = false;
                 shareBtnMain.style.opacity = '1';

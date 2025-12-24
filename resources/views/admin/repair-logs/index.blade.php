@@ -147,19 +147,19 @@
                             </td>
                             <td>
                                 <div class="btn-group" role="group">
-                                    <a href="{{ route('admin.repair-logs.show', $log->id) }}" 
-                                       class="btn btn-sm btn-outline-primary" 
+                                    <a href="{{ route('admin.repair-logs.show', $log->id) }}"
+                                       class="btn btn-sm btn-outline-primary"
                                        title="View Details">
                                         <i class="fas fa-eye"></i>
                                     </a>
-                                    <form action="{{ route('admin.repair-logs.destroy', $log->id) }}" 
-                                          method="POST" 
+                                    <form action="{{ route('admin.repair-logs.destroy', $log->id) }}"
+                                          method="POST"
                                           class="d-inline"
                                           onsubmit="return confirm('Are you sure you want to delete this log?');">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" 
-                                                class="btn btn-sm btn-outline-danger" 
+                                        <button type="submit"
+                                                class="btn btn-sm btn-outline-danger"
                                                 title="Delete">
                                             <i class="fas fa-trash"></i>
                                         </button>

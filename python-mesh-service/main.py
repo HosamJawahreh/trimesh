@@ -451,21 +451,21 @@ async def calculate_volume(file: UploadFile = File(...)):
     """
     Calculate accurate volume from 3D file (STL/PLY/OBJ) using trimesh + NumPy
     Returns volume in mm³ and cm³ with high precision
-    
+
     This is the CRITICAL endpoint for accurate volume calculation.
     Frontend uses this after client-side repair for production-grade precision.
     Supports: STL, PLY, OBJ, and other formats supported by trimesh.
     """
     try:
         logger.info(f"📐 Volume calculation request for: {file.filename}")
-        
+
         # Detect file extension from filename
         file_ext = os.path.splitext(file.filename)[1] if file.filename else '.stl'
         if not file_ext:
             file_ext = '.stl'  # Default to STL
-        
+
         logger.info(f"   Detected file extension: {file_ext}")
-        
+
         # Save uploaded file temporarily with correct extension
         with tempfile.NamedTemporaryFile(delete=False, suffix=file_ext) as tmp_file:
             content = await file.read()
@@ -476,7 +476,7 @@ async def calculate_volume(file: UploadFile = File(...)):
             # Load mesh with trimesh (auto-detects format from extension)
             logger.info(f"   Loading mesh from: {tmp_path}")
             loaded = trimesh.load(tmp_path)
-            
+
             # Handle Scene vs Mesh (PLY files often load as Scene with multiple meshes)
             if isinstance(loaded, trimesh.Scene):
                 logger.info(f"   Loaded as Scene with {len(loaded.geometry)} geometries")
@@ -493,12 +493,12 @@ async def calculate_volume(file: UploadFile = File(...)):
             else:
                 mesh = loaded
                 logger.info(f"   Loaded as single Mesh")
-            
+
             # Calculate volume using NumPy (production-grade accuracy)
             # trimesh uses NumPy internally for all mesh operations
             volume_mm3 = float(abs(mesh.volume))
             volume_cm3 = volume_mm3 / 1000.0
-            
+
             # Get mesh statistics
             vertices_count = len(mesh.vertices)
             faces_count = len(mesh.faces)
@@ -725,45 +725,42 @@ async def repair_and_download(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.post("/repair-and-calculate")
-async def repair_mesh_and_calculate_volume(file: UploadFile = File(...), aggressive: bool = Form(True)):
-    """
-    Repair mesh, close holes, and calculate accurate volume AFTER repair.
-    Returns the repaired mesh file along with volume statistics and repair visualization data.
-    
-    This is the COMPREHENSIVE endpoint that combines repair + volume calculation + visualization.
-    """
+async def _repair_and_calculate_core(file: UploadFile, aggressive: bool = True):
+    """Shared implementation for repair-and-calculate style endpoints."""
     try:
+        if not isinstance(aggressive, bool):
+            aggressive = str(aggressive).lower() not in {"false", "0", "no"}
+
         logger.info(f"🔧 Repair + Volume calculation for: {file.filename}")
-        
+
         # Detect file extension
         file_ext = os.path.splitext(file.filename)[1] if file.filename else '.stl'
         if not file_ext:
             file_ext = '.stl'
-        
+
         logger.info(f"   File extension: {file_ext}")
-        
+
         # Read file content
         content = await file.read()
         if len(content) > MAX_FILE_SIZE:
             raise HTTPException(status_code=400, detail="File too large")
-        
+
         # Save original file
         original_filename = f"original_{file.filename}"
         original_path_storage = UPLOAD_DIR / original_filename
         with open(original_path_storage, 'wb') as f:
             f.write(content)
-        
+
         # Save to temporary file for processing
         with tempfile.NamedTemporaryFile(delete=False, suffix=file_ext) as tmp_file:
             tmp_file.write(content)
             original_path = tmp_file.name
-        
+
         try:
             # Load original mesh
             logger.info(f"   Loading original mesh...")
             loaded = trimesh.load(original_path)
-            
+
             # Handle Scene vs Mesh
             if isinstance(loaded, trimesh.Scene):
                 logger.info(f"   Loaded as Scene with {len(loaded.geometry)} geometries")
@@ -777,99 +774,115 @@ async def repair_mesh_and_calculate_volume(file: UploadFile = File(...), aggress
                     logger.info(f"   Merged {len(meshes)} meshes")
             else:
                 mesh_original = loaded
-            
+
             # Analyze original mesh
             original_volume_mm3 = float(abs(mesh_original.volume))
             original_volume_cm3 = original_volume_mm3 / 1000.0
             original_watertight = mesh_original.is_watertight
             original_vertices = len(mesh_original.vertices)
             original_faces = len(mesh_original.faces)
-            
+
             # Detect holes in original - Store boundary edges for visualization
             edges_sorted = np.sort(mesh_original.edges_sorted, axis=1)
             unique_edges, counts = np.unique(edges_sorted, axis=0, return_counts=True)
             boundary_edges_original = unique_edges[counts == 1]
             original_holes = len(boundary_edges_original)
-            
+
             # Get vertices that are part of holes (for visualization)
             hole_vertices_indices = np.unique(boundary_edges_original.flatten())
             hole_vertices = mesh_original.vertices[hole_vertices_indices].tolist()
-            
+
             logger.info(f"   Original: {original_vertices} verts, {original_faces} faces")
             logger.info(f"   Original volume: {original_volume_cm3:.4f} cm³")
             logger.info(f"   Original watertight: {original_watertight}, holes: {original_holes}")
             logger.info(f"   Hole boundary vertices: {len(hole_vertices_indices)}")
-            
+
             # Repair mesh using pymeshfix
             logger.info(f"   Repairing mesh (aggressive={aggressive})...")
             mesh_repaired = repair_mesh_pymeshfix(mesh_original, aggressive=aggressive)
-            
+
             # Analyze repaired mesh
             repaired_volume_mm3 = float(abs(mesh_repaired.volume))
             repaired_volume_cm3 = repaired_volume_mm3 / 1000.0
             repaired_watertight = mesh_repaired.is_watertight
             repaired_vertices = len(mesh_repaired.vertices)
             repaired_faces = len(mesh_repaired.faces)
-            
+
             # Detect holes in repaired
             edges_sorted_repaired = np.sort(mesh_repaired.edges_sorted, axis=1)
             unique_edges_repaired, counts_repaired = np.unique(edges_sorted_repaired, axis=0, return_counts=True)
             boundary_edges_repaired = unique_edges_repaired[counts_repaired == 1]
             repaired_holes = len(boundary_edges_repaired)
-            
+
             holes_filled = max(0, original_holes - repaired_holes)
-            
+
+            # Calculate mesh quality score (0-100)
+            quality_score = 0.0
+            try:
+                quality_metrics = compute_mesh_quality_metrics(mesh_repaired.vertices, mesh_repaired.faces)
+                # Quality score based on:
+                # - Watertight: 40 points
+                # - Mean aspect ratio (closer to 1.0 is better): 30 points
+                # - No holes: 30 points
+                watertight_score = 40 if repaired_watertight else 0
+                aspect_score = min(30, quality_metrics.get('mean_aspect_ratio', 0) * 30)
+                holes_score = 30 if repaired_holes == 0 else max(0, 30 - (repaired_holes * 2))
+                quality_score = watertight_score + aspect_score + holes_score
+                logger.info(f"   Quality score: {quality_score:.1f}/100 (watertight:{watertight_score}, aspect:{aspect_score:.1f}, holes:{holes_score})")
+            except Exception as e:
+                logger.warning(f"Could not compute quality score: {str(e)}")
+
             # Find NEW faces (repair areas) by comparing face counts
             new_faces_count = repaired_faces - original_faces
             repair_face_indices = list(range(original_faces, repaired_faces)) if new_faces_count > 0 else []
-            
+
             # Get repair area vertices (for visualization)
             repair_vertices = []
             if len(repair_face_indices) > 0:
                 repair_faces = mesh_repaired.faces[repair_face_indices]
                 repair_vertices_indices = np.unique(repair_faces.flatten())
                 repair_vertices = mesh_repaired.vertices[repair_vertices_indices].tolist()
-            
+
             logger.info(f"   Repaired: {repaired_vertices} verts, {repaired_faces} faces")
             logger.info(f"   Repaired volume: {repaired_volume_cm3:.4f} cm³")
             logger.info(f"   Repaired watertight: {repaired_watertight}, holes: {repaired_holes}")
             logger.info(f"   ✅ Filled {holes_filled} holes")
             logger.info(f"   New faces added: {new_faces_count}, repair vertices: {len(repair_vertices)}")
-            
+
             # Save repaired mesh to permanent storage
             repaired_filename = f"repaired_{file.filename}"
             repaired_path_storage = REPAIRED_DIR / repaired_filename
             mesh_repaired.export(str(repaired_path_storage))
-            
+
             # Also save to temporary file for base64 encoding
             with tempfile.NamedTemporaryFile(delete=False, suffix=file_ext) as repaired_tmp:
                 repaired_path = repaired_tmp.name
-            
+
             mesh_repaired.export(repaired_path)
             logger.info(f"   Saved repaired mesh to: {repaired_path_storage}")
-            
+
             # Read repaired file as bytes for response
             with open(repaired_path, 'rb') as f:
                 repaired_bytes = f.read()
-            
+
             # Encode as base64 for JSON response
             import base64
             repaired_base64 = base64.b64encode(repaired_bytes).decode('utf-8')
-            
+
             # Calculate changes
             volume_change_cm3 = repaired_volume_cm3 - original_volume_cm3
             volume_change_percent = (volume_change_cm3 / original_volume_cm3 * 100) if original_volume_cm3 > 0 else 0
-            
+
             response = {
                 "success": True,
                 "filename": file.filename,
                 "repaired_filename": repaired_filename,
                 "file_format": file_ext.upper(),
-                
+
                 # File paths for permanent storage
                 "original_file_path": str(original_path_storage.relative_to(UPLOAD_DIR.parent)),
                 "repaired_file_path": str(repaired_path_storage.relative_to(REPAIRED_DIR.parent)),
-                
+
                 # Original stats
                 "original_volume_mm3": round(original_volume_mm3, 4),
                 "original_volume_cm3": round(original_volume_cm3, 4),
@@ -877,22 +890,22 @@ async def repair_mesh_and_calculate_volume(file: UploadFile = File(...), aggress
                 "original_faces": original_faces,
                 "original_watertight": original_watertight,
                 "original_holes": original_holes,
-                
-                # Repaired stats  
+
+                # Repaired stats
                 "repaired_volume_mm3": round(repaired_volume_mm3, 4),
                 "repaired_volume_cm3": round(repaired_volume_cm3, 4),
                 "repaired_vertices": repaired_vertices,
                 "repaired_faces": repaired_faces,
                 "repaired_watertight": repaired_watertight,
                 "repaired_holes": repaired_holes,
-                
+
                 # Changes
                 "holes_filled": holes_filled,
                 "vertices_added": repaired_vertices - original_vertices,
                 "faces_added": repaired_faces - original_faces,
                 "volume_change_cm3": round(volume_change_cm3, 4),
                 "volume_change_percent": round(volume_change_percent, 2),
-                
+
                 # Visualization data for frontend
                 "repair_visualization": {
                     "hole_vertices": hole_vertices[:1000],  # Limit to 1000 for JSON size
@@ -900,26 +913,30 @@ async def repair_mesh_and_calculate_volume(file: UploadFile = File(...), aggress
                     "repair_face_count": new_faces_count,
                     "boundary_edges_count": original_holes
                 },
-                
+
+                # Quality assessment
+                "quality_score": round(quality_score, 1),
+                "quality_grade": "Excellent" if quality_score >= 90 else "Good" if quality_score >= 70 else "Fair" if quality_score >= 50 else "Poor",
+
                 # Repaired file (base64 encoded)
                 "repaired_file_base64": repaired_base64,
-                
+
                 "method": "pymeshfix + trimesh + numpy",
                 "message": f"Repaired mesh: filled {holes_filled} holes, volume = {repaired_volume_cm3:.4f} cm³",
                 "timestamp": os.path.getmtime(str(repaired_path_storage))
             }
-            
+
             logger.info(f"✅ Complete: {repaired_volume_cm3:.4f} cm³, {holes_filled} holes filled")
-            
+
             return JSONResponse(response)
-            
+
         finally:
             # Cleanup temp files
             if os.path.exists(original_path):
                 os.unlink(original_path)
             if 'repaired_path' in locals() and os.path.exists(repaired_path):
                 os.unlink(repaired_path)
-    
+
     except Exception as e:
         logger.error(f"❌ Repair and calculate failed: {str(e)}")
         import traceback
@@ -928,6 +945,18 @@ async def repair_mesh_and_calculate_volume(file: UploadFile = File(...), aggress
             status_code=500,
             detail=f"Repair and calculate failed: {str(e)}"
         )
+
+
+@app.post("/repair-and-calculate")
+async def repair_mesh_and_calculate_volume(file: UploadFile = File(...), aggressive: bool = Form(True)):
+    """Repair mesh and calculate volume in a single request."""
+    return await _repair_and_calculate_core(file, aggressive)
+
+
+@app.post("/api/repair-and-calculate")
+async def repair_mesh_and_calculate_volume_api(file: UploadFile = File(...), aggressive: bool = Form(True)):
+    """API namespaced variant for backwards compatibility."""
+    return await _repair_and_calculate_core(file, aggressive)
 
 
 if __name__ == "__main__":

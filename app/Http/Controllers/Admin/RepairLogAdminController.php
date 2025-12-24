@@ -14,7 +14,7 @@ class RepairLogAdminController extends Controller
     public function index()
     {
         $logs = RepairLog::orderBy('created_at', 'desc')->paginate(20);
-        
+
         // Calculate statistics
         $stats = [
             'total_repairs' => RepairLog::count(),
@@ -22,7 +22,7 @@ class RepairLogAdminController extends Controller
             'watertight_achieved' => RepairLog::where('watertight_achieved', true)->count(),
             'avg_volume_change' => RepairLog::avg('volume_change_percent'),
         ];
-        
+
         return view('admin.repair-logs.index', compact('logs', 'stats'));
     }
 
@@ -43,10 +43,10 @@ class RepairLogAdminController extends Controller
         try {
             $log = RepairLog::findOrFail($id);
             $log->delete();
-            
+
             return redirect()->route('admin.repair-logs.index')
                 ->with('success', 'Repair log deleted successfully');
-                
+
         } catch (\Exception $e) {
             return redirect()->route('admin.repair-logs.index')
                 ->with('error', 'Failed to delete repair log');
