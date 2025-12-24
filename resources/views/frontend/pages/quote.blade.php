@@ -1156,10 +1156,7 @@
         @include('frontend.pages.quote-viewer')
     </div>
 
-    <!-- Viewer Area -->
-    <div class="quote-viewer mode-general">
-        <!-- The 3D canvas will be inserted here by JavaScript -->
-    </div>
+
 
     <!-- Control Bar - Simplified Toolbar Design -->
     <div class="viewer-bottom-controls" id="mainControlBar">

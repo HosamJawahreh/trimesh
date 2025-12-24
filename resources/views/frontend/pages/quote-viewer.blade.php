@@ -50,7 +50,7 @@ function runEmergencyDiagnostic() {
 }
 </script>
 
-<section class="dgm-3d-quote-area pb-100">
+<section class="dgm-3d-quote-area pb-100" >
     <div class="container">
         {{-- General 3D Printing Form --}}
         <div class="quote-form-container-3d" id="generalForm3d" style="display: block;">
@@ -125,7 +125,7 @@ function runEmergencyDiagnostic() {
                                         <div id="priceSummaryGeneral" class="mt-3 p-3" style="display: none !important; background: white; border-radius: 12px; border: 2px solid #e9ecef; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
 
 <script>
-// Price display moved to bottom bar
+// Price display moved to right panel
 document.addEventListener('DOMContentLoaded', function() {
     const priceSummaryGeneral = document.getElementById('priceSummaryGeneral');
     if (priceSummaryGeneral) priceSummaryGeneral.style.display = 'none';
@@ -134,35 +134,42 @@ document.addEventListener('DOMContentLoaded', function() {
     const bottomPriceDisplay = document.getElementById('bottomPriceDisplay');
     if (bottomPriceDisplay) bottomPriceDisplay.classList.remove('show');
 
-    // Sync sidebar price to bottom bar
-    function syncPriceToBottomBar() {
+    // Sync sidebar price to right panel
+    function syncPriceToRightPanel() {
         const sidebarPrice = document.getElementById('quoteTotalPriceGeneral');
         const sidebarVolume = document.getElementById('quoteTotalVolumeGeneral');
+        const rightPanelPrice = document.getElementById('rightPanelPrice');
+        const rightPanelVolume = document.getElementById('rightPanelVolume');
+        const rightPanelSummary = document.getElementById('rightPanelPriceSummary');
         const bottomPrice = document.getElementById('bottomTotalPrice');
         const bottomVolume = document.getElementById('bottomTotalVolume');
         const bottomDisplay = document.getElementById('bottomPriceDisplay');
 
-        if (sidebarPrice && bottomPrice && bottomDisplay) {
+        if (sidebarPrice && rightPanelPrice && rightPanelSummary) {
             const priceText = sidebarPrice.textContent || '$0.00';
-            bottomPrice.textContent = priceText;
+            const volumeText = sidebarVolume ? (sidebarVolume.textContent || '0 cm³') : '0 cm³';
 
-            // Sync volume
-            if (sidebarVolume && bottomVolume) {
-                const volumeText = sidebarVolume.textContent || '0 cm³';
-                bottomVolume.textContent = volumeText;
-            }
+            // Update right panel
+            rightPanelPrice.textContent = priceText;
+            if (rightPanelVolume) rightPanelVolume.textContent = volumeText;
 
-            // Show bottom price if sidebar price is visible and has value
+            // Also sync to bottom bar if it exists
+            if (bottomPrice) bottomPrice.textContent = priceText;
+            if (bottomVolume) bottomVolume.textContent = volumeText;
+
+            // Show/hide right panel price summary based on price value
             if (sidebarPrice.style.display !== 'none' && priceText !== '$0' && priceText !== '$0.00') {
-                bottomDisplay.classList.add('show');
+                rightPanelSummary.style.display = 'block';
+                if (bottomDisplay) bottomDisplay.classList.add('show');
             } else {
-                bottomDisplay.classList.remove('show');
+                rightPanelSummary.style.display = 'none';
+                if (bottomDisplay) bottomDisplay.classList.remove('show');
             }
         }
     }
 
     // Watch for price and volume changes
-    const observer = new MutationObserver(syncPriceToBottomBar);
+    const observer = new MutationObserver(syncPriceToRightPanel);
     const priceElement = document.getElementById('quoteTotalPriceGeneral');
     const volumeElement = document.getElementById('quoteTotalVolumeGeneral');
 
@@ -186,6 +193,18 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Initial sync
+    syncPriceToRightPanel();
+
+    // Connect right panel Request Quote button to sidebar button
+    const rightPanelQuoteBtn = document.getElementById('rightPanelQuoteBtn');
+    const sidebarQuoteBtn = document.getElementById('btnRequestQuoteGeneral');
+    if (rightPanelQuoteBtn && sidebarQuoteBtn) {
+        rightPanelQuoteBtn.addEventListener('click', function() {
+            sidebarQuoteBtn.click();
+        });
+    }
+
     // Hide price summary and sidebar price on file upload or removal
     function hidePriceSummary() {
         if (priceSummaryGeneral) priceSummaryGeneral.style.display = 'none';
@@ -198,6 +217,9 @@ document.addEventListener('DOMContentLoaded', function() {
         // Hide bottom bar price
         const bottomDisplay = document.getElementById('bottomPriceDisplay');
         if (bottomDisplay) bottomDisplay.classList.remove('show');
+        // Hide right panel price summary
+        const rightPanelSummary = document.getElementById('rightPanelPriceSummary');
+        if (rightPanelSummary) rightPanelSummary.style.display = 'none';
     }
     const fileInput = document.getElementById('fileInput3d');
     if (fileInput) fileInput.addEventListener('change', hidePriceSummary);
@@ -210,6 +232,8 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('📌 Attaching handler to button', index);
         saveBtn.addEventListener('click', async function() {
             console.log('💾 SAVE & CALCULATE STARTED - Button', index);
+            // Trigger sync after calculation
+            setTimeout(syncPriceToRightPanel, 500);
 
             const viewer = window.viewerGeneral;
             if (!viewer || !viewer.uploadedFiles || viewer.uploadedFiles.length === 0) {
@@ -339,7 +363,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                                 </button>
                                             </div>
                                             {{-- Files Container --}}
-                                            <div id="rightFilesContainer" style="flex: 1; overflow-y: auto; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; margin: 12px;">
+                                            <div id="rightFilesContainer" style="flex: 1; overflow-y: auto; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; margin: 12px 12px 0 12px;">
                                                 <div style="text-align: center; padding: 40px 20px; color: #999;">
                                                     <svg width="48" height="48" viewBox="0 0 48 48" fill="none" style="margin: 0 auto 12px;">
                                                         <path d="M24 8L40 16L24 24L8 16L24 8Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -348,6 +372,32 @@ document.addEventListener('DOMContentLoaded', function() {
                                                     </svg>
                                                     <p style="margin: 0; font-size: 13px;">No files uploaded yet</p>
                                                 </div>
+                                            </div>
+
+                                            {{-- Price Summary Section --}}
+                                            <div id="rightPanelPriceSummary" style="display: none; padding: 12px; margin: 12px; background: #f5f7fa; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                                                {{-- Volume and Price in one line --}}
+                                                <div style="display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-bottom: 12px;">
+                                                    {{-- Volume --}}
+                                                    <div style="flex: 1; text-align: center;">
+                                                        <div style="font-size: 0.7rem; color: #6c757d; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">VOLUME</div>
+                                                        <div id="rightPanelVolume" style="font-weight: 700; font-size: 1rem; color: #2c3e50;">0 cm³</div>
+                                                    </div>
+
+                                                    {{-- Price --}}
+                                                    <div style="flex: 1; text-align: center;">
+                                                        <div style="font-size: 0.7rem; color: #6c757d; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">TOTAL PRICE</div>
+                                                        <div id="rightPanelPrice" style="font-weight: 700; font-size: 1.25rem; color: #4a90e2;">$0.00</div>
+                                                    </div>
+                                                </div>
+
+                                                {{-- Horizontal line separator --}}
+                                                <hr style="border: none; border-top: 1px solid #dee2e6; margin: 12px 0;">
+
+                                                {{-- Request Quote Button on new line --}}
+                                                <button type="button" id="rightPanelQuoteBtn" style="width: 100%; border-radius: 6px; font-weight: 600; font-size: 0.85rem; padding: 10px 16px; background: #4a90e2; color: white; border: none; transition: all 0.3s; cursor: pointer;" onmouseover="this.style.background='#357abd'" onmouseout="this.style.background='#4a90e2'">
+                                                    Request Quote →
+                                                </button>
                                             </div>
                                         </div>
 
@@ -601,121 +651,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                             <button type="button" class="unit-btn" data-unit="inch">inch</button>
                                         </div>
 
-                                        {{-- Bottom Control Bar - Professional --}}
-                                        <div class="viewer-bottom-controls" id="controlBarGeneral">
-                                            <div class="control-section measurements-section">
-                                                <div class="control-label">Dimensions</div>
-                                                <div class="measurement-items">
-                                                    <div class="measurement-item">
-                                                        <span class="axis-label">X:</span>
-                                                        <span class="axis-value" id="measureX">0.00</span>
-                                                        <span class="axis-unit">mm</span>
-                                                    </div>
-                                                    <div class="measurement-item">
-                                                        <span class="axis-label">Y:</span>
-                                                        <span class="axis-value" id="measureY">0.00</span>
-                                                        <span class="axis-unit">mm</span>
-                                                    </div>
-                                                    <div class="measurement-item">
-                                                        <span class="axis-label">Z:</span>
-                                                        <span class="axis-value" id="measureZ">0.00</span>
-                                                        <span class="axis-unit">mm</span>
-                                                    </div>
-                                                    <div class="measurement-item volume">
-                                                        <span class="axis-label">Vol:</span>
-                                                        <span class="axis-value" id="measureVolume">0.00</span>
-                                                        <span class="axis-unit">cm³</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="control-divider"></div>
-
-                                            <div class="control-section camera-section">
-                                                <div class="control-label">Camera View</div>
-                                                <div class="camera-buttons">
-                                                    <button type="button" class="control-btn camera-btn" data-view="top" title="Top View">
-                                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                                            <path d="M8 2L14 6L8 10L2 6L8 2Z" stroke="currentColor" stroke-width="1.5"/>
-                                                        </svg>
-                                                        <span>Top</span>
-                                                    </button>
-                                                    <button type="button" class="control-btn camera-btn" data-view="front" title="Front View">
-                                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                                            <rect x="3" y="3" width="10" height="10" stroke="currentColor" stroke-width="1.5"/>
-                                                        </svg>
-                                                        <span>Front</span>
-                                                    </button>
-                                                    <button type="button" class="control-btn camera-btn" data-view="right" title="Right View">
-                                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                                            <path d="M3 3L13 3L13 13L3 13L3 3Z" stroke="currentColor" stroke-width="1.5"/>
-                                                            <path d="M8 3L13 8L8 13" stroke="currentColor" stroke-width="1.5"/>
-                                                        </svg>
-                                                        <span>Right</span>
-                                                    </button>
-                                                    <button type="button" class="control-btn camera-btn" data-view="left" title="Left View">
-                                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                                            <path d="M13 3L3 3L3 13L13 13L13 3Z" stroke="currentColor" stroke-width="1.5"/>
-                                                            <path d="M8 3L3 8L8 13" stroke="currentColor" stroke-width="1.5"/>
-                                                        </svg>
-                                                        <span>Left</span>
-                                                    </button>
-                                                    <button type="button" class="control-btn camera-btn" data-view="bottom" title="Bottom View">
-                                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                                            <path d="M8 14L2 10L8 6L14 10L8 14Z" stroke="currentColor" stroke-width="1.5"/>
-                                                        </svg>
-                                                        <span>Bottom</span>
-                                                    </button>
-                                                </div>
-                                            </div>
-
-                                            <div class="control-divider"></div>
-
-                                            <div class="control-section tools-section">
-                                                <div class="control-label">Tools</div>
-                                                <div class="control-buttons">
-                                                    <button type="button" class="control-btn tool-btn" id="panToolBtn" title="Pan Tool">
-                                                        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                                                            <path d="M9 2C9 2 9 7 9 7M9 7L6.5 4.5M9 7L11.5 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                                            <path d="M9 16C9 16 9 11 9 11M9 11L6.5 13.5M9 11L11.5 13.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                                            <path d="M2 9C2 9 7 9 7 9M7 9L4.5 6.5M7 9L4.5 11.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                                            <path d="M16 9C16 9 11 9 11 9M11 9L13.5 6.5M11 9L13.5 11.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                                        </svg>
-                                                        <span>Pan</span>
-                                                    </button>
-                                                    <button type="button" class="control-btn tool-btn" id="screenshotBtn" title="Take Screenshot">
-                                                        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                                                            <rect x="2" y="4" width="14" height="11" rx="2" stroke="currentColor" stroke-width="1.5"/>
-                                                            <circle cx="9" cy="9.5" r="2.5" stroke="currentColor" stroke-width="1.5"/>
-                                                            <path d="M6 4L7 2H11L12 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                                                        </svg>
-                                                        <span>Screenshot</span>
-                                                    </button>
-                                                    <button type="button" class="control-btn tool-btn" id="shareGeneralBtn" title="Share Model">
-                                                        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                                                            <circle cx="13" cy="4" r="2.5" stroke="currentColor" stroke-width="1.5"/>
-                                                            <circle cx="5" cy="9" r="2.5" stroke="currentColor" stroke-width="1.5"/>
-                                                            <circle cx="13" cy="14" r="2.5" stroke="currentColor" stroke-width="1.5"/>
-                                                            <path d="M7.5 10L10.5 12.5M7.5 8L10.5 5.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                                                        </svg>
-                                                        <span>Share</span>
-                                                    </button>
-                                                </div>
-                                            </div>
-
-                                            <div class="control-divider"></div>
-
-                                            <div class="control-section actions-section">
-                                                <button type="button" class="control-btn save-btn" id="saveCalculationsBtn">
-                                                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                                                        <path d="M15 16H3C2.44772 16 2 15.5523 2 15V3C2 2.44772 2.44772 2 3 2H12L16 6V15C16 15.5523 15.5523 16 15 16Z" stroke="currentColor" stroke-width="1.5"/>
-                                                        <path d="M12 2V6H5V2" stroke="currentColor" stroke-width="1.5"/>
-                                                        <path d="M5 10H13V16H5V10Z" stroke="currentColor" stroke-width="1.5"/>
-                                                    </svg>
-                                                    <span>Save & Calculate</span>
-                                                </button>
-                                            </div>
-                                        </div>
+                                        {{-- Bottom Control Bar - REMOVED (Functions moved to top toolbar) --}}
 
                                         {{-- Empty State --}}
                                         <div class="d-flex align-items-center justify-content-center h-100 text-muted text-center">
@@ -1090,90 +1026,9 @@ document.addEventListener('DOMContentLoaded', function() {
                                             <button type="button" class="unit-btn" data-unit="inch">inch</button>
                                         </div>
 
-                                        {{-- Bottom Control Bar - Professional --}}
-                                        <div class="viewer-bottom-controls" id="controlBarMedical">
-                                            <div class="control-section measurements-section">
-                                                <div class="control-label">Measurements</div>
-                                                <div class="measurement-items">
-                                                    <div class="measurement-item">
-                                                        <span class="axis-label">X:</span>
-                                                        <span class="axis-value" id="measureX">0.00</span>
-                                                        <span class="axis-unit">mm</span>
-                                                    </div>
-                                                    <div class="measurement-item">
-                                                        <span class="axis-label">Y:</span>
-                                                        <span class="axis-value" id="measureY">0.00</span>
-                                                        <span class="axis-unit">mm</span>
-                                                    </div>
-                                                    <div class="measurement-item">
-                                                        <span class="axis-label">Z:</span>
-                                                        <span class="axis-value" id="measureZ">0.00</span>
-                                                        <span class="axis-unit">mm</span>
-                                                    </div>
-                                                    <div class="measurement-item volume">
-                                                        <span class="axis-label">Vol:</span>
-                                                        <span class="axis-value" id="measureVolume">0.00</span>
-                                                        <span class="axis-unit">cm³</span>
-                                                    </div>
-                                                </div>
-                                            </div>
+                                        {{-- Bottom Control Bar - REMOVED (Functions moved to top toolbar) --}}
 
-                                            <div class="control-divider"></div>
-
-                                            <div class="control-section camera-section">
-                                                <div class="control-label">Camera View</div>
-                                                <div class="camera-buttons">
-                                                    <button type="button" class="control-btn camera-btn" data-view="top" title="Top View">
-                                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                                            <path d="M8 2L14 6L8 10L2 6L8 2Z" stroke="currentColor" stroke-width="1.5"/>
-                                                        </svg>
-                                                        <span>Top</span>
-                                                    </button>
-                                                    <button type="button" class="control-btn camera-btn" data-view="front" title="Front View">
-                                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                                            <rect x="3" y="3" width="10" height="10" stroke="currentColor" stroke-width="1.5"/>
-                                                        </svg>
-                                                        <span>Front</span>
-                                                    </button>
-                                                    <button type="button" class="control-btn camera-btn" data-view="right" title="Right View">
-                                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                                            <path d="M3 3L13 3L13 13L3 13L3 3Z" stroke="currentColor" stroke-width="1.5"/>
-                                                            <path d="M8 3L13 8L8 13" stroke="currentColor" stroke-width="1.5"/>
-                                                        </svg>
-                                                        <span>Right</span>
-                                                    </button>
-                                                    <button type="button" class="control-btn camera-btn" data-view="left" title="Left View">
-                                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                                            <path d="M13 3L3 3L3 13L13 13L13 3Z" stroke="currentColor" stroke-width="1.5"/>
-                                                            <path d="M8 3L3 8L8 13" stroke="currentColor" stroke-width="1.5"/>
-                                                        </svg>
-                                                        <span>Left</span>
-                                                    </button>
-                                                    <button type="button" class="control-btn camera-btn" data-view="bottom" title="Bottom View">
-                                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                                            <path d="M8 14L2 10L8 6L14 10L8 14Z" stroke="currentColor" stroke-width="1.5"/>
-                                                        </svg>
-                                                        <span>Bottom</span>
-                                                    </button>
-                                                </div>
-                                            </div>
-
-                                            <div class="control-divider"></div>
-
-                                            <div class="control-section tools-section">
-                                                <div class="control-label">Tools</div>
-                                                <div class="tool-buttons">
-                                                    <button type="button" class="control-btn tool-btn" id="toggleGridBtn" title="Toggle Grid">
-                                                        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                                                            <path d="M1 1H17M1 6H17M1 11H17M1 16H17M6 1V17M11 1V17" stroke="currentColor" stroke-width="1.5"/>
-                                                        </svg>
-                                                        <span>Grid</span>
-                                                    </button>
-                                                    <button type="button" class="control-btn tool-btn" id="repairModelBtn" title="Repair Model">
-                                                        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                                                            <path d="M15 3L3 15M3 3L15 15" stroke="currentColor" stroke-width="1.5"/>
-                                                            <circle cx="9" cy="9" r="7" stroke="currentColor" stroke-width="1.5"/>
-                                                        </svg>
+                                        {{-- Mesh Repair Script --}}
                                                         <script type="module">
                                                         // --- Mesh Repair using @jscad/modeling ---
                                                         // 1. Install @jscad/modeling: npm install @jscad/modeling
@@ -1613,6 +1468,11 @@ document.addEventListener('DOMContentLoaded', function() {
 </section>
 
 <style>
+/* HIDE BOTTOM CONTROL BAR - Moved to top toolbar */
+.viewer-bottom-controls {
+    display: none !important;
+}
+
 /* Category Tab Button Styling */
 .category-tab-btn {
     background: #f8f9fa !important;
@@ -1965,49 +1825,7 @@ document.addEventListener('DOMContentLoaded', function() {
     box-shadow: 0 6px 16px rgba(0,0,0,0.12) !important;
 }
 
-/* File Settings Modal - Ensure it appears above everything */
-#fileSettingsModal {
-    pointer-events: auto !important;
-    z-index: 10060 !important;
-}
-
-#fileSettingsModal .modal-dialog {
-    pointer-events: auto !important;
-}
-
-#fileSettingsModal .modal-content {
-    pointer-events: auto !important;
-}
-
-#fileSettingsModal .modal-backdrop {
-    z-index: 10055 !important;
-    pointer-events: auto !important;
-}
-
-#fileSettingsModal button,
-#fileSettingsModal select,
-#fileSettingsModal input,
-#fileSettingsModal .modal-color-btn {
-    pointer-events: auto !important;
-    cursor: pointer !important;
-}
-
-/* Modal Color Button Styles */
-.modal-color-btn {
-    position: relative;
-}
-
-.modal-color-btn.active::after {
-    content: '✓';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    color: white;
-    font-size: 18px;
-    font-weight: bold;
-    text-shadow: 0 0 3px rgba(0,0,0,0.5);
-}
+/* OLD MODAL CSS REMOVED - NOW USING SIMPLE MODAL */
 
 .modal-open {
     overflow: hidden;
@@ -2432,6 +2250,172 @@ body.modal-open #rightFilesPanel {
 </style>
 
 <script>
+// ==========================================
+// MODAL FUNCTIONS - DEFINED FIRST SO THEY'RE AVAILABLE EVERYWHERE
+// ==========================================
+
+function openSimpleFileModal(formType, fileId) {
+    console.log('🔵 Simple modal called - formType:', formType, 'fileId:', fileId);
+
+    const viewer = formType === 'General' ? window.viewerGeneral : window.viewer;
+    if (!viewer) {
+        console.error('❌ Viewer not found for formType:', formType);
+        return;
+    }
+    console.log('✅ Viewer found:', viewer);
+
+    const fileData = viewer.uploadedFiles.find(f => f.id === fileId);
+    if (!fileData) {
+        console.error('❌ File not found with id:', fileId);
+        console.log('Available files:', viewer.uploadedFiles);
+        return;
+    }
+    console.log('✅ File data found:', fileData);
+
+    // Store for saving later
+    window.simpleModalFileId = fileId;
+    window.simpleModalFormType = formType;
+
+    // Populate modal
+    const fileNameEl = document.getElementById('simpleModalFileName');
+    const techEl = document.getElementById('simpleTechSelect');
+    const materialEl = document.getElementById('simpleMaterialSelect');
+
+    console.log('📝 Modal elements:', {fileNameEl, techEl, materialEl});
+
+    if (fileNameEl) fileNameEl.textContent = fileData.file.name;
+    if (techEl) techEl.value = fileData.technology || 'fdm';
+    if (materialEl) materialEl.value = fileData.material || 'pla';
+
+    // Set active color
+    const currentColor = fileData.color ? '#' + fileData.color.toString(16).padStart(6, '0') : '#0047AD';
+    document.querySelectorAll('.simple-color-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.dataset.color.toLowerCase() === currentColor.toLowerCase()) {
+            btn.classList.add('active');
+        }
+    });
+    console.log('✅ Color set to:', currentColor);
+
+    // Show modal
+    const modal = document.getElementById('simpleFileModal');
+    console.log('📦 Modal element:', modal);
+
+    if (!modal) {
+        console.error('❌ Modal element not found!');
+        return;
+    }
+
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+
+    console.log('✅✅✅ Simple modal opened successfully!');
+}
+
+function closeSimpleModal() {
+    console.log('🔴 Close modal called');
+    const modal = document.getElementById('simpleFileModal');
+    if (!modal) {
+        console.error('❌ Modal element not found');
+        return;
+    }
+    modal.style.display = 'none';
+    document.body.style.overflow = '';
+    console.log('✅ Simple modal closed');
+}
+
+function selectSimpleColor(btn) {
+    console.log('🎨 Color selected:', btn.dataset.color);
+    document.querySelectorAll('.simple-color-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    console.log('✅ Color activated');
+}
+
+function saveSimpleModal() {
+    console.log('💾 Save modal called');
+    const fileId = window.simpleModalFileId;
+    const formType = window.simpleModalFormType;
+
+    console.log('📝 Modal data:', {fileId, formType});
+
+    if (!fileId || !formType) {
+        console.error('❌ No file selected');
+        alert('No file selected. Please try again.');
+        return;
+    }
+
+    const viewer = formType === 'General' ? window.viewerGeneral : window.viewer;
+    if (!viewer) {
+        console.error('❌ Viewer not found for formType:', formType);
+        alert('Viewer not found. Please try again.');
+        return;
+    }
+
+    console.log('✅ Viewer found:', viewer);
+
+    const fileData = viewer.uploadedFiles.find(f => f.id === fileId);
+    if (!fileData) {
+        console.error('❌ File not found with id:', fileId);
+        console.log('Available files:', viewer.uploadedFiles);
+        alert('File not found. Please try again.');
+        return;
+    }
+
+    console.log('✅ File data found:', fileData);
+
+    // Get values
+    const technology = document.getElementById('simpleTechSelect').value;
+    const material = document.getElementById('simpleMaterialSelect').value;
+    const activeBtn = document.querySelector('.simple-color-btn.active');
+    const colorHex = activeBtn ? activeBtn.dataset.color : '#0047AD';
+    const colorValue = parseInt(colorHex.replace('#', ''), 16);
+
+    console.log('📊 New values:', {technology, material, colorHex, colorValue});
+
+    // Update file data
+    fileData.technology = technology;
+    fileData.material = material;
+    fileData.color = colorValue;
+
+    console.log('✅ File data updated');
+
+    // Update mesh color in 3D viewer
+    if (fileData.mesh && fileData.mesh.material) {
+        fileData.mesh.material.color.setHex(colorValue);
+        console.log('✅ 3D mesh color updated');
+    } else {
+        console.warn('⚠️ No mesh found to update color');
+    }
+
+    // Update UI
+    if (typeof updateFileList === 'function') {
+        updateFileList(formType, viewer);
+        console.log('✅ UI updated');
+    }
+
+    console.log('💚 File settings saved successfully:', {technology, material, color: colorHex});
+
+    // Close modal
+    closeSimpleModal();
+}
+
+// Make functions globally available IMMEDIATELY
+window.openFileSettingsModal = openSimpleFileModal;
+window.openSimpleFileModal = openSimpleFileModal;
+window.closeSimpleModal = closeSimpleModal;
+window.selectSimpleColor = selectSimpleColor;
+window.saveSimpleModal = saveSimpleModal;
+
+console.log('✅✅✅ Modal functions registered EARLY:', {
+    openFileSettingsModal: typeof window.openFileSettingsModal,
+    openSimpleFileModal: typeof window.openSimpleFileModal,
+    closeSimpleModal: typeof window.closeSimpleModal
+});
+
+// ==========================================
+// MAIN APPLICATION CODE
+// ==========================================
+
 document.addEventListener('DOMContentLoaded', function() {
     // Form switcher functionality
     const formSwitchers = document.querySelectorAll('.form-switch-btn-3d');
@@ -3508,7 +3492,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="file-list-item d-flex align-items-center justify-content-between p-2 border-bottom"
                  style="background: white; cursor: pointer; transition: all 0.2s;"
                  data-file-id="${fileData.id}"
-                 onclick="openFileSettingsModal('${formType}', ${fileData.id}, event)">
+                 onclick="event.stopPropagation(); console.log('🎯 File card clicked!', '${formType}', ${fileData.id}); if(window.openSimpleFileModal) { window.openSimpleFileModal('${formType}', ${fileData.id}); } else { console.error('openSimpleFileModal not found'); }">
                 <div class="d-flex align-items-center flex-grow-1">
                     <!-- Order Number -->
                     <div class="file-order-number" style="width: 24px; height: 24px; background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.7rem; font-weight: bold; margin-right: 8px; flex-shrink: 0;">
@@ -3607,173 +3591,10 @@ document.addEventListener('DOMContentLoaded', function() {
         removeFile(formType, fileId);
     };
 
-    // Open file settings modal - ULTRA SIMPLE - NO BOOTSTRAP
-    window.openFileSettingsModal = function(formType, fileId, event) {
-        console.log('🔍 Opening modal for file:', fileId);
+    // OLD MODAL CODE REMOVED - Using new simple modal at end of file
+    // The openFileSettingsModal function is defined at the bottom with the modal HTML
 
-        // Stop propagation if clicked on a button
-        if (event && (event.target.closest('button') || event.target.closest('.btn'))) {
-            return;
-        }
-
-        const viewer = formType === 'General' ? window.viewerGeneral : window.viewer;
-        if (!viewer) {
-            console.error('Viewer not found for formType:', formType);
-            return;
-        }
-
-        const fileData = viewer.uploadedFiles.find(f => f.id === fileId);
-        if (!fileData) {
-            console.error('File not found:', fileId);
-            return;
-        }
-
-        // Store current file ID for saving
-        window.currentEditingFileId = fileId;
-        window.currentEditingFormType = formType;
-
-        // Populate modal with current file settings
-        document.getElementById('modalFileName').textContent = fileData.file.name;
-        document.getElementById('modalTechnologySelect').value = fileData.technology || 'fdm';
-        document.getElementById('modalMaterialSelect').value = fileData.material || 'pla';
-
-        // Set active color button
-        const currentColor = fileData.color ? '#' + fileData.color.toString(16).padStart(6, '0') : '#0047AD';
-        document.querySelectorAll('#modalColorPicker .modal-color-btn').forEach(btn => {
-            btn.classList.remove('active');
-            if (btn.dataset.color.toLowerCase() === currentColor.toLowerCase()) {
-                btn.classList.add('active');
-            }
-        });
-
-        // Hide ALL potentially blocking elements
-        const elementsToHide = ['viewer3dGeneral', 'professionalToolbar', 'rightFilesPanel'];
-        elementsToHide.forEach(id => {
-            const el = document.getElementById(id);
-            if (el) {
-                el.style.display = 'none';
-                el.dataset.wasHidden = 'true';
-            }
-        });
-
-        // Get modal and show it with MAXIMUM z-index
-        const modal = document.getElementById('fileSettingsModal');
-        modal.style.display = 'block';
-        modal.style.zIndex = '9999999';
-        modal.style.pointerEvents = 'auto';
-        modal.classList.add('show');
-        
-        // Create backdrop
-        let backdrop = document.getElementById('modal-backdrop-custom');
-        if (!backdrop) {
-            backdrop = document.createElement('div');
-            backdrop.id = 'modal-backdrop-custom';
-            backdrop.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999998;display:block;';
-            document.body.appendChild(backdrop);
-            backdrop.onclick = () => window.closeModalCustom();
-        } else {
-            backdrop.style.display = 'block';
-        }
-        
-        document.body.classList.add('modal-open');
-        document.body.style.overflow = 'hidden';
-        
-        console.log('✅ Modal shown - z-index 9999999');
-    };
-    
-    // Close modal function
-    window.closeModalCustom = function() {
-        const modal = document.getElementById('fileSettingsModal');
-        modal.style.display = 'none';
-        modal.classList.remove('show');
-        
-        const backdrop = document.getElementById('modal-backdrop-custom');
-        if (backdrop) backdrop.style.display = 'none';
-        
-        document.body.classList.remove('modal-open');
-        document.body.style.overflow = '';
-        
-        // Restore hidden elements
-        document.querySelectorAll('[data-was-hidden="true"]').forEach(el => {
-            el.style.display = '';
-            el.dataset.wasHidden = 'false';
-        });
-    };    // Handle color button clicks in modal
-    document.addEventListener('click', function(e) {
-        if (e.target.closest('.modal-color-btn')) {
-            const btn = e.target.closest('.modal-color-btn');
-            document.querySelectorAll('#modalColorPicker .modal-color-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-        }
-    });
-
-    // Save file settings from modal
-    document.addEventListener('DOMContentLoaded', function() {
-        const saveBtn = document.getElementById('saveFileSettings');
-        if (saveBtn) {
-            saveBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-
-                console.log('💾 Saving file settings...');
-
-                const fileId = window.currentEditingFileId;
-                const formType = window.currentEditingFormType;
-
-                if (!fileId || !formType) {
-                    console.error('No file selected for editing');
-                    return;
-                }
-
-                const viewer = formType === 'General' ? window.viewerGeneral : window.viewer;
-                if (!viewer) {
-                    console.error('Viewer not found');
-                    return;
-                }
-
-                const fileData = viewer.uploadedFiles.find(f => f.id === fileId);
-                if (!fileData) {
-                    console.error('File data not found');
-                    return;
-                }
-
-                // Get selected values
-                const technology = document.getElementById('modalTechnologySelect').value;
-                const material = document.getElementById('modalMaterialSelect').value;
-                const activeColorBtn = document.querySelector('.modal-color-btn.active');
-                const colorHex = activeColorBtn ? activeColorBtn.dataset.color : '#0047AD';
-                const colorValue = parseInt(colorHex.replace('#', ''), 16);
-
-                // Update file data
-                fileData.technology = technology;
-                fileData.material = material;
-                fileData.color = colorValue;
-
-                // Update mesh color if mesh exists
-                if (fileData.mesh && fileData.mesh.material) {
-                    fileData.mesh.material.color.setHex(colorValue);
-                }
-
-                // Update file list UI
-                updateFileList(formType, viewer);
-
-                console.log(`✅ File settings updated: ${fileData.file.name}`, {
-                    technology,
-                    material,
-                    color: colorHex
-                });
-
-                // Close modal using custom close function
-                window.closeModalCustom();
-
-                // Clear current editing state
-                window.currentEditingFileId = null;
-                window.currentEditingFormType = null;
-
-                console.log('✅ Modal closed after saving');
-            });
-        }
-    });
+    // OLD MODAL EVENT HANDLERS REMOVED - NOW USING SIMPLE MODAL
 
     // Drag and drop functionality for right panel
     function attachRightPanelDragHandlers() {
@@ -7259,9 +7080,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 <h5 style="margin: 0 0 4px 0; font-weight: 600; color: #2c3e50;">File Settings</h5>
                 <p id="simpleModalFileName" style="margin: 0; font-size: 0.875rem; color: #6c757d;"></p>
             </div>
-            <button onclick="closeSimpleModal()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #6c757d; padding: 0; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;">&times;</button>
+            <button onclick="window.closeSimpleModal()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #6c757d; padding: 0; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;">&times;</button>
         </div>
-        
+
         <!-- Body -->
         <div style="padding: 24px;">
             <!-- Technology -->
@@ -7275,7 +7096,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <option value="mjf">MJF (Multi Jet Fusion)</option>
                 </select>
             </div>
-            
+
             <!-- Material -->
             <div style="margin-bottom: 16px;">
                 <label style="display: block; margin-bottom: 8px; font-size: 0.85rem; font-weight: 600; color: #495057;">Material</label>
@@ -7287,27 +7108,27 @@ document.addEventListener('DOMContentLoaded', function() {
                     <option value="resin">Resin</option>
                 </select>
             </div>
-            
+
             <!-- Color -->
             <div style="margin-bottom: 16px;">
                 <label style="display: block; margin-bottom: 8px; font-size: 0.85rem; font-weight: 600; color: #2c3e50;">Model Color</label>
                 <div id="simpleColorPicker" style="display: flex; gap: 8px; flex-wrap: wrap;">
-                    <div class="simple-color-btn" data-color="#0047AD" style="width: 40px; height: 40px; background: #0047AD; border: 2px solid #0047AD; border-radius: 8px; cursor: pointer; position: relative;" onclick="selectSimpleColor(this)"></div>
-                    <div class="simple-color-btn" data-color="#ffffff" style="width: 40px; height: 40px; background: #ffffff; border: 2px solid #dee2e6; border-radius: 8px; cursor: pointer; position: relative;" onclick="selectSimpleColor(this)"></div>
-                    <div class="simple-color-btn" data-color="#2c3e50" style="width: 40px; height: 40px; background: #2c3e50; border: 2px solid #dee2e6; border-radius: 8px; cursor: pointer; position: relative;" onclick="selectSimpleColor(this)"></div>
-                    <div class="simple-color-btn" data-color="#3498db" style="width: 40px; height: 40px; background: #3498db; border: 2px solid #dee2e6; border-radius: 8px; cursor: pointer; position: relative;" onclick="selectSimpleColor(this)"></div>
-                    <div class="simple-color-btn" data-color="#e74c3c" style="width: 40px; height: 40px; background: #e74c3c; border: 2px solid #dee2e6; border-radius: 8px; cursor: pointer; position: relative;" onclick="selectSimpleColor(this)"></div>
-                    <div class="simple-color-btn" data-color="#2ecc71" style="width: 40px; height: 40px; background: #2ecc71; border: 2px solid #dee2e6; border-radius: 8px; cursor: pointer; position: relative;" onclick="selectSimpleColor(this)"></div>
-                    <div class="simple-color-btn" data-color="#f39c12" style="width: 40px; height: 40px; background: #f39c12; border: 2px solid #dee2e6; border-radius: 8px; cursor: pointer; position: relative;" onclick="selectSimpleColor(this)"></div>
-                    <div class="simple-color-btn" data-color="#9b59b6" style="width: 40px; height: 40px; background: #9b59b6; border: 2px solid #dee2e6; border-radius: 8px; cursor: pointer; position: relative;" onclick="selectSimpleColor(this)"></div>
+                    <div class="simple-color-btn" data-color="#0047AD" style="width: 40px; height: 40px; background: #0047AD; border: 2px solid #0047AD; border-radius: 8px; cursor: pointer; position: relative;" onclick="window.selectSimpleColor(this)"></div>
+                    <div class="simple-color-btn" data-color="#ffffff" style="width: 40px; height: 40px; background: #ffffff; border: 2px solid #dee2e6; border-radius: 8px; cursor: pointer; position: relative;" onclick="window.selectSimpleColor(this)"></div>
+                    <div class="simple-color-btn" data-color="#2c3e50" style="width: 40px; height: 40px; background: #2c3e50; border: 2px solid #dee2e6; border-radius: 8px; cursor: pointer; position: relative;" onclick="window.selectSimpleColor(this)"></div>
+                    <div class="simple-color-btn" data-color="#3498db" style="width: 40px; height: 40px; background: #3498db; border: 2px solid #dee2e6; border-radius: 8px; cursor: pointer; position: relative;" onclick="window.selectSimpleColor(this)"></div>
+                    <div class="simple-color-btn" data-color="#e74c3c" style="width: 40px; height: 40px; background: #e74c3c; border: 2px solid #dee2e6; border-radius: 8px; cursor: pointer; position: relative;" onclick="window.selectSimpleColor(this)"></div>
+                    <div class="simple-color-btn" data-color="#2ecc71" style="width: 40px; height: 40px; background: #2ecc71; border: 2px solid #dee2e6; border-radius: 8px; cursor: pointer; position: relative;" onclick="window.selectSimpleColor(this)"></div>
+                    <div class="simple-color-btn" data-color="#f39c12" style="width: 40px; height: 40px; background: #f39c12; border: 2px solid #dee2e6; border-radius: 8px; cursor: pointer; position: relative;" onclick="window.selectSimpleColor(this)"></div>
+                    <div class="simple-color-btn" data-color="#9b59b6" style="width: 40px; height: 40px; background: #9b59b6; border: 2px solid #dee2e6; border-radius: 8px; cursor: pointer; position: relative;" onclick="window.selectSimpleColor(this)"></div>
                 </div>
             </div>
         </div>
-        
+
         <!-- Footer -->
         <div style="padding: 16px 24px; border-top: 1px solid #e9ecef; display: flex; justify-content: flex-end; gap: 12px;">
-            <button onclick="closeSimpleModal()" style="padding: 8px 20px; border: 1px solid #dee2e6; background: white; color: #6c757d; border-radius: 8px; cursor: pointer; font-size: 14px;">Cancel</button>
-            <button onclick="saveSimpleModal()" style="padding: 8px 20px; border: none; background: #1976D2; color: white; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500;">Apply Changes</button>
+            <button onclick="window.closeSimpleModal()" style="padding: 8px 20px; border: 1px solid #dee2e6; background: white; color: #6c757d; border-radius: 8px; cursor: pointer; font-size: 14px;">Cancel</button>
+            <button onclick="window.saveSimpleModal()" style="padding: 8px 20px; border: none; background: #1976D2; color: white; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500;">Apply Changes</button>
         </div>
     </div>
 </div>
@@ -7327,126 +7148,26 @@ document.addEventListener('DOMContentLoaded', function() {
 </style>
 
 <script>
-// Simple Modal Functions
-function openSimpleFileModal(formType, fileId) {
-    console.log('Opening simple modal for file:', fileId);
-    
-    const viewer = formType === 'General' ? window.viewerGeneral : window.viewer;
-    if (!viewer) {
-        console.error('Viewer not found');
-        return;
-    }
-    
-    const fileData = viewer.uploadedFiles.find(f => f.id === fileId);
-    if (!fileData) {
-        console.error('File not found');
-        return;
-    }
-    
-    // Store for saving later
-    window.simpleModalFileId = fileId;
-    window.simpleModalFormType = formType;
-    
-    // Populate modal
-    document.getElementById('simpleModalFileName').textContent = fileData.file.name;
-    document.getElementById('simpleTechSelect').value = fileData.technology || 'fdm';
-    document.getElementById('simpleMaterialSelect').value = fileData.material || 'pla';
-    
-    // Set active color
-    const currentColor = fileData.color ? '#' + fileData.color.toString(16).padStart(6, '0') : '#0047AD';
-    document.querySelectorAll('.simple-color-btn').forEach(btn => {
-        btn.classList.remove('active');
-        if (btn.dataset.color.toLowerCase() === currentColor.toLowerCase()) {
-            btn.classList.add('active');
-        }
-    });
-    
-    // Show modal
-    const modal = document.getElementById('simpleFileModal');
-    modal.style.display = 'flex';
-    document.body.style.overflow = 'hidden';
-    
-    console.log('✅ Simple modal opened');
-}
-
-function closeSimpleModal() {
-    const modal = document.getElementById('simpleFileModal');
-    modal.style.display = 'none';
-    document.body.style.overflow = '';
-    console.log('✅ Simple modal closed');
-}
-
-function selectSimpleColor(btn) {
-    document.querySelectorAll('.simple-color-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-}
-
-function saveSimpleModal() {
-    const fileId = window.simpleModalFileId;
-    const formType = window.simpleModalFormType;
-    
-    if (!fileId || !formType) {
-        console.error('No file selected');
-        return;
-    }
-    
-    const viewer = formType === 'General' ? window.viewerGeneral : window.viewer;
-    if (!viewer) {
-        console.error('Viewer not found');
-        return;
-    }
-    
-    const fileData = viewer.uploadedFiles.find(f => f.id === fileId);
-    if (!fileData) {
-        console.error('File not found');
-        return;
-    }
-    
-    // Get values
-    const technology = document.getElementById('simpleTechSelect').value;
-    const material = document.getElementById('simpleMaterialSelect').value;
-    const activeBtn = document.querySelector('.simple-color-btn.active');
-    const colorHex = activeBtn ? activeBtn.dataset.color : '#0047AD';
-    const colorValue = parseInt(colorHex.replace('#', ''), 16);
-    
-    // Update file data
-    fileData.technology = technology;
-    fileData.material = material;
-    fileData.color = colorValue;
-    
-    // Update mesh color
-    if (fileData.mesh && fileData.mesh.material) {
-        fileData.mesh.material.color.setHex(colorValue);
-    }
-    
-    // Update UI
-    updateFileList(formType, viewer);
-    
-    console.log('✅ File settings saved:', {technology, material, color: colorHex});
-    
-    // Close modal
-    closeSimpleModal();
-}
-
-// Replace the old function
-window.openFileSettingsModal = openSimpleFileModal;
+// Modal functions already defined at the top of the page
+// Just add event listeners here
 
 // Close on backdrop click
 document.addEventListener('click', function(e) {
     const modal = document.getElementById('simpleFileModal');
-    if (e.target === modal) {
-        closeSimpleModal();
+    if (e.target === modal && window.closeSimpleModal) {
+        window.closeSimpleModal();
     }
 });
 
 // Close on ESC key
 document.addEventListener('keydown', function(e) {
     const modal = document.getElementById('simpleFileModal');
-    if (e.key === 'Escape' && modal.style.display === 'flex') {
-        closeSimpleModal();
+    if (e.key === 'Escape' && modal && modal.style.display === 'flex' && window.closeSimpleModal) {
+        window.closeSimpleModal();
     }
 });
 </script>
+
 
 
 
