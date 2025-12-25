@@ -134,6 +134,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const bottomPriceDisplay = document.getElementById('bottomPriceDisplay');
     if (bottomPriceDisplay) bottomPriceDisplay.classList.remove('show');
 
+    // ESC key to cancel active measurement tool
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && window.toolbarHandler && window.toolbarHandler.activeTool) {
+            window.toolbarHandler.cancelActiveTool();
+        }
+    });
+
     // Sync sidebar price to right panel
     function syncPriceToRightPanel() {
         const sidebarPrice = document.getElementById('quoteTotalPriceGeneral');
@@ -401,6 +408,40 @@ document.addEventListener('DOMContentLoaded', function() {
                                             </div>
                                         </div>
 
+                                        {{-- Active Tool Status Bar --}}
+                                        <div class="active-tool-status" id="activeToolStatus">
+                                            <div class="tool-icon">
+                                                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                                    <path id="activeToolIcon" d="M4 16L16 4" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                                                </svg>
+                                            </div>
+                                            <div class="tool-name" id="activeToolName">Distance</div>
+                                            <div class="tool-instruction" id="activeToolInstruction">Click two points on the model</div>
+                                            <button class="cancel-tool" onclick="window.toolbarHandler.cancelActiveTool()">Cancel (ESC)</button>
+                                        </div>
+
+                                        {{-- Measurement Results Panel --}}
+                                        <div class="measurement-results-panel" id="measurementResultsPanel">
+                                            <div class="results-header">
+                                                <div style="display: flex; align-items: center; gap: 8px;">
+                                                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                                                        <path d="M3 15L15 3M5 15L7 13M9 15L11 13M13 15L15 13M3 13L5 11M3 9L7 5M3 5L5 3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                                                    </svg>
+                                                    <span>Measurements</span>
+                                                </div>
+                                                <button type="button" class="results-close" onclick="window.toolbarHandler.closeMeasurementsPanel()">×</button>
+                                            </div>
+                                            <div class="results-body" id="measurementResultsList">
+                                                <div class="no-measurements">
+                                                    <svg width="40" height="40" viewBox="0 0 48 48" fill="none" style="opacity: 0.3; margin-bottom: 8px;">
+                                                        <path d="M8 40L40 8M12 40L16 36M20 40L24 36M28 40L32 36M36 40L40 36M8 36L12 32M8 28L16 20M8 20L12 16M8 12L16 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                                    </svg>
+                                                    <p>No measurements yet</p>
+                                                    <small>Click a measurement tool to start</small>
+                                                </div>
+                                            </div>
+                                        </div>
+
                                         {{-- Professional Toolbar - Top Right --}}
                                         <div class="viewer-professional-toolbar" id="professionalToolbar" style="position: absolute !important; top: 0 !important; left: 0 !important; right: 0 !important; width: 100% !important; display: flex !important; visibility: visible !important; opacity: 1 !important; z-index: 9999 !important; background: rgba(255, 255, 255, 0.95) !important; padding: 8px !important; border-radius: 0 !important; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important; pointer-events: auto !important; gap: 8px !important;">
 
@@ -467,12 +508,6 @@ document.addEventListener('DOMContentLoaded', function() {
                                                                 <path d="M4 16A6 6 0 0 1 9 11" stroke="currentColor" stroke-width="1.5" stroke-dasharray="2 2"/>
                                                             </svg>
                                                             <span>Angle</span>
-                                                        </button>
-                                                        <button type="button" class="submenu-btn" data-measure="clear">
-                                                            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                                                                <path d="M3 3L15 15M15 3L3 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                                                            </svg>
-                                                            <span>Clear All Measurements</span>
                                                         </button>
                                                     </div>
                                                 </div>
@@ -1011,12 +1046,6 @@ document.addEventListener('DOMContentLoaded', function() {
                                                     <path d="M4 16A6 6 0 0 1 9 11" stroke="currentColor" stroke-width="1.5" stroke-dasharray="2 2"/>
                                                 </svg>
                                                 <span>Angle</span>
-                                            </button>
-                                            <button type="button" class="submenu-btn" data-measure="clear">
-                                                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                                                    <path d="M3 3L15 15M15 3L3 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                                                </svg>
-                                                <span>Clear All Measurements</span>
                                             </button>
                                         </div>
 
@@ -1972,29 +2001,283 @@ body.modal-open #rightFilesPanel {
     height: 20px;
 }
 
-/* Measurement Submenu */
+/* Active Tool Status Bar */
+.active-tool-status {
+    position: fixed;
+    top: 60px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    z-index: 10001;
+    display: none;
+    align-items: center;
+    gap: 12px;
+    font-weight: 600;
+    font-size: 14px;
+    animation: slideInDown 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.active-tool-status.visible {
+    display: flex;
+}
+
+.active-tool-status .tool-icon {
+    width: 24px;
+    height: 24px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.active-tool-status .tool-name {
+    font-size: 15px;
+}
+
+.active-tool-status .tool-instruction {
+    font-size: 12px;
+    opacity: 0.9;
+    font-weight: 400;
+    border-left: 2px solid rgba(255, 255, 255, 0.3);
+    padding-left: 12px;
+    margin-left: 4px;
+}
+
+.active-tool-status .cancel-tool {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    transition: all 0.2s;
+    margin-left: 8px;
+}
+
+.active-tool-status .cancel-tool:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.05);
+}
+
+@keyframes slideInDown {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+/* Measurement Results Panel */
+.measurement-results-panel {
+    position: fixed;
+    bottom: 80px;
+    left: 20px;
+    width: 320px;
+    max-height: 400px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    z-index: 10002;
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+    animation: slideInLeft 0.3s ease;
+}
+
+.measurement-results-panel.visible {
+    display: flex;
+}
+
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    background: #f8f9fa;
+    border-bottom: 2px solid #e9ecef;
+    font-weight: 700;
+    font-size: 13px;
+    color: #212529;
+}
+
+.results-close {
+    background: #e9ecef;
+    border: none;
+    font-size: 18px;
+    color: #495057;
+    cursor: pointer;
+    padding: 0;
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    transition: all 0.2s;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.results-close:hover {
+    background: #dee2e6;
+    color: #212529;
+    transform: rotate(90deg);
+}
+
+.results-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+}
+
+.no-measurements {
+    text-align: center;
+    padding: 25px 12px;
+    color: #6c757d;
+}
+
+.no-measurements svg {
+    width: 36px;
+    height: 36px;
+}
+
+.no-measurements p {
+    font-size: 12px;
+    font-weight: 600;
+    margin: 0 0 4px 0;
+}
+
+.no-measurements small {
+    font-size: 10px;
+    color: #adb5bd;
+}
+
+.measurement-item {
+    background: #f8f9fa;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    padding: 8px 10px;
+    margin-bottom: 8px;
+    transition: all 0.2s;
+}
+
+.measurement-item:hover {
+    border-color: #4a90e2;
+    box-shadow: 0 2px 8px rgba(74, 144, 226, 0.1);
+}
+
+.measurement-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.measurement-type {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: 600;
+    font-size: 11px;
+    color: #495057;
+}
+
+.measurement-type .type-icon {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+}
+
+.measurement-type.distance .type-icon { background: #ffebee; color: #f44336; }
+.measurement-type.diameter .type-icon { background: #e8f5e9; color: #4caf50; }
+.measurement-type.area .type-icon { background: #fff9c4; color: #fbc02d; }
+.measurement-type.point-to-surface .type-icon { background: #f3e5f5; color: #9c27b0; }
+.measurement-type.angle .type-icon { background: #e0f7fa; color: #00bcd4; }
+
+.measurement-value {
+    font-size: 15px;
+    font-weight: 700;
+    color: #212529;
+    margin: 0;
+    line-height: 1.2;
+    word-break: break-all;
+}
+
+.measurement-unit {
+    font-size: 10px;
+    font-weight: 500;
+    color: #6c757d;
+    margin-left: 2px;
+}
+
+.measurement-delete {
+    background: #ffebee;
+    border: none;
+    color: #f44336;
+    padding: 4px 8px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 10px;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.measurement-delete:hover {
+    background: #f44336;
+    color: white;
+    transform: scale(1.05);
+}
+
+/* Simplified Measurement Submenu */
 .measurement-submenu {
     position: absolute;
     top: 100%;
     margin-top: 8px;
     left: 0;
     background: white;
-    border-radius: 12px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-    padding: 12px;
-    min-width: 240px;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    padding: 8px;
+    min-width: 260px;
     z-index: 10000;
     animation: slideDown 0.2s ease;
+    border: 1px solid #e9ecef;
 }
 
 @keyframes slideDown {
     from {
         opacity: 0;
-        transform: translateY(-10px);
+        transform: translateY(-10px) scale(0.95);
     }
     to {
         opacity: 1;
-        transform: translateY(0);
+        transform: translateY(0) scale(1);
     }
 }
 
@@ -2002,33 +2285,35 @@ body.modal-open #rightFilesPanel {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 8px 12px;
-    border-bottom: 1px solid #e0e0e0;
-    margin-bottom: 8px;
+    padding: 12px 16px;
+    background: #4a90e2;
+    border-radius: 8px;
+    margin: -8px -8px 8px -8px;
     font-weight: 600;
     font-size: 14px;
-    color: #424242;
+    color: white;
 }
 
 .submenu-close {
-    background: none;
+    background: rgba(255, 255, 255, 0.2);
     border: none;
-    font-size: 24px;
-    color: #757575;
+    font-size: 20px;
+    color: white;
     cursor: pointer;
     padding: 0;
-    width: 24px;
-    height: 24px;
+    width: 28px;
+    height: 28px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 4px;
+    border-radius: 6px;
     transition: all 0.2s;
+    font-weight: 700;
 }
 
 .submenu-close:hover {
-    background: #f5f5f5;
-    color: #424242;
+    background: rgba(255, 255, 255, 0.3);
+    transform: rotate(90deg);
 }
 
 .submenu-btn {
@@ -2036,16 +2321,25 @@ body.modal-open #rightFilesPanel {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 12px;
+    padding: 12px 14px;
     background: white;
-    border: 1px solid #e0e0e0;
+    border: 1px solid #e9ecef;
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.2s;
-    margin-bottom: 4px;
+    margin-bottom: 6px;
     font-size: 14px;
-    color: #424242;
+    font-weight: 500;
+    color: #495057;
     text-align: left;
+}
+
+.submenu-btn::before {
+    display: none;
+}
+
+.submenu-btn:hover::before {
+    display: none;
 }
 
 .submenu-btn:last-child {
@@ -2053,28 +2347,44 @@ body.modal-open #rightFilesPanel {
 }
 
 .submenu-btn:hover {
-    background: #f5f5f5;
+    background: #f8f9fa;
     border-color: #4a90e2;
     transform: translateX(4px);
 }
 
 .submenu-btn.active {
-    background: #e3f2fd;
+    background: #4a90e2;
     border-color: #4a90e2;
-    color: #4a90e2;
+    color: white;
+}
+
+.submenu-btn.active svg {
+    color: white;
 }
 
 .submenu-btn svg {
     flex-shrink: 0;
+    transition: transform 0.2s ease;
+}
+
+.submenu-btn:hover svg {
+    transform: scale(1.1);
 }
 
 .submenu-btn[data-measure="clear"] {
-    border-color: #ef5350;
-    color: #ef5350;
+    border-color: #dc3545;
+    color: #dc3545;
+    background: #fff5f5;
 }
 
 .submenu-btn[data-measure="clear"]:hover {
-    background: #ffebee;
+    background: #dc3545;
+    color: white;
+    transform: translateX(4px);
+}
+
+.submenu-btn[data-measure="clear"]:hover svg {
+    color: white;
 }
 
 /* Unit Toggle */
@@ -2280,15 +2590,79 @@ function openSimpleFileModal(formType, fileId) {
     const fileNameEl = document.getElementById('simpleModalFileName');
     const techEl = document.getElementById('simpleTechSelect');
     const materialEl = document.getElementById('simpleMaterialSelect');
+    const colorPickerEl = document.getElementById('simpleColorPicker');
 
     console.log('📝 Modal elements:', {fileNameEl, techEl, materialEl});
 
     if (fileNameEl) fileNameEl.textContent = fileData.file.name;
-    if (techEl) techEl.value = fileData.technology || 'fdm';
-    if (materialEl) materialEl.value = fileData.material || 'pla';
+
+    // Update Technology options based on viewer type
+    if (techEl) {
+        if (formType === 'General') {
+            techEl.innerHTML = `
+                <option value="fdm">FDM (Fused Deposition Modeling)</option>
+                <option value="sla">SLA (Stereolithography)</option>
+                <option value="sls">SLS (Selective Laser Sintering)</option>
+            `;
+        } else {
+            // Medical viewer
+            techEl.innerHTML = `
+                <option value="fdm">FDM (Fused Deposition Modeling)</option>
+                <option value="sla">SLA (Stereolithography)</option>
+                <option value="sls">SLS (Selective Laser Sintering)</option>
+                <option value="dmls">DMLS (Direct Metal Laser Sintering)</option>
+                <option value="mjf">MJF (Multi Jet Fusion)</option>
+            `;
+        }
+        techEl.value = fileData.technology || 'fdm';
+    }
+
+    // Update Material options based on viewer type
+    if (materialEl) {
+        if (formType === 'General') {
+            materialEl.innerHTML = `
+                <option value="pla">PLA</option>
+                <option value="abs">ABS</option>
+                <option value="petg">PETG</option>
+                <option value="nylon">Nylon</option>
+            `;
+        } else {
+            // Medical viewer
+            materialEl.innerHTML = `
+                <option value="pla">PLA</option>
+                <option value="abs">ABS</option>
+                <option value="petg">PETG</option>
+                <option value="nylon">Nylon</option>
+                <option value="resin">Resin</option>
+            `;
+        }
+        materialEl.value = fileData.material || 'pla';
+    }
+
+    // Update Color options based on viewer type
+    if (colorPickerEl) {
+        if (formType === 'General') {
+            // Cosmetic color only
+            colorPickerEl.innerHTML = `
+                <div class="simple-color-btn" data-color="#FFE5B4" style="width: 40px; height: 40px; background: #FFE5B4; border: 2px solid #dee2e6; border-radius: 8px; cursor: pointer; position: relative;" onclick="window.selectSimpleColor(this)"></div>
+            `;
+        } else {
+            // Medical viewer - multiple colors
+            colorPickerEl.innerHTML = `
+                <div class="simple-color-btn" data-color="#0047AD" style="width: 40px; height: 40px; background: #0047AD; border: 2px solid #0047AD; border-radius: 8px; cursor: pointer; position: relative;" onclick="window.selectSimpleColor(this)"></div>
+                <div class="simple-color-btn" data-color="#ffffff" style="width: 40px; height: 40px; background: #ffffff; border: 2px solid #dee2e6; border-radius: 8px; cursor: pointer; position: relative;" onclick="window.selectSimpleColor(this)"></div>
+                <div class="simple-color-btn" data-color="#2c3e50" style="width: 40px; height: 40px; background: #2c3e50; border: 2px solid #dee2e6; border-radius: 8px; cursor: pointer; position: relative;" onclick="window.selectSimpleColor(this)"></div>
+                <div class="simple-color-btn" data-color="#3498db" style="width: 40px; height: 40px; background: #3498db; border: 2px solid #dee2e6; border-radius: 8px; cursor: pointer; position: relative;" onclick="window.selectSimpleColor(this)"></div>
+                <div class="simple-color-btn" data-color="#e74c3c" style="width: 40px; height: 40px; background: #e74c3c; border: 2px solid #dee2e6; border-radius: 8px; cursor: pointer; position: relative;" onclick="window.selectSimpleColor(this)"></div>
+                <div class="simple-color-btn" data-color="#2ecc71" style="width: 40px; height: 40px; background: #2ecc71; border: 2px solid #dee2e6; border-radius: 8px; cursor: pointer; position: relative;" onclick="window.selectSimpleColor(this)"></div>
+                <div class="simple-color-btn" data-color="#f39c12" style="width: 40px; height: 40px; background: #f39c12; border: 2px solid #dee2e6; border-radius: 8px; cursor: pointer; position: relative;" onclick="window.selectSimpleColor(this)"></div>
+                <div class="simple-color-btn" data-color="#9b59b6" style="width: 40px; height: 40px; background: #9b59b6; border: 2px solid #dee2e6; border-radius: 8px; cursor: pointer; position: relative;" onclick="window.selectSimpleColor(this)"></div>
+            `;
+        }
+    }
 
     // Set active color
-    const currentColor = fileData.color ? '#' + fileData.color.toString(16).padStart(6, '0') : '#0047AD';
+    const currentColor = fileData.color ? '#' + fileData.color.toString(16).padStart(6, '0') : (formType === 'General' ? '#FFE5B4' : '#0047AD');
     document.querySelectorAll('.simple-color-btn').forEach(btn => {
         btn.classList.remove('active');
         if (btn.dataset.color.toLowerCase() === currentColor.toLowerCase()) {
@@ -4992,7 +5366,7 @@ loading
 <script>
 console.log('🚀 INLINE SCRIPT STARTING...');
 
-// Professional notification system - IMPROVED positioning
+// Professional notification system - BOTTOM CENTER positioning
 window.showToolbarNotification = function(message, type = 'info', duration = 2500) {
     const notification = document.createElement('div');
 
@@ -5007,27 +5381,30 @@ window.showToolbarNotification = function(message, type = 'info', duration = 250
 
     notification.style.cssText = `
         position: fixed;
-        top: 140px;
-        right: 20px;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%);
         background: ${style.bg};
         color: white;
-        padding: 14px 20px;
-        border-radius: 10px;
-        box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+        padding: 16px 24px;
+        border-radius: 12px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.3);
         z-index: 9998;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        font-size: 14px;
-        font-weight: 500;
+        font-size: 15px;
+        font-weight: 600;
         display: flex;
         align-items: center;
-        gap: 10px;
-        animation: slideIn 0.3s ease-out;
+        gap: 12px;
+        animation: slideUp 0.3s ease-out;
         pointer-events: auto;
         cursor: pointer;
+        min-width: 300px;
+        justify-content: center;
     `;
 
     notification.innerHTML = `
-        <span style="font-size: 18px; font-weight: bold;">${style.icon}</span>
+        <span style="font-size: 20px; font-weight: bold;">${style.icon}</span>
         <span>${message}</span>
     `;
 
@@ -5036,13 +5413,13 @@ window.showToolbarNotification = function(message, type = 'info', duration = 250
         const styleSheet = document.createElement('style');
         styleSheet.id = 'toolbar-notification-styles';
         styleSheet.textContent = `
-            @keyframes slideIn {
-                from { transform: translateX(400px); opacity: 0; }
-                to { transform: translateX(0); opacity: 1; }
+            @keyframes slideUp {
+                from { transform: translateX(-50%) translateY(100px); opacity: 0; }
+                to { transform: translateX(-50%) translateY(0); opacity: 1; }
             }
-            @keyframes slideOut {
-                from { transform: translateX(0); opacity: 1; }
-                to { transform: translateX(400px); opacity: 0; }
+            @keyframes slideDown {
+                from { transform: translateX(-50%) translateY(0); opacity: 1; }
+                to { transform: translateX(-50%) translateY(100px); opacity: 0; }
             }
         `;
         document.head.appendChild(styleSheet);
@@ -5052,14 +5429,14 @@ window.showToolbarNotification = function(message, type = 'info', duration = 250
 
     // Click to dismiss
     notification.onclick = function() {
-        notification.style.animation = 'slideOut 0.3s ease-out';
+        notification.style.animation = 'slideDown 0.3s ease-out';
         setTimeout(() => document.body.removeChild(notification), 300);
     };
 
     // Auto dismiss
     setTimeout(() => {
         if (document.body.contains(notification)) {
-            notification.style.animation = 'slideOut 0.3s ease-out';
+            notification.style.animation = 'slideDown 0.3s ease-out';
             setTimeout(() => {
                 if (document.body.contains(notification)) {
                     document.body.removeChild(notification);
@@ -5087,6 +5464,10 @@ window.toggleToolbarButton = function(buttonId, isActive) {
 
 // Define the handler RIGHT HERE in the HTML
 window.toolbarHandler = {
+    activeTool: null,
+    activeToolEventHandler: null,
+    measurementCounter: 0,
+
     // Debugging helper to check viewer state
     _checkViewer: function() {
         console.log('🔍 Checking viewer state:');
@@ -5108,6 +5489,182 @@ window.toolbarHandler = {
             console.error('❌ NO VIEWER FOUND!');
         }
         return viewer;
+    },
+
+    // Show measurement results panel
+    showMeasurementsPanel: function() {
+        const panel = document.getElementById('measurementResultsPanel');
+        if (panel) {
+            panel.classList.add('visible');
+        }
+    },
+
+    // Hide measurement results panel
+    hideMeasurementsPanel: function() {
+        const panel = document.getElementById('measurementResultsPanel');
+        if (panel) {
+            panel.classList.remove('visible');
+        }
+    },
+
+    // Close measurements panel and clear all
+    closeMeasurementsPanel: function() {
+        const viewer = window.viewerGeneral || window.viewer;
+        if (viewer) {
+            this.clearAllMeasurements(viewer);
+        }
+        this.hideMeasurementsPanel();
+
+        // Close submenu too
+        const submenu = document.getElementById('measurementSubmenu');
+        if (submenu) {
+            submenu.style.display = 'none';
+            toggleToolbarButton('measurementToolBtn', false);
+        }
+    },
+
+    // Add measurement to results panel
+    addMeasurementResult: function(type, value, unit, objects) {
+        this.measurementCounter++;
+        const id = `measurement-${this.measurementCounter}`;
+
+        const resultsList = document.getElementById('measurementResultsList');
+        if (!resultsList) return;
+
+        // Remove "no measurements" message if exists
+        const noMeasurements = resultsList.querySelector('.no-measurements');
+        if (noMeasurements) {
+            noMeasurements.remove();
+        }
+
+        // Type configurations
+        const typeConfig = {
+            distance: { icon: '📏', label: 'Distance', color: '#f44336' },
+            diameter: { icon: '⭕', label: 'Diameter', color: '#4caf50' },
+            area: { icon: '▢', label: 'Area', color: '#fbc02d' },
+            'point-to-surface': { icon: '⊥', label: 'Point to Surface', color: '#9c27b0' },
+            angle: { icon: '∠', label: 'Angle', color: '#00bcd4' }
+        };
+
+        const config = typeConfig[type] || { icon: '📐', label: type, color: '#495057' };
+
+        const item = document.createElement('div');
+        item.className = 'measurement-item';
+        item.id = id;
+        item.dataset.measurementId = id;
+
+        item.innerHTML = `
+            <div class="measurement-item-header">
+                <div class="measurement-type ${type}">
+                    <div class="type-icon">${config.icon}</div>
+                    <span>${config.label}</span>
+                </div>
+                <button class="measurement-delete" onclick="window.toolbarHandler.deleteMeasurement('${id}')">Delete</button>
+            </div>
+            <div class="measurement-value">
+                ${value}<span class="measurement-unit">${unit}</span>
+            </div>
+        `;
+
+        // Store reference to 3D objects
+        item.dataset.objects = JSON.stringify(objects.map(obj => obj.uuid));
+
+        resultsList.appendChild(item);
+        this.showMeasurementsPanel();
+    },
+
+    // Delete specific measurement
+    deleteMeasurement: function(measurementId) {
+        const item = document.getElementById(measurementId);
+        if (!item) return;
+
+        // Get stored object UUIDs
+        const objectUUIDs = JSON.parse(item.dataset.objects || '[]');
+
+        // Remove objects from scene
+        const viewer = window.viewerGeneral || window.viewer;
+        if (viewer && viewer.scene) {
+            objectUUIDs.forEach(uuid => {
+                const obj = viewer.scene.getObjectByProperty('uuid', uuid);
+                if (obj) {
+                    viewer.scene.remove(obj);
+                    if (obj.geometry) obj.geometry.dispose();
+                    if (obj.material) {
+                        if (obj.material.map) obj.material.map.dispose();
+                        obj.material.dispose();
+                    }
+                }
+            });
+            if (viewer.render) viewer.render();
+        }
+
+        // Remove from list
+        item.remove();
+
+        // Check if list is empty
+        const resultsList = document.getElementById('measurementResultsList');
+        if (resultsList && resultsList.children.length === 0) {
+            resultsList.innerHTML = `
+                <div class="no-measurements">
+                    <svg width="40" height="40" viewBox="0 0 48 48" fill="none" style="opacity: 0.3; margin-bottom: 8px;">
+                        <path d="M8 40L40 8M12 40L16 36M20 40L24 36M28 40L32 36M36 40L40 36M8 36L12 32M8 28L16 20M8 20L12 16M8 12L16 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    <p>No measurements yet</p>
+                    <small>Click a measurement tool to start</small>
+                </div>
+            `;
+        }
+    },
+
+    // Show active tool status bar
+    showActiveToolStatus: function(toolName, instruction, iconPath) {
+        const statusBar = document.getElementById('activeToolStatus');
+        const nameEl = document.getElementById('activeToolName');
+        const instructionEl = document.getElementById('activeToolInstruction');
+        const iconEl = document.getElementById('activeToolIcon');
+
+        if (statusBar && nameEl && instructionEl && iconEl) {
+            nameEl.textContent = toolName;
+            instructionEl.textContent = instruction;
+            iconEl.setAttribute('d', iconPath);
+            statusBar.classList.add('visible');
+            this.activeTool = toolName.toLowerCase().replace(/\s+/g, '-');
+        }
+    },
+
+    // Hide active tool status bar
+    hideActiveToolStatus: function() {
+        const statusBar = document.getElementById('activeToolStatus');
+        if (statusBar) {
+            statusBar.classList.remove('visible');
+        }
+        this.activeTool = null;
+        this.activeToolEventHandler = null;
+    },
+
+    // Cancel active tool
+    cancelActiveTool: function() {
+        console.log('❌ Canceling active tool:', this.activeTool);
+        const viewer = window.viewerGeneral || window.viewer;
+
+        if (viewer && viewer.measurementState) {
+            // Remove event listener if exists
+            if (this.activeToolEventHandler && viewer.renderer) {
+                viewer.renderer.domElement.removeEventListener('click', this.activeToolEventHandler);
+            }
+
+            // Reset measurement state
+            viewer.measurementState.mode = null;
+            viewer.measurementState.points = [];
+        }
+
+        // Remove active state from submenu buttons
+        document.querySelectorAll('.submenu-btn.active').forEach(btn => {
+            btn.classList.remove('active');
+        });
+
+        this.hideActiveToolStatus();
+        showToolbarNotification('Tool canceled', 'info', 1500);
     },
 
     toggleMeasurement: function(viewerType) {
@@ -5160,12 +5717,21 @@ window.toolbarHandler = {
         submenu.querySelectorAll('.submenu-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 const measureType = btn.getAttribute('data-measure');
-                this.handleMeasurementTool(viewer, measureType, viewerType);
+
+                // Remove active class from all buttons
+                submenu.querySelectorAll('.submenu-btn').forEach(b => b.classList.remove('active'));
+
+                // Add active class to clicked button (except clear)
+                if (measureType !== 'clear') {
+                    btn.classList.add('active');
+                }
+
+                this.handleMeasurementTool(viewer, measureType, viewerType, btn);
             });
         });
     },
 
-    handleMeasurementTool: function(viewer, measureType, viewerType) {
+    handleMeasurementTool: function(viewer, measureType, viewerType, buttonEl) {
         console.log(`📐 Measurement tool: ${measureType}`);
         const THREE = window.THREE;
 
@@ -5175,24 +5741,113 @@ window.toolbarHandler = {
             return;
         }
 
+        // Cancel any active tool first (except for clear)
+        if (measureType !== 'clear' && this.activeTool) {
+            this.cancelActiveTool();
+        }
+
+        // Only clear ALL measurements if the clear button is clicked
+        // For other tools, we want measurements to accumulate
+        if (measureType === 'clear') {
+            this.clearAllMeasurements(viewer);
+        }
+
+        // Get tool info for status bar
+        const toolInfo = {
+            distance: {
+                name: 'Distance Measurement',
+                instruction: 'Click two points on the model to measure distance',
+                icon: 'M2 2L16 16M2 2m0 0a2 2 0 110 0M16 16m0 0a2 2 0 110 0'
+            },
+            diameter: {
+                name: 'Diameter Measurement',
+                instruction: 'Click two points on opposite sides of a circle',
+                icon: 'M9 2a7 7 0 110 14a7 7 0 010-14M2 9L16 9'
+            },
+            area: {
+                name: 'Area Measurement',
+                instruction: 'Click 3+ points to define area. Click first point to finish.',
+                icon: 'M2 2h14v14H2z'
+            },
+            'point-to-surface': {
+                name: 'Point-to-Surface',
+                instruction: 'Click a point, then click the target surface',
+                icon: 'M9 2v10M9 2a2 2 0 110 0M2 12h14v4H2z'
+            },
+            angle: {
+                name: 'Angle Measurement',
+                instruction: 'Click three points (middle one is vertex)',
+                icon: 'M2 16L9 9L16 16'
+            }
+        };
+
         switch(measureType) {
             case 'distance':
+                if (toolInfo[measureType]) {
+                    this.showActiveToolStatus(
+                        toolInfo[measureType].name,
+                        toolInfo[measureType].instruction,
+                        toolInfo[measureType].icon
+                    );
+                }
                 this.startDistanceMeasurement(viewer, viewerType);
                 break;
+            case 'diameter':
+                if (toolInfo[measureType]) {
+                    this.showActiveToolStatus(
+                        toolInfo[measureType].name,
+                        toolInfo[measureType].instruction,
+                        toolInfo[measureType].icon
+                    );
+                }
+                this.startDiameterMeasurement(viewer, viewerType);
+                break;
+            case 'area':
+                if (toolInfo[measureType]) {
+                    this.showActiveToolStatus(
+                        toolInfo[measureType].name,
+                        toolInfo[measureType].instruction,
+                        toolInfo[measureType].icon
+                    );
+                }
+                this.startAreaMeasurement(viewer, viewerType);
+                break;
             case 'point-to-line':
-                showToolbarNotification('Click two points on the model to define a line, then click a third point', 'info', 3000);
                 this.startPointToLineMeasurement(viewer, viewerType);
                 break;
             case 'point-to-surface':
-                showToolbarNotification('Click a point, then click on the surface to measure distance', 'info', 3000);
+                // Clear previous measurements before starting
+                this.clearAllMeasurements(viewer);
+                if (toolInfo[measureType]) {
+                    this.showActiveToolStatus(
+                        toolInfo[measureType].name,
+                        toolInfo[measureType].instruction,
+                        toolInfo[measureType].icon
+                    );
+                }
                 this.startPointToSurfaceMeasurement(viewer, viewerType);
                 break;
             case 'angle':
-                showToolbarNotification('Click three points to measure the angle between them', 'info', 3000);
+                // Clear previous measurements before starting
+                this.clearAllMeasurements(viewer);
+                if (toolInfo[measureType]) {
+                    this.showActiveToolStatus(
+                        toolInfo[measureType].name,
+                        toolInfo[measureType].instruction,
+                        toolInfo[measureType].icon
+                    );
+                }
                 this.startAngleMeasurement(viewer, viewerType);
                 break;
             case 'clear':
                 this.clearAllMeasurements(viewer);
+                // Remove active from all buttons
+                if (buttonEl) {
+                    const submenu = buttonEl.closest('.measurement-submenu');
+                    if (submenu) {
+                        submenu.querySelectorAll('.submenu-btn').forEach(b => b.classList.remove('active'));
+                    }
+                }
                 break;
         }
     },
@@ -5208,8 +5863,6 @@ window.toolbarHandler = {
 
         viewer.measurementState.mode = 'distance';
         viewer.measurementState.points = [];
-
-        showToolbarNotification('Click two points on the model to measure distance', 'info', 3000);
 
         // Add click handler for measurement
         const onMeasurementClick = (event) => {
@@ -5253,36 +5906,220 @@ window.toolbarHandler = {
 
                     // Calculate and display distance
                     const distance = viewer.measurementState.points[0].distanceTo(viewer.measurementState.points[1]);
-                    const midPoint = new THREE.Vector3().addVectors(viewer.measurementState.points[0], viewer.measurementState.points[1]).multiplyScalar(0.5);
-
-                    // Create label
-                    const canvas = document.createElement('canvas');
-                    const context = canvas.getContext('2d');
-                    canvas.width = 256;
-                    canvas.height = 64;
-                    context.fillStyle = '#ffffff';
-                    context.fillRect(0, 0, 256, 64);
-                    context.fillStyle = '#000000';
-                    context.font = 'Bold 20px Arial';
-                    context.textAlign = 'center';
-                    context.textBaseline = 'middle';
-                    context.fillText(`${distance.toFixed(2)} mm`, 128, 32);
-
-                    const texture = new THREE.CanvasTexture(canvas);
-                    const spriteMaterial = new THREE.SpriteMaterial({ map: texture });
-                    const sprite = new THREE.Sprite(spriteMaterial);
-                    sprite.scale.set(20, 5, 1);
-                    sprite.position.copy(midPoint);
-                    sprite.userData.isMeasurementLabel = true;
-                    viewer.scene.add(sprite);
-                    viewer.measurementState.labels.push(sprite);
 
                     showToolbarNotification(`Distance: ${distance.toFixed(2)} mm`, 'success', 3000);
+
+                    // Add to results panel
+                    window.toolbarHandler.addMeasurementResult(
+                        'distance',
+                        distance.toFixed(2),
+                        'mm',
+                        [sphere, line]
+                    );
 
                     // Reset for next measurement
                     viewer.measurementState.mode = null;
                     viewer.measurementState.points = [];
                     viewer.renderer.domElement.removeEventListener('click', onMeasurementClick);
+
+                    // Hide active tool status
+                    window.toolbarHandler.hideActiveToolStatus();
+                }
+
+                if (viewer.render) viewer.render();
+            }
+        };
+
+        // Store event handler reference
+        this.activeToolEventHandler = onMeasurementClick;
+        viewer.renderer.domElement.addEventListener('click', onMeasurementClick);
+    },
+
+    startDiameterMeasurement: function(viewer, viewerType) {
+        const THREE = window.THREE;
+
+        if (!THREE) {
+            console.error('❌ THREE.js not loaded!');
+            showToolbarNotification('3D library not loaded yet', 'error');
+            return;
+        }
+
+        viewer.measurementState.mode = 'diameter';
+        viewer.measurementState.points = [];
+
+        const onMeasurementClick = (event) => {
+            const raycaster = new THREE.Raycaster();
+            const mouse = new THREE.Vector2();
+
+            const rect = viewer.renderer.domElement.getBoundingClientRect();
+            mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+            mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+            raycaster.setFromCamera(mouse, viewer.camera);
+
+            const meshes = [];
+            viewer.scene.traverse((obj) => {
+                if (obj.isMesh) meshes.push(obj);
+            });
+
+            const intersects = raycaster.intersectObjects(meshes);
+
+            if (intersects.length > 0) {
+                const point = intersects[0].point.clone();
+                viewer.measurementState.points.push(point);
+
+                // Create point marker
+                const geometry = new THREE.SphereGeometry(0.5, 16, 16);
+                const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+                const sphere = new THREE.Mesh(geometry, material);
+                sphere.position.copy(point);
+                sphere.userData.isMeasurementPoint = true;
+                viewer.scene.add(sphere);
+                viewer.measurementState.lines.push(sphere);
+
+                if (viewer.measurementState.points.length === 2) {
+                    // Draw line between points (diameter)
+                    const lineGeometry = new THREE.BufferGeometry().setFromPoints(viewer.measurementState.points);
+                    const lineMaterial = new THREE.LineBasicMaterial({ color: 0x00ff00, linewidth: 2 });
+                    const line = new THREE.Line(lineGeometry, lineMaterial);
+                    line.userData.isMeasurementLine = true;
+                    viewer.scene.add(line);
+                    viewer.measurementState.lines.push(line);
+
+                    // Calculate diameter and radius
+                    const diameter = viewer.measurementState.points[0].distanceTo(viewer.measurementState.points[1]);
+                    const radius = diameter / 2;
+
+                    showToolbarNotification(`Diameter: ${diameter.toFixed(2)} mm, Radius: ${radius.toFixed(2)} mm`, 'success', 3000);
+
+                    // Add to results panel
+                    window.toolbarHandler.addMeasurementResult(
+                        'diameter',
+                        `Ø ${diameter.toFixed(2)} (R ${radius.toFixed(2)})`,
+                        'mm',
+                        [sphere, line]
+                    );
+
+                    // Reset
+                    viewer.measurementState.mode = null;
+                    viewer.measurementState.points = [];
+                    viewer.renderer.domElement.removeEventListener('click', onMeasurementClick);
+
+                    // Hide active tool status
+                    window.toolbarHandler.hideActiveToolStatus();
+                }
+
+                if (viewer.render) viewer.render();
+            }
+        };
+
+        // Store event handler reference
+        this.activeToolEventHandler = onMeasurementClick;
+        viewer.renderer.domElement.addEventListener('click', onMeasurementClick);
+    },
+
+    startAreaMeasurement: function(viewer, viewerType) {
+        const THREE = window.THREE;
+
+        if (!THREE) {
+            console.error('❌ THREE.js not loaded!');
+            showToolbarNotification('3D library not loaded yet', 'error');
+            return;
+        }
+
+        viewer.measurementState.mode = 'area';
+        viewer.measurementState.points = [];
+
+        const onMeasurementClick = (event) => {
+            const raycaster = new THREE.Raycaster();
+            const mouse = new THREE.Vector2();
+
+            const rect = viewer.renderer.domElement.getBoundingClientRect();
+            mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+            mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+            raycaster.setFromCamera(mouse, viewer.camera);
+
+            const meshes = [];
+            viewer.scene.traverse((obj) => {
+                if (obj.isMesh) meshes.push(obj);
+            });
+
+            const intersects = raycaster.intersectObjects(meshes);
+
+            if (intersects.length > 0) {
+                const point = intersects[0].point.clone();
+
+                // Check if clicking near first point to close polygon
+                if (viewer.measurementState.points.length >= 3) {
+                    const distToFirst = point.distanceTo(viewer.measurementState.points[0]);
+                    if (distToFirst < 2.0) {
+                        // Close polygon and calculate area
+                        const points = viewer.measurementState.points;
+
+                        // Draw closing line
+                        const lineGeometry = new THREE.BufferGeometry().setFromPoints([points[points.length - 1], points[0]]);
+                        const lineMaterial = new THREE.LineBasicMaterial({ color: 0xffff00, linewidth: 2 });
+                        const line = new THREE.Line(lineGeometry, lineMaterial);
+                        line.userData.isMeasurementLine = true;
+                        viewer.scene.add(line);
+                        viewer.measurementState.lines.push(line);
+
+                        // Calculate area using triangulation
+                        let area = 0;
+                        for (let i = 1; i < points.length - 1; i++) {
+                            const v1 = new THREE.Vector3().subVectors(points[i], points[0]);
+                            const v2 = new THREE.Vector3().subVectors(points[i + 1], points[0]);
+                            const cross = new THREE.Vector3().crossVectors(v1, v2);
+                            area += cross.length() / 2;
+                        }
+
+                        showToolbarNotification(`Area: ${area.toFixed(2)} mm²`, 'success', 3000);
+
+                        // Collect all objects for deletion
+                        const allObjects = [...viewer.measurementState.lines];
+
+                        // Add to results panel
+                        window.toolbarHandler.addMeasurementResult(
+                            'area',
+                            area.toFixed(2),
+                            'mm²',
+                            allObjects
+                        );
+
+                        // Reset
+                        viewer.measurementState.mode = null;
+                        viewer.measurementState.points = [];
+                        viewer.renderer.domElement.removeEventListener('click', onMeasurementClick);
+
+                        // Hide active tool status
+                        window.toolbarHandler.hideActiveToolStatus();
+
+                        if (viewer.render) viewer.render();
+                        return;
+                    }
+                }
+
+                viewer.measurementState.points.push(point);
+
+                // Create point marker
+                const geometry = new THREE.SphereGeometry(0.5, 16, 16);
+                const material = new THREE.MeshBasicMaterial({ color: 0xffff00 });
+                const sphere = new THREE.Mesh(geometry, material);
+                sphere.position.copy(point);
+                sphere.userData.isMeasurementPoint = true;
+                viewer.scene.add(sphere);
+                viewer.measurementState.lines.push(sphere);
+
+                // Draw line to previous point
+                if (viewer.measurementState.points.length > 1) {
+                    const prevPoint = viewer.measurementState.points[viewer.measurementState.points.length - 2];
+                    const lineGeometry = new THREE.BufferGeometry().setFromPoints([prevPoint, point]);
+                    const lineMaterial = new THREE.LineBasicMaterial({ color: 0xffff00, linewidth: 2 });
+                    const line = new THREE.Line(lineGeometry, lineMaterial);
+                    line.userData.isMeasurementLine = true;
+                    viewer.scene.add(line);
+                    viewer.measurementState.lines.push(line);
                 }
 
                 if (viewer.render) viewer.render();
@@ -5297,11 +6134,206 @@ window.toolbarHandler = {
     },
 
     startPointToSurfaceMeasurement: function(viewer, viewerType) {
-        showToolbarNotification('Point-to-surface measurement: Coming in next update', 'info', 2000);
+        const THREE = window.THREE;
+
+        if (!THREE) {
+            console.error('❌ THREE.js not loaded!');
+            showToolbarNotification('3D library not loaded yet', 'error');
+            return;
+        }
+
+        viewer.measurementState.mode = 'pointToSurface';
+        viewer.measurementState.points = [];
+
+        const onMeasurementClick = (event) => {
+            const raycaster = new THREE.Raycaster();
+            const mouse = new THREE.Vector2();
+
+            const rect = viewer.renderer.domElement.getBoundingClientRect();
+            mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+            mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+            raycaster.setFromCamera(mouse, viewer.camera);
+
+            const meshes = [];
+            viewer.scene.traverse((obj) => {
+                if (obj.isMesh) meshes.push(obj);
+            });
+
+            const intersects = raycaster.intersectObjects(meshes);
+
+            if (intersects.length > 0) {
+                const point = intersects[0].point.clone();
+                const normal = intersects[0].face ? intersects[0].face.normal.clone() : new THREE.Vector3(0, 1, 0);
+
+                viewer.measurementState.points.push({point, normal});
+
+                // Create point marker
+                const geometry = new THREE.SphereGeometry(0.5, 16, 16);
+                const material = new THREE.MeshBasicMaterial({ color: 0xff00ff });
+                const sphere = new THREE.Mesh(geometry, material);
+                sphere.position.copy(point);
+                sphere.userData.isMeasurementPoint = true;
+                viewer.scene.add(sphere);
+                viewer.measurementState.lines.push(sphere);
+
+                if (viewer.measurementState.points.length === 2) {
+                    const p1 = viewer.measurementState.points[0].point;
+                    const p2 = viewer.measurementState.points[1].point;
+                    const surfaceNormal = viewer.measurementState.points[1].normal;
+
+                    // Calculate perpendicular distance from p1 to plane at p2
+                    const vectorToPoint = new THREE.Vector3().subVectors(p1, p2);
+                    const distance = Math.abs(vectorToPoint.dot(surfaceNormal));
+
+                    // Find perpendicular point on surface
+                    const perpPoint = new THREE.Vector3().copy(p1).addScaledVector(surfaceNormal, -vectorToPoint.dot(surfaceNormal));
+
+                    // Draw perpendicular line
+                    const lineGeometry = new THREE.BufferGeometry().setFromPoints([p1, perpPoint]);
+                    const lineMaterial = new THREE.LineBasicMaterial({
+                        color: 0xff00ff,
+                        linewidth: 2,
+                        dashSize: 1,
+                        gapSize: 0.5
+                    });
+                    const line = new THREE.Line(lineGeometry, lineMaterial);
+                    line.userData.isMeasurementLine = true;
+                    viewer.scene.add(line);
+                    viewer.measurementState.lines.push(line);
+
+                    showToolbarNotification(`Perpendicular distance: ${distance.toFixed(2)} mm`, 'success', 3000);
+
+                    // Collect all sphere objects
+                    const allSpheres = viewer.measurementState.lines.filter(obj => obj.userData.isMeasurementPoint);
+
+                    // Add to results panel
+                    window.toolbarHandler.addMeasurementResult(
+                        'point-to-surface',
+                        distance.toFixed(2),
+                        'mm',
+                        [line, ...allSpheres]
+                    );
+
+                    // Reset
+                    viewer.measurementState.mode = null;
+                    viewer.measurementState.points = [];
+                    viewer.renderer.domElement.removeEventListener('click', onMeasurementClick);
+
+                    // Hide active tool status
+                    window.toolbarHandler.hideActiveToolStatus();
+                }
+
+                if (viewer.render) viewer.render();
+            }
+        };
+
+        // Store event handler reference
+        this.activeToolEventHandler = onMeasurementClick;
+        viewer.renderer.domElement.addEventListener('click', onMeasurementClick);
     },
 
     startAngleMeasurement: function(viewer, viewerType) {
-        showToolbarNotification('Angle measurement: Coming in next update', 'info', 2000);
+        const THREE = window.THREE;
+
+        if (!THREE) {
+            console.error('❌ THREE.js not loaded!');
+            showToolbarNotification('3D library not loaded yet', 'error');
+            return;
+        }
+
+        viewer.measurementState.mode = 'angle';
+        viewer.measurementState.points = [];
+
+        const onMeasurementClick = (event) => {
+            const raycaster = new THREE.Raycaster();
+            const mouse = new THREE.Vector2();
+
+            const rect = viewer.renderer.domElement.getBoundingClientRect();
+            mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+            mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+            raycaster.setFromCamera(mouse, viewer.camera);
+
+            const meshes = [];
+            viewer.scene.traverse((obj) => {
+                if (obj.isMesh) meshes.push(obj);
+            });
+
+            const intersects = raycaster.intersectObjects(meshes);
+
+            if (intersects.length > 0) {
+                const point = intersects[0].point.clone();
+                viewer.measurementState.points.push(point);
+
+                // Create point marker
+                const geometry = new THREE.SphereGeometry(0.8, 16, 16);
+                const material = new THREE.MeshBasicMaterial({
+                    color: viewer.measurementState.points.length === 2 ? 0xff0000 : 0x00ffff
+                });
+                const sphere = new THREE.Mesh(geometry, material);
+                sphere.position.copy(point);
+                sphere.userData.isMeasurementPoint = true;
+                viewer.scene.add(sphere);
+                viewer.measurementState.lines.push(sphere);
+
+                // Draw line to previous point
+                if (viewer.measurementState.points.length > 1) {
+                    const prevPoint = viewer.measurementState.points[viewer.measurementState.points.length - 2];
+                    const lineGeometry = new THREE.BufferGeometry().setFromPoints([prevPoint, point]);
+                    const lineMaterial = new THREE.LineBasicMaterial({
+                        color: 0x00ffff,
+                        linewidth: 3,
+                        transparent: false,
+                        opacity: 1.0
+                    });
+                    const line = new THREE.Line(lineGeometry, lineMaterial);
+                    line.userData.isMeasurementLine = true;
+                    viewer.scene.add(line);
+                    viewer.measurementState.lines.push(line);
+                }
+
+                if (viewer.measurementState.points.length === 3) {
+                    // Calculate angle: points[1] is the vertex
+                    const p1 = viewer.measurementState.points[0];
+                    const vertex = viewer.measurementState.points[1];
+                    const p2 = viewer.measurementState.points[2];
+
+                    const v1 = new THREE.Vector3().subVectors(p1, vertex).normalize();
+                    const v2 = new THREE.Vector3().subVectors(p2, vertex).normalize();
+
+                    const angleRad = v1.angleTo(v2);
+                    const angleDeg = THREE.MathUtils.radToDeg(angleRad);
+
+                    showToolbarNotification(`Angle: ${angleDeg.toFixed(2)}° (${angleRad.toFixed(3)} rad)`, 'success', 3000);
+
+                    // Collect all objects (make a copy of the array)
+                    const allObjects = [...viewer.measurementState.lines];
+
+                    // Add to results panel
+                    window.toolbarHandler.addMeasurementResult(
+                        'angle',
+                        angleDeg.toFixed(2),
+                        '°',
+                        allObjects
+                    );
+
+                    // Reset
+                    viewer.measurementState.mode = null;
+                    viewer.measurementState.points = [];
+                    viewer.renderer.domElement.removeEventListener('click', onMeasurementClick);
+
+                    // Hide active tool status
+                    window.toolbarHandler.hideActiveToolStatus();
+                }
+
+                if (viewer.render) viewer.render();
+            }
+        };
+
+        // Store event handler reference
+        this.activeToolEventHandler = onMeasurementClick;
+        viewer.renderer.domElement.addEventListener('click', onMeasurementClick);
     },
 
     clearAllMeasurements: function(viewer) {
@@ -5318,7 +6350,10 @@ window.toolbarHandler = {
         toRemove.forEach(obj => {
             viewer.scene.remove(obj);
             if (obj.geometry) obj.geometry.dispose();
-            if (obj.material) obj.material.dispose();
+            if (obj.material) {
+                if (obj.material.map) obj.material.map.dispose();
+                obj.material.dispose();
+            }
         });
 
         // Reset measurement state
@@ -5328,6 +6363,25 @@ window.toolbarHandler = {
             viewer.measurementState.labels = [];
             viewer.measurementState.mode = null;
         }
+
+        // Clear results panel
+        const resultsList = document.getElementById('measurementResultsList');
+        if (resultsList) {
+            resultsList.innerHTML = `
+                <div class="no-measurements">
+                    <svg width="40" height="40" viewBox="0 0 48 48" fill="none" style="opacity: 0.3; margin-bottom: 8px;">
+                        <path d="M8 40L40 8M12 40L16 36M20 40L24 36M28 40L32 36M36 40L40 36M8 36L12 32M8 28L16 20M8 20L12 16M8 12L16 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    <p>No measurements yet</p>
+                    <small>Click a measurement tool to start</small>
+                </div>
+            `;
+        }
+
+        // Remove active state from buttons
+        document.querySelectorAll('.submenu-btn.active').forEach(btn => {
+            btn.classList.remove('active');
+        });
 
         if (viewer.render) viewer.render();
         showToolbarNotification('All measurements cleared', 'success', 1500);
@@ -5816,8 +6870,12 @@ window.toolbarHandler = {
             return;
         }
 
-        // Create color picker dialog
-        const colors = ['#0047AD', '#ffffff', '#2c3e50', '#3498db', '#e74c3c', '#2ecc71', '#f39c12', '#9b59b6', '#1abc9c', '#34495e'];
+        // Extended color palette with more options
+        const colors = [
+            '#0047AD', '#ffffff', '#2c3e50', '#3498db', '#e74c3c', '#2ecc71', '#f39c12', '#9b59b6', '#1abc9c', '#34495e',
+            '#e67e22', '#95a5a6', '#16a085', '#27ae60', '#2980b9', '#8e44ad', '#c0392b', '#d35400', '#7f8c8d', '#bdc3c7',
+            '#f1c40f', '#e74c3c', '#ecf0f1', '#34495e', '#ff6b6b', '#4ecdc4', '#45b7d1', '#ffa07a', '#98d8c8', '#6c5ce7'
+        ];
 
         const existingPicker = document.getElementById('modelColorPicker');
         if (existingPicker) {
@@ -5825,41 +6883,82 @@ window.toolbarHandler = {
             return;
         }
 
+        // Get button position
+        const colorBtn = document.getElementById('modelColorBtn');
+        const btnRect = colorBtn ? colorBtn.getBoundingClientRect() : { left: 100, top: 60 };
+
         const picker = document.createElement('div');
         picker.id = 'modelColorPicker';
-        picker.style.cssText = 'position: fixed; top: 140px; right: 20px; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); z-index: 9998;';
+        picker.style.cssText = `position: fixed; top: ${btnRect.bottom + 10}px; left: ${btnRect.left}px; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); z-index: 99999; max-width: 320px;`;
         picker.innerHTML = `
-            <div style="font-weight: 600; margin-bottom: 10px; color: #2c3e50;">Select Model Color</div>
-            <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px;">
+            <div style="font-weight: 600; margin-bottom: 12px; color: #2c3e50; font-size: 0.9rem;">Select Model Color</div>
+            <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-bottom: 12px;">
                 ${colors.map(color => `
                     <button class="model-color-option" data-color="${color}"
-                            style="width: 36px; height: 36px; border: 2px solid #ddd; border-radius: 6px; background: ${color}; cursor: pointer; transition: all 0.2s;"
-                            onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+                            style="width: 40px; height: 40px; border: 2px solid ${color === '#ffffff' ? '#ddd' : color}; border-radius: 8px; background: ${color}; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"
+                            onmouseover="this.style.transform='scale(1.15)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.2)'"
+                            onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 2px 4px rgba(0,0,0,0.1)'">
                     </button>
                 `).join('')}
             </div>
+            <div style="margin-bottom: 12px;">
+                <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #495057; margin-bottom: 8px;">Custom Color:</label>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <input type="color" id="customModelColor" value="#808080"
+                           style="width: 50px; height: 40px; border: 2px solid #ddd; border-radius: 8px; cursor: pointer;">
+                    <button id="applyCustomModelColor"
+                            style="flex: 1; padding: 10px; border: none; background: #0047AD; color: white; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: 600; transition: background 0.2s;"
+                            onmouseover="this.style.background='#003580'" onmouseout="this.style.background='#0047AD'">
+                        Apply Custom
+                    </button>
+                </div>
+            </div>
             <button onclick="document.getElementById('modelColorPicker').remove()"
-                    style="margin-top: 10px; width: 100%; padding: 8px; border: none; background: #f1f3f5; border-radius: 6px; cursor: pointer; font-size: 0.85rem;">
+                    style="width: 100%; padding: 10px; border: none; background: #f1f3f5; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: 600; transition: background 0.2s;"
+                    onmouseover="this.style.background='#e9ecef'" onmouseout="this.style.background='#f1f3f5'">
                 Close
             </button>
         `;
         document.body.appendChild(picker);
 
-        // Add click handlers
+        // Function to apply color
+        const applyColor = (color) => {
+            viewer.scene.traverse((object) => {
+                if (object.isMesh && object.material) {
+                    object.material.color.set(color);
+                    object.material.needsUpdate = true;
+                }
+            });
+            if (viewer.render) viewer.render();
+            showToolbarNotification('Model color changed', 'success', 1500);
+        };
+
+        // Add click handlers for preset colors
         picker.querySelectorAll('.model-color-option').forEach(btn => {
             btn.addEventListener('click', function() {
                 const color = this.getAttribute('data-color');
-                viewer.scene.traverse((object) => {
-                    if (object.isMesh && object.material) {
-                        object.material.color.set(color);
-                        object.material.needsUpdate = true;
-                    }
-                });
-                if (viewer.render) viewer.render();
-                showToolbarNotification('Model color changed', 'success', 1500);
+                applyColor(color);
                 picker.remove();
             });
         });
+
+        // Add handler for custom color
+        const applyCustomBtn = picker.querySelector('#applyCustomModelColor');
+        applyCustomBtn.addEventListener('click', function() {
+            const customColor = picker.querySelector('#customModelColor').value;
+            applyColor(customColor);
+            picker.remove();
+        });
+
+        // Close when clicking outside
+        setTimeout(() => {
+            document.addEventListener('click', function closeColorPicker(e) {
+                if (!picker.contains(e.target) && e.target !== colorBtn) {
+                    picker.remove();
+                    document.removeEventListener('click', closeColorPicker);
+                }
+            });
+        }, 100);
     },
 
     changeBackgroundColor: function(viewerType) {
@@ -5878,8 +6977,12 @@ window.toolbarHandler = {
             return;
         }
 
-        // Create color picker dialog
-        const colors = ['#ffffff', '#f8f9fa', '#e9ecef', '#dee2e6', '#2c3e50', '#34495e', '#1a1a1a', '#000000', '#e3f2fd', '#fce4ec'];
+        // Extended background color palette with gradients and solid colors
+        const colors = [
+            '#ffffff', '#f8f9fa', '#e9ecef', '#dee2e6', '#2c3e50', '#34495e', '#1a1a1a', '#000000', '#e3f2fd', '#fce4ec',
+            '#f3e5f5', '#e8eaf6', '#e0f2f1', '#fff3e0', '#fbe9e7', '#eceff1', '#f1f8e9', '#fff9c4', '#b2dfdb', '#c5cae9',
+            '#d1c4e9', '#f8bbd0', '#ffccbc', '#ffe0b2', '#c8e6c9', '#b3e5fc', '#dcedc8', '#e1bee7', '#ffecb3', '#d7ccc8'
+        ];
 
         const existingPicker = document.getElementById('bgColorPicker');
         if (existingPicker) {
@@ -5887,36 +6990,83 @@ window.toolbarHandler = {
             return;
         }
 
+        // Get button position - FIXED: use correct button ID
+        const bgColorBtn = document.getElementById('backgroundColorBtn');
+        if (!bgColorBtn) {
+            console.error('❌ Background color button not found!');
+            showToolbarNotification('Button not found', 'error');
+            return;
+        }
+        const btnRect = bgColorBtn.getBoundingClientRect();
+        console.log('🎨 Button position:', btnRect);
+
         const picker = document.createElement('div');
         picker.id = 'bgColorPicker';
-        picker.style.cssText = 'position: fixed; top: 140px; right: 20px; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); z-index: 9998;';
+        picker.style.cssText = `position: fixed; top: ${btnRect.bottom + 10}px; left: ${btnRect.left}px; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); z-index: 99999; max-width: 320px;`;
         picker.innerHTML = `
-            <div style="font-weight: 600; margin-bottom: 10px; color: #2c3e50;">Select Background Color</div>
-            <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px;">
+            <div style="font-weight: 600; margin-bottom: 12px; color: #2c3e50; font-size: 0.9rem;">Select Background Color</div>
+            <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-bottom: 12px;">
                 ${colors.map(color => `
                     <button class="bg-color-option" data-color="${color}"
-                            style="width: 36px; height: 36px; border: 2px solid #ddd; border-radius: 6px; background: ${color}; cursor: pointer; transition: all 0.2s;"
-                            onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+                            style="width: 40px; height: 40px; border: 2px solid ${color === '#ffffff' ? '#ddd' : color}; border-radius: 8px; background: ${color}; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"
+                            onmouseover="this.style.transform='scale(1.15)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.2)'"
+                            onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 2px 4px rgba(0,0,0,0.1)'">
                     </button>
                 `).join('')}
             </div>
+            <div style="margin-bottom: 12px;">
+                <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #495057; margin-bottom: 8px;">Custom Color:</label>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <input type="color" id="customBgColor" value="#ffffff"
+                           style="width: 50px; height: 40px; border: 2px solid #ddd; border-radius: 8px; cursor: pointer;">
+                    <button id="applyCustomBgColor"
+                            style="flex: 1; padding: 10px; border: none; background: #0047AD; color: white; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: 600; transition: background 0.2s;"
+                            onmouseover="this.style.background='#003580'" onmouseout="this.style.background='#0047AD'">
+                        Apply Custom
+                    </button>
+                </div>
+            </div>
             <button onclick="document.getElementById('bgColorPicker').remove()"
-                    style="margin-top: 10px; width: 100%; padding: 8px; border: none; background: #f1f3f5; border-radius: 6px; cursor: pointer; font-size: 0.85rem;">
+                    style="width: 100%; padding: 10px; border: none; background: #f1f3f5; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: 600; transition: background 0.2s;"
+                    onmouseover="this.style.background='#e9ecef'" onmouseout="this.style.background='#f1f3f5'">
                 Close
             </button>
         `;
         document.body.appendChild(picker);
 
-        // Add click handlers
+        // Function to apply background color
+        const applyBgColor = (color) => {
+            viewer.scene.background = new THREE.Color(color);
+            if (viewer.render) viewer.render();
+            showToolbarNotification('Background color changed', 'success', 1500);
+        };
+
+        // Add click handlers for preset colors
         picker.querySelectorAll('.bg-color-option').forEach(btn => {
             btn.addEventListener('click', function() {
                 const color = this.getAttribute('data-color');
-                viewer.scene.background = new THREE.Color(color);
-                if (viewer.render) viewer.render();
-                showToolbarNotification('Background color changed', 'success', 1500);
+                applyBgColor(color);
                 picker.remove();
             });
         });
+
+        // Add handler for custom color
+        const applyCustomBtn = picker.querySelector('#applyCustomBgColor');
+        applyCustomBtn.addEventListener('click', function() {
+            const customColor = picker.querySelector('#customBgColor').value;
+            applyBgColor(customColor);
+            picker.remove();
+        });
+
+        // Close when clicking outside
+        setTimeout(() => {
+            document.addEventListener('click', function closeBgColorPicker(e) {
+                if (!picker.contains(e.target) && e.target !== bgColorBtn) {
+                    picker.remove();
+                    document.removeEventListener('click', closeBgColorPicker);
+                }
+            });
+        }, 100);
     },
 
     // ============================================
