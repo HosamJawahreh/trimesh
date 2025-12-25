@@ -174,16 +174,20 @@ class FileManager {
             }
 
             // Update URL to reflect remaining files
+            const url = new URL(window.location.href);
+            const viewerParam = url.searchParams.get('viewer'); // Preserve viewer parameter
+
             if (window.fileStorageManager.currentFileIds.length === 0) {
-                // No files left - clear URL
-                const url = new URL(window.location.href);
+                // No files left - clear file params but keep viewer
                 url.searchParams.delete('file');
                 url.searchParams.delete('files');
+                if (viewerParam) {
+                    url.searchParams.set('viewer', viewerParam);
+                }
                 window.history.pushState({}, '', url.toString());
                 console.log('🔗 URL cleared - no files remaining');
             } else {
                 // Update URL with remaining files
-                const url = new URL(window.location.href);
                 if (window.fileStorageManager.currentFileIds.length === 1) {
                     // Single file: use ?file=xxx
                     url.searchParams.set('file', window.fileStorageManager.currentFileIds[0]);
@@ -192,6 +196,9 @@ class FileManager {
                     // Multiple files: use ?files=xxx,yyy,zzz
                     url.searchParams.set('files', window.fileStorageManager.currentFileIds.join(','));
                     url.searchParams.delete('file');
+                }
+                if (viewerParam) {
+                    url.searchParams.set('viewer', viewerParam);
                 }
                 window.history.pushState({}, '', url.toString());
                 console.log('🔗 URL updated with remaining files:', window.fileStorageManager.currentFileIds);

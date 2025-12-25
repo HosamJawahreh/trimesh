@@ -232,6 +232,46 @@ document.addEventListener('DOMContentLoaded', function() {
     if (fileInput) fileInput.addEventListener('change', hidePriceSummary);
     document.addEventListener('fileRemoved', hidePriceSummary);
 
+    // Apply dental-specific settings if viewer is dental or dental-viewer
+    function applyDentalSettings() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const viewerType = urlParams.get('viewer');
+        
+        console.log('🦷 Checking viewer type:', viewerType);
+        
+        if (viewerType === 'dental' || viewerType === 'dental-viewer') {
+            console.log('🦷 Applying dental-specific settings...');
+            
+            // Set Technology to SLA / DLP (already default in Medical form)
+            const technologySelect = document.getElementById('technologySelectMedical');
+            if (technologySelect) {
+                technologySelect.value = 'sla'; // SLA / DLP
+                console.log('✅ Technology set to: SLA / DLP');
+            }
+            
+            // Set Material to Biocompatible resins (already default)
+            const materialSelect = document.getElementById('materialSelectMedical');
+            if (materialSelect) {
+                materialSelect.value = 'biocompatible-resin';
+                console.log('✅ Material set to: Biocompatible resins');
+            }
+            
+            // Colors are already limited and certified (no changes needed)
+            console.log('✅ Colors: Limited, certified (already set)');
+            
+            // Layer Height is already Fixed, validated (shown in UI as locked)
+            console.log('✅ Layer Height: Fixed, validated (already set)');
+            
+            console.log('🦷 Dental settings applied successfully!');
+        }
+    }
+    
+    // Apply dental settings on load
+    applyDentalSettings();
+    
+    // Reapply when viewer type changes (listen for URL changes)
+    window.addEventListener('popstate', applyDentalSettings);
+
     // Attach to ALL Save & Calculate buttons (there are multiple with same ID - invalid HTML but we'll handle it)
     const saveBtns = document.querySelectorAll('#saveCalculationsBtn, .save-btn');
     console.log('🔍 Found', saveBtns.length, 'Save buttons');
@@ -737,8 +777,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                         <div class="mb-3">
                                             <label class="form-label mb-2" style="font-size: 0.85rem; font-weight: 600; color: #495057;">Technology</label>
                                             <select id="technologySelectMedical" class="form-select form-select-sm" style="border-radius: 6px; border: 1px solid #dee2e6; font-size: 0.85rem;">
-                                                <option value="sla" selected>SLA (Stereolithography)</option>
-                                                <option value="dlp">DLP (Digital Light Processing)</option>
+                                                <option value="sla" selected>SLA / DLP (Stereolithography / Digital Light Processing)</option>
                                             </select>
                                         </div>
 
@@ -746,7 +785,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                         <div class="mb-3">
                                             <label class="form-label mb-2" style="font-size: 0.85rem; font-weight: 600; color: #495057;">Material</label>
                                             <select id="materialSelectMedical" class="form-select form-select-sm" style="border-radius: 6px; border: 1px solid #dee2e6; font-size: 0.85rem;">
-                                                <option value="biocompatible-resin" selected>Biocompatible Resin (Class I)</option>
+                                                <option value="biocompatible-resin" selected>Biocompatible Resins (Class I)</option>
                                                 <option value="dental-resin">Dental Resin (FDA Approved)</option>
                                                 <option value="surgical-guide">Surgical Guide Resin</option>
                                                 <option value="castable-resin">Castable Resin</option>
@@ -2586,6 +2625,18 @@ function openSimpleFileModal(formType, fileId) {
     window.simpleModalFileId = fileId;
     window.simpleModalFormType = formType;
 
+    // Detect viewer type (check URL parameter and sessionStorage)
+    const urlParams = new URLSearchParams(window.location.search);
+    let viewerType = urlParams.get('viewer') || sessionStorage.getItem('viewerType') || 'general';
+    
+    // Normalize dental-viewer to dental
+    if (viewerType === 'dental-viewer') {
+        viewerType = 'dental';
+    }
+    
+    const isDental = (viewerType === 'dental');
+    console.log('🦷 Viewer type detected:', viewerType, '- Is Dental:', isDental);
+
     // Populate modal
     const fileNameEl = document.getElementById('simpleModalFileName');
     const techEl = document.getElementById('simpleTechSelect');
@@ -2598,12 +2649,19 @@ function openSimpleFileModal(formType, fileId) {
 
     // Update Technology options based on viewer type
     if (techEl) {
-        if (formType === 'General') {
+        if (isDental) {
+            // Dental viewer - SLA/DLP only
+            techEl.innerHTML = `
+                <option value="sla">SLA / DLP (Stereolithography / Digital Light Processing)</option>
+            `;
+            techEl.value = 'sla';
+        } else if (formType === 'General') {
             techEl.innerHTML = `
                 <option value="fdm">FDM (Fused Deposition Modeling)</option>
                 <option value="sla">SLA (Stereolithography)</option>
                 <option value="sls">SLS (Selective Laser Sintering)</option>
             `;
+            techEl.value = fileData.technology || 'fdm';
         } else {
             // Medical viewer
             techEl.innerHTML = `
@@ -2613,19 +2671,26 @@ function openSimpleFileModal(formType, fileId) {
                 <option value="dmls">DMLS (Direct Metal Laser Sintering)</option>
                 <option value="mjf">MJF (Multi Jet Fusion)</option>
             `;
+            techEl.value = fileData.technology || 'fdm';
         }
-        techEl.value = fileData.technology || 'fdm';
     }
 
     // Update Material options based on viewer type
     if (materialEl) {
-        if (formType === 'General') {
+        if (isDental) {
+            // Dental viewer - Biocompatible resins only
+            materialEl.innerHTML = `
+                <option value="biocompatible_resin">Biocompatible Resins (Certified)</option>
+            `;
+            materialEl.value = 'biocompatible_resin';
+        } else if (formType === 'General') {
             materialEl.innerHTML = `
                 <option value="pla">PLA</option>
                 <option value="abs">ABS</option>
                 <option value="petg">PETG</option>
                 <option value="nylon">Nylon</option>
             `;
+            materialEl.value = fileData.material || 'pla';
         } else {
             // Medical viewer
             materialEl.innerHTML = `
@@ -2635,19 +2700,26 @@ function openSimpleFileModal(formType, fileId) {
                 <option value="nylon">Nylon</option>
                 <option value="resin">Resin</option>
             `;
+            materialEl.value = fileData.material || 'pla';
         }
-        materialEl.value = fileData.material || 'pla';
     }
 
     // Update Color options based on viewer type
     if (colorPickerEl) {
-        if (formType === 'General') {
-            // Cosmetic color only
+        if (isDental) {
+            // Dental viewer - Limited, certified colors only
+            colorPickerEl.innerHTML = `
+                <div class="simple-color-btn" data-color="#F5F5DC" style="width: 40px; height: 40px; background: #F5F5DC; border: 2px solid #dee2e6; border-radius: 8px; cursor: pointer; position: relative;" onclick="window.selectSimpleColor(this)" title="Dental White (Certified)"></div>
+                <div class="simple-color-btn" data-color="#FFB6C1" style="width: 40px; height: 40px; background: #FFB6C1; border: 2px solid #dee2e6; border-radius: 8px; cursor: pointer; position: relative;" onclick="window.selectSimpleColor(this)" title="Gum Pink (Certified)"></div>
+                <div class="simple-color-btn" data-color="#E8F4F8" style="width: 40px; height: 40px; background: #E8F4F8; border: 2px solid #dee2e6; border-radius: 8px; cursor: pointer; position: relative;" onclick="window.selectSimpleColor(this)" title="Clear (Certified)"></div>
+            `;
+        } else if (formType === 'General') {
+            // General viewer - Cosmetic color only
             colorPickerEl.innerHTML = `
                 <div class="simple-color-btn" data-color="#FFE5B4" style="width: 40px; height: 40px; background: #FFE5B4; border: 2px solid #dee2e6; border-radius: 8px; cursor: pointer; position: relative;" onclick="window.selectSimpleColor(this)"></div>
             `;
         } else {
-            // Medical viewer - multiple colors
+            // Medical viewer - Multiple colors
             colorPickerEl.innerHTML = `
                 <div class="simple-color-btn" data-color="#0047AD" style="width: 40px; height: 40px; background: #0047AD; border: 2px solid #0047AD; border-radius: 8px; cursor: pointer; position: relative;" onclick="window.selectSimpleColor(this)"></div>
                 <div class="simple-color-btn" data-color="#ffffff" style="width: 40px; height: 40px; background: #ffffff; border: 2px solid #dee2e6; border-radius: 8px; cursor: pointer; position: relative;" onclick="window.selectSimpleColor(this)"></div>
@@ -2662,7 +2734,23 @@ function openSimpleFileModal(formType, fileId) {
     }
 
     // Set active color
-    const currentColor = fileData.color ? '#' + fileData.color.toString(16).padStart(6, '0') : (formType === 'General' ? '#FFE5B4' : '#0047AD');
+    const defaultDentalColor = '#F5F5DC'; // Dental White
+    const defaultGeneralColor = '#FFE5B4'; // Beige
+    const defaultMedicalColor = '#0047AD'; // Blue
+    
+    let currentColor;
+    if (fileData.color) {
+        currentColor = '#' + fileData.color.toString(16).padStart(6, '0');
+    } else {
+        if (isDental) {
+            currentColor = defaultDentalColor;
+        } else if (formType === 'General') {
+            currentColor = defaultGeneralColor;
+        } else {
+            currentColor = defaultMedicalColor;
+        }
+    }
+    
     document.querySelectorAll('.simple-color-btn').forEach(btn => {
         btn.classList.remove('active');
         if (btn.dataset.color.toLowerCase() === currentColor.toLowerCase()) {
@@ -2670,6 +2758,17 @@ function openSimpleFileModal(formType, fileId) {
         }
     });
     console.log('✅ Color set to:', currentColor);
+
+    // Show/hide Layer Height section based on viewer type
+    const layerHeightSection = document.getElementById('simpleLayerHeightSection');
+    if (layerHeightSection) {
+        if (isDental) {
+            layerHeightSection.style.display = 'block';
+            console.log('🦷 Layer Height section shown for dental viewer');
+        } else {
+            layerHeightSection.style.display = 'none';
+        }
+    }
 
     // Show modal
     const modal = document.getElementById('simpleFileModal');
@@ -4299,9 +4398,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     await window.fileStorageManager.deleteFile(window.fileStorageManager.currentFileId);
                     window.fileStorageManager.currentFileId = null;
 
-                    // Clear URL parameter
+                    // Clear file parameter but preserve viewer parameter
                     const url = new URL(window.location.href);
+                    const viewerParam = url.searchParams.get('viewer');
                     url.searchParams.delete('file');
+                    if (viewerParam) {
+                        url.searchParams.set('viewer', viewerParam);
+                    }
                     window.history.pushState({}, '', url.toString());
 
                     console.log('🗑️ File removed from IndexedDB storage');
@@ -8272,6 +8375,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="simple-color-btn" data-color="#f39c12" style="width: 40px; height: 40px; background: #f39c12; border: 2px solid #dee2e6; border-radius: 8px; cursor: pointer; position: relative;" onclick="window.selectSimpleColor(this)"></div>
                     <div class="simple-color-btn" data-color="#9b59b6" style="width: 40px; height: 40px; background: #9b59b6; border: 2px solid #dee2e6; border-radius: 8px; cursor: pointer; position: relative;" onclick="window.selectSimpleColor(this)"></div>
                 </div>
+            </div>
+
+            <!-- Layer Height (Dental only - fixed and validated) -->
+            <div id="simpleLayerHeightSection" style="margin-bottom: 16px; display: none;">
+                <label style="display: block; margin-bottom: 8px; font-size: 0.85rem; font-weight: 600; color: #495057;">
+                    Layer Height
+                    <span style="color: #28a745; font-size: 0.75rem; margin-left: 8px;">🔒 Fixed, Validated</span>
+                </label>
+                <input type="text" value="25-50 μm" readonly disabled style="width: 100%; padding: 8px 12px; border: 1px solid #dee2e6; border-radius: 8px; font-size: 0.85rem; background: #f8f9fa; color: #6c757d; cursor: not-allowed;">
             </div>
         </div>
 

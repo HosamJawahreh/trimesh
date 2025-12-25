@@ -103,8 +103,21 @@ class FileStorageManager {
 
                         // ALWAYS use server's file ID (even if same as local)
                         this.currentFileId = result.fileId;
-                        this.updateURL(result.fileId);
-                        console.log('✅ URL updated with server file ID:', result.fileId);
+                        
+                        // Only update URL if this file isn't already in the URL
+                        // This prevents overwriting the viewer parameter during save & calculate
+                        const currentUrl = new URL(window.location.href);
+                        const filesParam = currentUrl.searchParams.get('files');
+                        const fileParam = currentUrl.searchParams.get('file');
+                        const fileAlreadyInUrl = (filesParam && filesParam.includes(result.fileId)) || 
+                                                 (fileParam && fileParam === result.fileId);
+                        
+                        if (!fileAlreadyInUrl) {
+                            this.updateURL(result.fileId);
+                            console.log('✅ URL updated with server file ID:', result.fileId);
+                        } else {
+                            console.log('ℹ️ File already in URL, skipping URL update to preserve parameters');
+                        }
 
                         // Update IndexedDB record with server file ID if different
                         if (result.fileId !== fileId) {
@@ -128,7 +141,19 @@ class FileStorageManager {
 
                         // Fallback: use local ID if server fails
                         this.currentFileId = fileId;
-                        this.updateURL(fileId);
+                        
+                        // Only update URL if this file isn't already in the URL
+                        const currentUrl = new URL(window.location.href);
+                        const filesParam = currentUrl.searchParams.get('files');
+                        const fileParam = currentUrl.searchParams.get('file');
+                        const fileAlreadyInUrl = (filesParam && filesParam.includes(fileId)) || 
+                                                 (fileParam && fileParam === fileId);
+                        
+                        if (!fileAlreadyInUrl) {
+                            this.updateURL(fileId);
+                        } else {
+                            console.log('ℹ️ File already in URL (fallback), skipping URL update to preserve parameters');
+                        }
 
                         // Show user-visible warning
                         if (typeof showNotification === 'function') {
@@ -483,6 +508,9 @@ class FileStorageManager {
      * Update URL with file ID
      */
     updateURL(fileId) {
+        console.log('🔧 updateURL called with fileId:', fileId);
+        console.trace('Call stack:'); // Show where this was called from
+        
         // Only update URL if fileId is valid
         if (!fileId || fileId === 'null' || fileId === 'undefined') {
             console.warn('⚠️ Attempted to update URL with invalid fileId:', fileId);
@@ -495,6 +523,11 @@ class FileStorageManager {
         }
 
         const url = new URL(window.location.href);
+        console.log('📍 Current URL before update:', window.location.href);
+
+        // IMPORTANT: Preserve the viewer parameter if it exists
+        const viewerParam = url.searchParams.get('viewer');
+        console.log('🔍 Viewer param detected:', viewerParam);
 
         // Support both single file and multiple files
         if (this.currentFileIds.length === 1) {
@@ -507,6 +540,15 @@ class FileStorageManager {
             url.searchParams.delete('file'); // Remove single file param
         }
 
+        // Restore viewer parameter if it was present
+        if (viewerParam) {
+            url.searchParams.set('viewer', viewerParam);
+            console.log('✅ Viewer parameter preserved:', viewerParam);
+        } else {
+            console.warn('⚠️ NO VIEWER PARAMETER FOUND IN CURRENT URL!');
+        }
+
+        console.log('📍 New URL after update:', url.toString());
         window.history.pushState({ fileIds: this.currentFileIds }, '', url.toString());
         console.log('🔗 URL updated:', this.currentFileIds.length === 1 ? '1 file' : `${this.currentFileIds.length} files`);
     }
@@ -551,6 +593,14 @@ class FileStorageManager {
         }
 
         const url = new URL(window.location.origin + window.location.pathname);
+
+        // Preserve viewer parameter if it exists in current URL
+        const currentUrl = new URL(window.location.href);
+        const viewerParam = currentUrl.searchParams.get('viewer');
+        if (viewerParam) {
+            url.searchParams.set('viewer', viewerParam);
+            console.log('✅ Viewer parameter included in share link:', viewerParam);
+        }
 
         if (validFileIds.length === 1) {
             // Single file: use ?file=xxx
