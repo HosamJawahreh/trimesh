@@ -61,7 +61,7 @@ function runEmergencyDiagnostic() {
                             <div class="row g-0">
 
                                 {{-- Left Sidebar: Form Controls --}}
-                                <div class="col-12 col-lg-3">
+                                <div class="col-12 col-lg-3" style="display: none !important;">
                                     <div class="p-3 p-lg-4">
 
                                         {{-- Site Logo - Moved to top toolbar --}}
@@ -334,7 +334,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 </div>
 
                                 {{-- Right Side: 3D Viewer --}}
-                                <div class="col-12 col-lg-9 position-relative d-flex flex-column" style="display: flex !important; visibility: visible !important; opacity: 1 !important; flex: 1 !important; min-width: 0 !important; background: linear-gradient(to bottom, #b8c5d6 0%, #99a8ba 100%) !important;">
+                                <div class="col-12 col-lg-12 position-relative d-flex flex-column" style="display: flex !important; visibility: visible !important; opacity: 1 !important; flex: 1 !important; min-width: 0 !important; background: linear-gradient(to bottom, #b8c5d6 0%, #99a8ba 100%) !important;">
 
                                     {{-- 3D Viewer Canvas --}}
                                     <div id="viewer3dGeneral" style="position: relative !important; display: flex !important; visibility: visible !important; width: 100% !important; height: 100vh !important; background: linear-gradient(to bottom, #b8c5d6 0%, #99a8ba 100%) !important;">
@@ -402,7 +402,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                         </div>
 
                                         {{-- Professional Toolbar - Top Right --}}
-                                        <div class="viewer-professional-toolbar" id="professionalToolbar" style="position: absolute !important; top: 20px !important; right: 20px !important; display: flex !important; visibility: visible !important; opacity: 1 !important; z-index: 9999 !important; background: rgba(255, 255, 255, 0.95) !important; padding: 8px !important; border-radius: 12px !important; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important; pointer-events: auto !important; gap: 8px !important;">
+                                        <div class="viewer-professional-toolbar" id="professionalToolbar" style="position: absolute !important; top: 0 !important; left: 0 !important; right: 0 !important; width: 100% !important; display: flex !important; visibility: visible !important; opacity: 1 !important; z-index: 9999 !important; background: rgba(255, 255, 255, 0.95) !important; padding: 8px !important; border-radius: 0 !important; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important; pointer-events: auto !important; gap: 8px !important;">
 
                                             {{-- Logo Group --}}
                                             <div class="toolbar-group" style="display: flex !important; align-items: center !important; padding-right: 8px !important;">
@@ -684,7 +684,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <div class="card-body p-0">
                             <div class="row g-0">
                                 <!-- Left Side: Controls -->
-                                <div class="col-12 col-lg-3" style="background: #f8f9fa; border-right: 1px solid #e9ecef;">
+                                <div class="col-12 col-lg-3" style="display: none !important;">
                                     <div class="">
                                         {{-- Category tabs removed - upload from bottom bar --}}
                                         {{-- Upload area hidden - use bottom bar upload button --}}
@@ -773,7 +773,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 </div>
 
                                 <!-- Right Side: 3D Viewer -->
-                                <div class="col-12 col-lg-9 position-relative d-flex flex-column" style="display: flex !important; visibility: visible !important; opacity: 1 !important; flex: 1 !important; min-width: 0 !important; background: linear-gradient(to bottom, #b8c5d6 0%, #99a8ba 100%) !important;">
+                                <div class="col-12 col-lg-12 position-relative d-flex flex-column" style="display: flex !important; visibility: visible !important; opacity: 1 !important; flex: 1 !important; min-width: 0 !important; background: linear-gradient(to bottom, #b8c5d6 0%, #99a8ba 100%) !important;">
                                     <div id="viewer3dMedical" style="position: relative !important; display: flex !important; visibility: visible !important; width: 100% !important; height: 100vh !important; background: linear-gradient(to bottom, #b8c5d6 0%, #99a8ba 100%) !important;">
                                         {{-- Model Info Badge (Top Left - Hidden until file uploaded) --}}
                                         <div class="model-info-badge" style="display: none;">
@@ -788,7 +788,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                         </div>
 
                                         {{-- Professional Toolbar - Top Right --}}
-                                        <div class="viewer-professional-toolbar" id="professionalToolbar" style="position: absolute !important; top: 20px !important; right: 20px !important; display: flex !important; visibility: visible !important; opacity: 1 !important; z-index: 9999 !important; background: rgba(255, 255, 255, 0.95) !important; padding: 8px !important; border-radius: 12px !important; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important; pointer-events: auto !important; gap: 8px !important;">
+                                        <div class="viewer-professional-toolbar" id="professionalToolbar" style="position: absolute !important; top: 0 !important; left: 0 !important; right: 0 !important; width: 100% !important; display: flex !important; visibility: visible !important; opacity: 1 !important; z-index: 9999 !important; background: rgba(255, 255, 255, 0.95) !important; padding: 8px !important; border-radius: 0 !important; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important; pointer-events: auto !important; gap: 8px !important;">
 
                                             {{-- Logo Group --}}
                                             <div class="toolbar-group" style="display: flex !important; align-items: center !important; padding-right: 8px !important;">

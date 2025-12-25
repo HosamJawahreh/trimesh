@@ -1159,7 +1159,7 @@
 
 
     <!-- Control Bar - Simplified Toolbar Design -->
-    <div class="viewer-bottom-controls" id="mainControlBar">
+    <div class="viewer-bottom-controls" id="mainControlBar" style="display: none !important;">
 
         <!-- Left Group: Upload Button -->
         <div class="bottom-bar-group">
