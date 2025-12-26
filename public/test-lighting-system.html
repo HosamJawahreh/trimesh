@@ -10,7 +10,7 @@
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -20,7 +20,7 @@
             align-items: center;
             padding: 20px;
         }
-        
+
         .container {
             background: white;
             border-radius: 20px;
@@ -29,67 +29,67 @@
             max-width: 800px;
             width: 100%;
         }
-        
+
         h1 {
             color: #2d3748;
             margin-bottom: 10px;
             font-size: 32px;
         }
-        
+
         .subtitle {
             color: #718096;
             margin-bottom: 30px;
             font-size: 16px;
         }
-        
+
         .status-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 16px;
             margin-bottom: 30px;
         }
-        
+
         .status-card {
             padding: 20px;
             border-radius: 12px;
             border: 2px solid;
         }
-        
+
         .status-card.success {
             background: #d4edda;
             border-color: #28a745;
             color: #155724;
         }
-        
+
         .status-card.info {
             background: #d1ecf1;
             border-color: #17a2b8;
             color: #0c5460;
         }
-        
+
         .status-card .icon {
             font-size: 32px;
             margin-bottom: 8px;
         }
-        
+
         .status-card h3 {
             font-size: 14px;
             font-weight: 600;
             margin-bottom: 4px;
         }
-        
+
         .status-card p {
             font-size: 12px;
             opacity: 0.8;
         }
-        
+
         .controls-preview {
             background: #f7fafc;
             padding: 24px;
             border-radius: 12px;
             margin: 24px 0;
         }
-        
+
         .control-item {
             display: flex;
             align-items: center;
@@ -100,7 +100,7 @@
             margin-bottom: 12px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
-        
+
         .control-item .icon {
             width: 40px;
             height: 40px;
@@ -110,31 +110,31 @@
             border-radius: 8px;
             font-size: 20px;
         }
-        
+
         .icon.light { background: #fff3cd; }
         .icon.shadow { background: #e2e8f0; }
         .icon.rotation { background: #e9d5ff; }
-        
+
         .control-info {
             flex: 1;
         }
-        
+
         .control-info h4 {
             font-size: 14px;
             color: #2d3748;
             margin-bottom: 4px;
         }
-        
+
         .control-info p {
             font-size: 12px;
             color: #718096;
         }
-        
+
         .feature-list {
             list-style: none;
             margin: 24px 0;
         }
-        
+
         .feature-list li {
             padding: 12px;
             padding-left: 40px;
@@ -145,7 +145,7 @@
             font-size: 14px;
             color: #2d3748;
         }
-        
+
         .feature-list li::before {
             content: '✓';
             position: absolute;
@@ -162,7 +162,7 @@
             font-weight: bold;
             font-size: 12px;
         }
-        
+
         .btn {
             display: inline-block;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -175,17 +175,17 @@
             transition: transform 0.2s, box-shadow 0.2s;
             box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
         }
-        
+
         .btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
         }
-        
+
         .test-section {
             text-align: center;
             padding: 30px 0;
         }
-        
+
         .diagram {
             background: white;
             padding: 20px;
@@ -204,29 +204,29 @@
     <div class="container">
         <h1>💡 Lighting Control System</h1>
         <p class="subtitle">Professional lighting controls for 3D viewer</p>
-        
+
         <div class="status-grid">
             <div class="status-card success">
                 <div class="icon">✅</div>
                 <h3>System Ready</h3>
                 <p>All controls implemented</p>
             </div>
-            
+
             <div class="status-card info">
                 <div class="icon">🔧</div>
                 <h3>3 Controls</h3>
                 <p>Light, Shadow, Rotation</p>
             </div>
-            
+
             <div class="status-card info">
                 <div class="icon">🎨</div>
                 <h3>User Friendly</h3>
                 <p>Real-time feedback</p>
             </div>
         </div>
-        
+
         <h2 style="color: #2d3748; font-size: 20px; margin-bottom: 16px;">📊 Control Overview</h2>
-        
+
         <div class="controls-preview">
             <div class="control-item">
                 <div class="icon light">☀️</div>
@@ -235,7 +235,7 @@
                     <p>Adjust brightness from 0-200% • Default: 90%</p>
                 </div>
             </div>
-            
+
             <div class="control-item">
                 <div class="icon shadow">🌑</div>
                 <div class="control-info">
@@ -243,7 +243,7 @@
                     <p>Control shadow strength from 0-100% • Default: 100%</p>
                 </div>
             </div>
-            
+
             <div class="control-item">
                 <div class="icon rotation">🔄</div>
                 <div class="control-info">
@@ -252,9 +252,9 @@
                 </div>
             </div>
         </div>
-        
+
         <h2 style="color: #2d3748; font-size: 20px; margin-bottom: 16px;">✨ Key Features</h2>
-        
+
         <ul class="feature-list">
             <li><strong>Real-time Updates</strong> - See changes instantly as you drag</li>
             <li><strong>Visual Feedback</strong> - Percentage and degree displays</li>
@@ -263,12 +263,12 @@
             <li><strong>Independent Controls</strong> - Each slider works separately</li>
             <li><strong>Professional Design</strong> - Clean, compact interface</li>
         </ul>
-        
+
         <h2 style="color: #2d3748; font-size: 20px; margin-bottom: 16px;">🔄 Light Rotation Visualization</h2>
-        
+
         <div class="diagram">
             Top View - Light Position
-            
+
                 North (0°)
                     ↑
                     |
@@ -279,15 +279,15 @@
                     |
                     ↓
                 South (180°)
-                
+
             • Light rotates around model
             • Stays at fixed distance
             • Creates dynamic shadows
             • Perfect for inspection
         </div>
-        
+
         <h2 style="color: #2d3748; font-size: 20px; margin-bottom: 16px;">🧪 How to Test</h2>
-        
+
         <div style="background: #f7fafc; padding: 20px; border-radius: 12px; margin-bottom: 24px;">
             <ol style="padding-left: 20px; color: #2d3748;">
                 <li style="margin-bottom: 12px;"><strong>Go to Quote Viewer</strong> - Click button below</li>
@@ -299,11 +299,11 @@
                 <li style="margin-bottom: 12px;"><strong>Open Console</strong> - Press F12 to see debug logs</li>
             </ol>
         </div>
-        
+
         <div class="test-section">
             <a href="/quote/viewer=general" class="btn">🚀 Test Lighting Controls Now</a>
         </div>
-        
+
         <div style="background: #e6fffa; border: 2px solid #38b2ac; border-radius: 12px; padding: 16px; margin-top: 24px;">
             <strong style="color: #234e52;">📚 Documentation:</strong>
             <p style="color: #2c7a7b; margin-top: 8px; font-size: 14px;">
@@ -311,7 +311,7 @@
             </p>
         </div>
     </div>
-    
+
     <script>
         console.log('🎉 Lighting Control Test Page Loaded');
         console.log('💡 Features:');

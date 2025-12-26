@@ -14,12 +14,12 @@
             this.shadowIntensity = 1.0;
             this.lightAzimuth = 45; // Rotation angle in degrees
             this.isInitialized = false;
-            
+
             // Panel visibility states
             this.lightPanelVisible = false;
             this.shadowPanelVisible = false;
             this.rotationPanelVisible = false;
-            
+
             console.log('💡 Lighting Controller created');
         }
 
@@ -33,7 +33,7 @@
             }
 
             this.viewer = viewer;
-            
+
             // Get initial values from viewer
             if (viewer.lightIntensity !== undefined) {
                 this.lightIntensity = viewer.lightIntensity;
@@ -46,7 +46,7 @@
             this.setupLightIntensityControl();
             this.setupShadowIntensityControl();
             this.setupLightRotationControl();
-            
+
             // Setup click-outside handler
             this.setupClickOutsideHandler();
 
@@ -61,17 +61,17 @@
         toggleLightPanel() {
             const panel = document.getElementById('lightIntensityPanel');
             const btn = document.getElementById('lightIntensityBtn');
-            
+
             if (!panel || !btn) return;
-            
+
             // Close other panels
             this.closeShadowPanel();
             this.closeRotationPanel();
-            
+
             // Toggle this panel
             this.lightPanelVisible = !this.lightPanelVisible;
             panel.style.display = this.lightPanelVisible ? 'block' : 'none';
-            
+
             // Update button active state
             if (this.lightPanelVisible) {
                 btn.classList.add('active');
@@ -88,17 +88,17 @@
         toggleShadowPanel() {
             const panel = document.getElementById('shadowIntensityPanel');
             const btn = document.getElementById('shadowIntensityBtn');
-            
+
             if (!panel || !btn) return;
-            
+
             // Close other panels
             this.closeLightPanel();
             this.closeRotationPanel();
-            
+
             // Toggle this panel
             this.shadowPanelVisible = !this.shadowPanelVisible;
             panel.style.display = this.shadowPanelVisible ? 'block' : 'none';
-            
+
             // Update button active state
             if (this.shadowPanelVisible) {
                 btn.classList.add('active');
@@ -115,17 +115,17 @@
         toggleRotationPanel() {
             const panel = document.getElementById('lightRotationPanel');
             const btn = document.getElementById('lightRotationBtn');
-            
+
             if (!panel || !btn) return;
-            
+
             // Close other panels
             this.closeLightPanel();
             this.closeShadowPanel();
-            
+
             // Toggle this panel
             this.rotationPanelVisible = !this.rotationPanelVisible;
             panel.style.display = this.rotationPanelVisible ? 'block' : 'none';
-            
+
             // Update button active state
             if (this.rotationPanelVisible) {
                 btn.classList.add('active');
@@ -142,7 +142,7 @@
         closeLightPanel() {
             const panel = document.getElementById('lightIntensityPanel');
             const btn = document.getElementById('lightIntensityBtn');
-            
+
             if (panel && btn) {
                 this.lightPanelVisible = false;
                 panel.style.display = 'none';
@@ -156,7 +156,7 @@
         closeShadowPanel() {
             const panel = document.getElementById('shadowIntensityPanel');
             const btn = document.getElementById('shadowIntensityBtn');
-            
+
             if (panel && btn) {
                 this.shadowPanelVisible = false;
                 panel.style.display = 'none';
@@ -170,7 +170,7 @@
         closeRotationPanel() {
             const panel = document.getElementById('lightRotationPanel');
             const btn = document.getElementById('lightRotationBtn');
-            
+
             if (panel && btn) {
                 this.rotationPanelVisible = false;
                 panel.style.display = 'none';
@@ -195,17 +195,17 @@
                 const lightPanel = document.getElementById('lightIntensityPanel');
                 const shadowPanel = document.getElementById('shadowIntensityPanel');
                 const rotationPanel = document.getElementById('lightRotationPanel');
-                
+
                 const lightBtn = document.getElementById('lightIntensityBtn');
                 const shadowBtn = document.getElementById('shadowIntensityBtn');
                 const rotationBtn = document.getElementById('lightRotationBtn');
-                
+
                 // Check if click is outside all panels and buttons
-                const clickedOutside = 
+                const clickedOutside =
                     !lightPanel?.contains(event.target) && !lightBtn?.contains(event.target) &&
                     !shadowPanel?.contains(event.target) && !shadowBtn?.contains(event.target) &&
                     !rotationPanel?.contains(event.target) && !rotationBtn?.contains(event.target);
-                
+
                 if (clickedOutside) {
                     this.closeAllPanels();
                 }
@@ -228,13 +228,13 @@
             slider.addEventListener('input', (e) => {
                 const intensity = parseFloat(e.target.value);
                 this.setLightIntensity(intensity);
-                
+
                 // Update value display
                 if (valueDisplay) {
                     const percentage = Math.round((intensity / 2) * 100);
                     valueDisplay.textContent = `${percentage}%`;
                 }
-                
+
                 // Update slider gradient
                 const gradientPercentage = (intensity / 2) * 100;
                 slider.style.background = `linear-gradient(to right, #f39c12 0%, #f39c12 ${gradientPercentage}%, #e0e0e0 ${gradientPercentage}%, #e0e0e0 100%)`;
@@ -246,7 +246,7 @@
                 const percentage = Math.round((this.lightIntensity / 2) * 100);
                 valueDisplay.textContent = `${percentage}%`;
             }
-            
+
             console.log('✅ Light intensity control ready');
         }
 
@@ -266,13 +266,13 @@
             slider.addEventListener('input', (e) => {
                 const intensity = parseFloat(e.target.value);
                 this.setShadowIntensity(intensity);
-                
+
                 // Update value display
                 if (valueDisplay) {
                     const percentage = Math.round(intensity * 100);
                     valueDisplay.textContent = `${percentage}%`;
                 }
-                
+
                 // Update slider gradient
                 const gradientPercentage = intensity * 100;
                 slider.style.background = `linear-gradient(to right, #7f8c8d 0%, #7f8c8d ${gradientPercentage}%, #e0e0e0 ${gradientPercentage}%, #e0e0e0 100%)`;
@@ -284,7 +284,7 @@
                 const percentage = Math.round(this.shadowIntensity * 100);
                 valueDisplay.textContent = `${percentage}%`;
             }
-            
+
             console.log('✅ Shadow intensity control ready');
         }
 
@@ -304,12 +304,12 @@
             slider.addEventListener('input', (e) => {
                 const angle = parseFloat(e.target.value);
                 this.setLightRotation(angle);
-                
+
                 // Update value display
                 if (valueDisplay) {
                     valueDisplay.textContent = `${angle}°`;
                 }
-                
+
                 // Update slider gradient
                 const gradientPercentage = (angle / 360) * 100;
                 slider.style.background = `linear-gradient(to right, #9b59b6 0%, #9b59b6 ${gradientPercentage}%, #e0e0e0 ${gradientPercentage}%, #e0e0e0 100%)`;
@@ -320,7 +320,7 @@
             if (valueDisplay) {
                 valueDisplay.textContent = `${this.lightAzimuth}°`;
             }
-            
+
             console.log('✅ Light rotation control ready');
         }
 
@@ -405,12 +405,12 @@
             // Position light in circular path around model
             const distance = 100; // Distance from center
             const elevation = 50; // Height above model
-            
+
             const x = Math.cos(azimuthRad) * distance;
             const z = Math.sin(azimuthRad) * distance;
-            
+
             this.viewer.mainLight.position.set(x, elevation, z);
-            
+
             // Point light at model center
             if (this.viewer.controls && this.viewer.controls.target) {
                 this.viewer.mainLight.target.position.copy(this.viewer.controls.target);
@@ -461,16 +461,16 @@
             this.setLightIntensity(0.9);
             this.setShadowIntensity(1.0);
             this.setLightRotation(45);
-            
+
             // Update UI
             const lightSlider = document.getElementById('lightIntensitySlider');
             const shadowSlider = document.getElementById('shadowIntensitySlider');
             const rotationSlider = document.getElementById('lightRotationSlider');
-            
+
             if (lightSlider) lightSlider.value = 0.9;
             if (shadowSlider) shadowSlider.value = 1.0;
             if (rotationSlider) rotationSlider.value = 45;
-            
+
             console.log('🔄 Lighting controls reset to defaults');
         }
     }
@@ -481,7 +481,7 @@
     // Auto-initialize when viewers are ready
     window.addEventListener('viewersReady', () => {
         console.log('🎬 Viewers ready, initializing lighting controller...');
-        
+
         const viewer = window.viewerGeneral || window.viewer;
         if (viewer) {
             window.lightingController.init(viewer);

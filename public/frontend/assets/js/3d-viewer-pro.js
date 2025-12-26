@@ -318,7 +318,7 @@ class Professional3DViewer {
         // Hemisphere light for better ambient lighting
         const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.3);
         this.scene.add(hemiLight);
-        
+
         console.log('💡 Lighting setup complete with user-controlled position');
     }
 
@@ -619,12 +619,12 @@ class Professional3DViewer {
     animate() {
         this.animationId = requestAnimationFrame(() => this.animate());
         this.controls.update();
-        
+
         // Update measurement labels on camera movement
         if (window.measurementManager) {
             window.measurementManager.updateLabelsOnRender(this);
         }
-        
+
         this.renderer.render(this.scene, this.camera);
     }
 
@@ -1084,7 +1084,7 @@ class Professional3DViewer {
      */
     setLightIntensity(intensity) {
         this.lightIntensity = Math.max(0, Math.min(2.0, intensity));
-        
+
         if (this.mainLight) {
             this.mainLight.intensity = this.lightIntensity;
             console.log(`💡 Main light intensity updated to ${this.mainLight.intensity}`);
@@ -1093,12 +1093,12 @@ class Professional3DViewer {
             this.fillLight.intensity = this.lightIntensity * 0.4;
             console.log(`💡 Fill light intensity updated to ${this.fillLight.intensity}`);
         }
-        
+
         // Force a render update
         if (this.renderer && this.scene && this.camera) {
             this.renderer.render(this.scene, this.camera);
         }
-        
+
         console.log(`💡 Light intensity set to ${this.lightIntensity}`);
     }
 
@@ -1108,19 +1108,19 @@ class Professional3DViewer {
      */
     setShadowIntensity(intensity) {
         this.shadowIntensity = Math.max(0, Math.min(1.0, intensity));
-        
+
         if (this.mainLight && this.mainLight.shadow) {
             // Control shadow opacity
             if (this.mainLight.shadow.map) {
                 this.mainLight.shadow.map.needsUpdate = true;
             }
-            
+
             // Adjust shadow bias for quality
             this.mainLight.shadow.bias = -0.001 * this.shadowIntensity;
-            
+
             console.log(`🌑 Shadow bias updated to ${this.mainLight.shadow.bias}`);
         }
-        
+
         // Update model shadow properties
         if (this.model) {
             this.model.traverse((child) => {
@@ -1128,7 +1128,7 @@ class Professional3DViewer {
                     const shouldCastShadow = this.shadowIntensity > 0;
                     child.receiveShadow = shouldCastShadow;
                     child.castShadow = shouldCastShadow;
-                    
+
                     // Adjust material properties for shadow visibility
                     if (child.material) {
                         if (Array.isArray(child.material)) {
@@ -1144,18 +1144,18 @@ class Professional3DViewer {
                 }
             });
         }
-        
+
         // Update renderer shadow settings
         if (this.renderer) {
             this.renderer.shadowMap.enabled = this.shadowIntensity > 0;
             this.renderer.shadowMap.needsUpdate = true;
         }
-        
+
         // Force a render update
         if (this.renderer && this.scene && this.camera) {
             this.renderer.render(this.scene, this.camera);
         }
-        
+
         console.log(`🌑 Shadow intensity set to ${this.shadowIntensity}`);
     }
 

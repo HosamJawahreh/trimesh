@@ -142,6 +142,35 @@ document.addEventListener('DOMContentLoaded', function() {
     const bottomPriceDisplay = document.getElementById('bottomPriceDisplay');
     if (bottomPriceDisplay) bottomPriceDisplay.classList.remove('show');
 
+    // Hide files panel on mobile initially
+    if (window.innerWidth <= 768) {
+        const filesPanel = document.getElementById('rightFilesPanel');
+        if (filesPanel) {
+            filesPanel.style.display = 'none';
+            console.log('📱 Mobile detected: Files panel hidden by default');
+        }
+    }
+
+    // Handle window resize - hide files panel when switching to mobile
+    let resizeTimer;
+    window.addEventListener('resize', function() {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(function() {
+            const filesPanel = document.getElementById('rightFilesPanel');
+            if (filesPanel && window.innerWidth <= 768) {
+                // On mobile, hide panel if not actively open
+                if (!filesPanel.classList.contains('mobile-open')) {
+                    filesPanel.style.display = 'none';
+                }
+            } else if (filesPanel && window.innerWidth > 768) {
+                // On desktop, always show panel
+                filesPanel.style.display = 'flex';
+                filesPanel.classList.remove('mobile-open');
+                document.body.style.overflow = '';
+            }
+        }, 250);
+    });
+
     // ESC key to cancel active measurement tool
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
@@ -551,11 +580,18 @@ document.addEventListener('DOMContentLoaded', function() {
                                             {{-- Panel Header --}}
                                             <div style="padding: 16px; border-bottom: 1px solid #e0e0e0; display: flex; justify-content: space-between; align-items: center;">
                                                 <h6 style="margin: 0; font-weight: 600; font-size: 14px; color: #333;">Uploaded Files</h6>
-                                                <button type="button" id="uploadMoreFilesBtn" style="background: #1976D2; border: none; cursor: pointer; padding: 6px; color: white; border-radius: 6px; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" title="Upload More Files" onclick="document.getElementById('fileInput3d').click()">
-                                                    <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
-                                                        <path d="M10 5L10 15M5 10L15 10" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
-                                                    </svg>
-                                                </button>
+                                                <div style="display: flex; gap: 8px; align-items: center;">
+                                                    {{-- Mobile Close Button (visible only on mobile) --}}
+                                                    <button type="button" class="mobile-close-files-btn" onclick="window.toolbarHandler.toggleMobileFilesPanel()" title="Close" style="display: none; background: #e0e0e0; border: none; cursor: pointer; padding: 6px 10px; color: #333; border-radius: 6px; font-size: 18px; font-weight: bold; line-height: 1; transition: all 0.2s;">
+                                                        ×
+                                                    </button>
+                                                    {{-- Upload More Button --}}
+                                                    <button type="button" id="uploadMoreFilesBtn" style="background: #1976D2; border: none; cursor: pointer; padding: 6px; color: white; border-radius: 6px; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" title="Upload More Files" onclick="document.getElementById('fileInput3d').click()">
+                                                        <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+                                                            <path d="M10 5L10 15M5 10L15 10" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+                                                        </svg>
+                                                    </button>
+                                                </div>
                                             </div>
                                             {{-- Files Container --}}
                                             <div id="rightFilesContainer" style="flex: 1; overflow-y: auto; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; margin: 12px 12px 0 12px;">
@@ -970,9 +1006,132 @@ document.addEventListener('DOMContentLoaded', function() {
                                             {{-- Spacer to push Save button to the right --}}
                                             <div style="flex: 1;"></div>
 
+                                            {{-- Mobile Burger Menu Button --}}
+                                            <button type="button" class="toolbar-burger-menu" id="toolbarBurgerMenu" onclick="window.toolbarHandler.toggleMobileMenu()">
+                                                <span></span>
+                                                <span></span>
+                                                <span></span>
+                                            </button>
+
                                             {{-- Save & Continue Button (Far Right with padding) --}}
                                             <div class="toolbar-group" style="display: flex !important; visibility: visible !important; opacity: 1 !important; margin-left: auto !important; padding-right: 12px !important;">
                                                 <button type="button" class="toolbar-btn-save-continue" id="saveCalculateToolBtn" title="Save & Continue" data-action="saveCalculate" onclick="window.toolbarHandler.saveAndCalculate('General')">
+                                                    <svg width="18" height="18" viewBox="0 0 20 20" fill="none" style="flex-shrink: 0;">
+                                                        <path d="M16 18H4C3 18 2 17 2 16V4C2 3 3 2 4 2H13L18 7V16C18 17 17 18 16 18Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                                                        <path d="M14 18V11H6V18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                                                        <path d="M6 2V6H13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                                                        <circle cx="10" cy="14.5" r="1" fill="currentColor"/>
+                                                    </svg>
+                                                    <span style="font-weight: 600; font-size: 14px; margin-left: 8px;">Save & Continue</span>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {{-- Mobile Menu Overlay --}}
+                                        <div class="toolbar-mobile-menu" id="toolbarMobileMenu">
+                                            {{-- Tools Section --}}
+                                            <div class="toolbar-mobile-section">
+                                                <div class="toolbar-mobile-section-title">Tools</div>
+                                                <div class="toolbar-mobile-grid">
+                                                    <button type="button" class="toolbar-mobile-btn" onclick="window.toolbarHandler.toggleMeasurement('General'); window.toolbarHandler.toggleMobileMenu();">
+                                                        <svg width="24" height="24" viewBox="0 0 20 20" fill="none"><path d="M4 16L16 4M6 16L8 14M10 16L12 14M14 16L16 14M4 14L6 12M4 10L8 6M4 6L6 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                                                        <span class="toolbar-mobile-btn-label">Measure</span>
+                                                    </button>
+                                                    <button type="button" class="toolbar-mobile-btn" onclick="window.toolbarHandler.toggleBoundingBox('General'); window.toolbarHandler.toggleMobileMenu();">
+                                                        <svg width="24" height="24" viewBox="0 0 20 20" fill="none"><rect x="3" y="3" width="14" height="14" stroke="currentColor" stroke-width="1.8" stroke-dasharray="2 2"/></svg>
+                                                        <span class="toolbar-mobile-btn-label">Bounding Box</span>
+                                                    </button>
+                                                    <button type="button" class="toolbar-mobile-btn" onclick="window.toolbarHandler.toggleAxis('General'); window.toolbarHandler.toggleMobileMenu();">
+                                                        <svg width="24" height="24" viewBox="0 0 20 20" fill="none"><path d="M10 2V18M2 10H18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                                                        <span class="toolbar-mobile-btn-label">Axis</span>
+                                                    </button>
+                                                    <button type="button" class="toolbar-mobile-btn" onclick="window.toolbarHandler.toggleGrid('General'); window.toolbarHandler.toggleMobileMenu();">
+                                                        <svg width="24" height="24" viewBox="0 0 20 20" fill="none"><path d="M2 6H18M2 10H18M2 14H18M6 2V18M10 2V18M14 2V18" stroke="currentColor" stroke-width="1.5" opacity="0.6"/></svg>
+                                                        <span class="toolbar-mobile-btn-label">Grid</span>
+                                                    </button>
+                                                    <button type="button" class="toolbar-mobile-btn" onclick="window.toolbarHandler.toggleMoveMode('General'); window.toolbarHandler.toggleMobileMenu();">
+                                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M13 5L13 11M13 11L10 8M13 11L16 8" stroke="currentColor" stroke-width="2"/></svg>
+                                                        <span class="toolbar-mobile-btn-label">Move</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            {{-- View Options --}}
+                                            <div class="toolbar-mobile-section">
+                                                <div class="toolbar-mobile-section-title">View Options</div>
+                                                <div class="toolbar-mobile-grid">
+                                                    <button type="button" class="toolbar-mobile-btn" onclick="window.toolbarHandler.toggleShadow('General'); window.toolbarHandler.toggleMobileMenu();">
+                                                        <svg width="24" height="24" viewBox="0 0 20 20" fill="none"><ellipse cx="10" cy="16" rx="6" ry="2" fill="currentColor" opacity="0.5"/><circle cx="10" cy="8" r="4" stroke="currentColor" stroke-width="1.8"/></svg>
+                                                        <span class="toolbar-mobile-btn-label">Shadows</span>
+                                                    </button>
+                                                    <button type="button" class="toolbar-mobile-btn" onclick="window.toolbarHandler.toggleTransparency('General'); window.toolbarHandler.toggleMobileMenu();">
+                                                        <svg width="24" height="24" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.8" opacity="0.5"/></svg>
+                                                        <span class="toolbar-mobile-btn-label">Transparency</span>
+                                                    </button>
+                                                    <button type="button" class="toolbar-mobile-btn" onclick="window.toolbarHandler.changeModelColor(); window.toolbarHandler.toggleMobileMenu();">
+                                                        <svg width="24" height="24" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.8"/><circle cx="10" cy="10" r="3" fill="currentColor"/></svg>
+                                                        <span class="toolbar-mobile-btn-label">Color</span>
+                                                    </button>
+                                                    <button type="button" class="toolbar-mobile-btn" onclick="window.toolbarHandler.changeBackgroundColor(); window.toolbarHandler.toggleMobileMenu();">
+                                                        <svg width="24" height="24" viewBox="0 0 20 20" fill="none"><rect x="2" y="2" width="16" height="16" rx="2" stroke="currentColor" stroke-width="1.8"/></svg>
+                                                        <span class="toolbar-mobile-btn-label">Background</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            {{-- Actions --}}
+                                            <div class="toolbar-mobile-section">
+                                                <div class="toolbar-mobile-section-title">Actions</div>
+                                                <div class="toolbar-mobile-grid">
+                                                    <button type="button" class="toolbar-mobile-btn" onclick="window.toolbarHandler.undo(); window.toolbarHandler.toggleMobileMenu();">
+                                                        <svg width="24" height="24" viewBox="0 0 20 20" fill="none"><path d="M4 8H14C16 8 18 10 18 12C18 14 16 16 14 16H10M4 8L7 5M4 8L7 11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                                        <span class="toolbar-mobile-btn-label">Undo</span>
+                                                    </button>
+                                                    <button type="button" class="toolbar-mobile-btn" onclick="window.toolbarHandler.redo(); window.toolbarHandler.toggleMobileMenu();">
+                                                        <svg width="24" height="24" viewBox="0 0 20 20" fill="none"><path d="M16 8H6C4 8 2 10 2 12C2 14 4 16 6 16H10M16 8L13 5M16 8L13 11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                                        <span class="toolbar-mobile-btn-label">Redo</span>
+                                                    </button>
+                                                    <button type="button" class="toolbar-mobile-btn" onclick="window.toolbarHandler.takeScreenshot('General'); window.toolbarHandler.toggleMobileMenu();">
+                                                        <svg width="24" height="24" viewBox="0 0 20 20" fill="none"><rect x="2" y="4" width="16" height="12" rx="2" stroke="currentColor" stroke-width="1.8"/><circle cx="10" cy="10" r="2.5" stroke="currentColor" stroke-width="1.8"/></svg>
+                                                        <span class="toolbar-mobile-btn-label">Screenshot</span>
+                                                    </button>
+                                                    <button type="button" class="toolbar-mobile-btn" onclick="window.toolbarHandler.shareModel(); window.toolbarHandler.toggleMobileMenu();">
+                                                        <svg width="24" height="24" viewBox="0 0 20 20" fill="none"><circle cx="15" cy="5" r="2.5" stroke="currentColor" stroke-width="1.8"/><circle cx="5" cy="10" r="2.5" stroke="currentColor" stroke-width="1.8"/><circle cx="15" cy="15" r="2.5" stroke="currentColor" stroke-width="1.8"/><path d="M7.5 11L12.5 14M7.5 9L12.5 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                                                        <span class="toolbar-mobile-btn-label">Share</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            {{-- Camera Views --}}
+                                            <div class="toolbar-mobile-section">
+                                                <div class="toolbar-mobile-section-title">Camera Views</div>
+                                                <div class="toolbar-mobile-grid">
+                                                    <button type="button" class="toolbar-mobile-btn camera-btn" data-view="top" onclick="window.toolbarHandler.setCameraView('top'); window.toolbarHandler.toggleMobileMenu();">
+                                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 3L12 12M12 3L8 7M12 3L16 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                                                        <span class="toolbar-mobile-btn-label">Top</span>
+                                                    </button>
+                                                    <button type="button" class="toolbar-mobile-btn camera-btn" data-view="front" onclick="window.toolbarHandler.setCameraView('front'); window.toolbarHandler.toggleMobileMenu();">
+                                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="2" fill="currentColor"/></svg>
+                                                        <span class="toolbar-mobile-btn-label">Front</span>
+                                                    </button>
+                                                    <button type="button" class="toolbar-mobile-btn camera-btn" data-view="right" onclick="window.toolbarHandler.setCameraView('right'); window.toolbarHandler.toggleMobileMenu();">
+                                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M21 12L12 12M21 12L17 8M21 12L17 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                                                        <span class="toolbar-mobile-btn-label">Right</span>
+                                                    </button>
+                                                    <button type="button" class="toolbar-mobile-btn camera-btn" data-view="left" onclick="window.toolbarHandler.setCameraView('left'); window.toolbarHandler.toggleMobileMenu();">
+                                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M3 12L12 12M3 12L7 8M3 12L7 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                                                        <span class="toolbar-mobile-btn-label">Left</span>
+                                                    </button>
+                                                    <button type="button" class="toolbar-mobile-btn camera-btn" data-view="reset" onclick="window.toolbarHandler.setCameraView('reset'); window.toolbarHandler.toggleMobileMenu();">
+                                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M3 12A9 9 0 1 1 12 21M3 12L7 8M3 12L7 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                                                        <span class="toolbar-mobile-btn-label">Reset</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            {{-- Save Button (Mobile) --}}
+                                            <div class="toolbar-mobile-section">
+                                                <button type="button" class="toolbar-btn-save-continue" style="width: 100%; justify-content: center;" onclick="window.toolbarHandler.saveAndCalculate('General'); window.toolbarHandler.toggleMobileMenu();">
                                                     <svg width="18" height="18" viewBox="0 0 20 20" fill="none" style="flex-shrink: 0;">
                                                         <path d="M16 18H4C3 18 2 17 2 16V4C2 3 3 2 4 2H13L18 7V16C18 17 17 18 16 18Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
                                                         <path d="M14 18V11H6V18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
@@ -1004,6 +1163,13 @@ document.addEventListener('DOMContentLoaded', function() {
                                                 <p class="mt-1 mb-0" style="font-size: 0.8rem; color: #95a5a6;">Drag & drop or click to browse</p>
                                             </div>
                                         </div>
+
+                                        {{-- Floating File Upload Button (Mobile Only) --}}
+                                        <button type="button" class="mobile-float-upload-btn" id="mobileFloatUploadBtn" onclick="window.toolbarHandler.toggleMobileFilesPanel()" title="Upload Files">
+                                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+                                                <path d="M12 5V19M5 12H19" stroke="white" stroke-width="3" stroke-linecap="round"/>
+                                            </svg>
+                                        </button>
                                     </div>
 
                                     {{-- Viewer Controls Panel - REMOVED FOR CLEAN INTERFACE --}}
@@ -1800,6 +1966,34 @@ document.addEventListener('DOMContentLoaded', function() {
 </section>
 
 <style>
+/* ========================================
+   ANIMATIONS
+   ======================================== */
+@keyframes slideInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
 /* HIDE BOTTOM CONTROL BAR - Moved to top toolbar */
 .viewer-bottom-controls {
     display: none !important;
@@ -2223,19 +2417,402 @@ body.modal-open #rightFilesPanel {
    ======================================== */
 .viewer-professional-toolbar {
     position: absolute !important;
-    top: 20px !important;
-    right: 20px !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
     display: flex !important;
     gap: 8px;
     background: rgba(255, 255, 255, 0.95);
     padding: 8px;
-    border-radius: 12px;
+    border-radius: 0 !important;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
     backdrop-filter: blur(10px);
-    z-index: 2000 !important;
+    z-index: 9999 !important;
     transition: all 0.3s ease;
     pointer-events: auto !important;
     overflow: visible !important;
+}
+
+/* Mobile Burger Menu Button */
+.toolbar-burger-menu {
+    display: none;
+    width: 48px;
+    height: 48px;
+    background: white;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    cursor: pointer;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    transition: all 0.3s ease;
+    z-index: 10001;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    padding: 12px;
+}
+
+.toolbar-burger-menu span {
+    width: 24px;
+    height: 3px;
+    background: #2c3e50;
+    border-radius: 3px;
+    transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.toolbar-burger-menu.active {
+    background: #f5f5f5;
+    border-color: #2c3e50;
+}
+
+.toolbar-burger-menu.active span {
+    background: #2c3e50;
+}
+
+.toolbar-burger-menu.active span:nth-child(1) {
+    transform: rotate(45deg) translate(7px, 7px);
+}
+
+.toolbar-burger-menu.active span:nth-child(2) {
+    opacity: 0;
+    transform: translateX(-20px);
+}
+
+.toolbar-burger-menu.active span:nth-child(3) {
+    transform: rotate(-45deg) translate(7px, -7px);
+}
+
+.toolbar-burger-menu:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    background: #fafafa;
+}
+
+.toolbar-burger-menu:active {
+    transform: scale(0.95);
+}
+
+/* Mobile Menu Container */
+.toolbar-mobile-menu {
+    display: none;
+    position: fixed;
+    top: 60px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(10px);
+    z-index: 10000;
+    overflow-y: auto;
+    padding: 20px;
+    animation: slideInDown 0.3s ease;
+}
+
+.toolbar-mobile-menu.active {
+    display: block;
+}
+
+.toolbar-mobile-section {
+    margin-bottom: 24px;
+}
+
+.toolbar-mobile-section-title {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #666;
+    margin-bottom: 12px;
+    letter-spacing: 0.5px;
+}
+
+.toolbar-mobile-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 12px;
+}
+
+.toolbar-mobile-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 16px 8px;
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+}
+
+.toolbar-mobile-btn:active {
+    transform: scale(0.95);
+    background: #f5f5f5;
+}
+
+.toolbar-mobile-btn.active {
+    background: #4a90e2;
+    color: white;
+    border-color: #4a90e2;
+}
+
+.toolbar-mobile-btn svg {
+    width: 24px;
+    height: 24px;
+}
+
+.toolbar-mobile-btn-label {
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1.2;
+}
+
+/* Floating Upload Button (Mobile Only) */
+.mobile-float-upload-btn {
+    display: none; /* Hidden on desktop */
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 64px;
+    height: 64px;
+    background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+    border: none;
+    border-radius: 50%;
+    box-shadow: 0 6px 20px rgba(74, 144, 226, 0.4);
+    cursor: pointer;
+    z-index: 9997;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    animation: floatBounce 2s ease-in-out infinite;
+}
+
+.mobile-float-upload-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 25px rgba(74, 144, 226, 0.5);
+}
+
+.mobile-float-upload-btn:active {
+    transform: scale(0.95);
+}
+
+@keyframes floatBounce {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-8px);
+    }
+}
+
+/* Mobile: Hide desktop toolbar items, show burger */
+@media (max-width: 768px) {
+    .viewer-professional-toolbar {
+        padding: 8px 12px;
+        justify-content: flex-start;
+        gap: 12px;
+    }
+
+    .toolbar-burger-menu {
+        display: flex !important;
+    }
+
+    /* Hide ALL toolbar items except logo and burger */
+    .viewer-professional-toolbar .toolbar-group:not(:first-child),
+    .viewer-professional-toolbar .toolbar-divider,
+    .viewer-professional-toolbar .toolbar-btn,
+    .viewer-professional-toolbar .toolbar-btn-save-continue,
+    .viewer-professional-toolbar > div[style*="flex: 1"],
+    .viewer-professional-toolbar > div[style*="flex:1"] {
+        display: none !important;
+    }
+
+    /* Keep ONLY logo and burger visible */
+    .viewer-professional-toolbar > .toolbar-group:first-child {
+        display: flex !important;
+    }
+
+    .viewer-professional-toolbar .toolbar-burger-menu {
+        display: flex !important;
+    }
+
+    /* Floating Upload Button - Show on mobile */
+    .mobile-float-upload-btn {
+        display: flex !important;
+    }
+
+    /* Show close button in files panel on mobile */
+    .mobile-close-files-btn {
+        display: block !important;
+    }
+
+    /* Right Files Panel - Hidden by default, full screen when open */
+    .right-files-panel {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        height: 100vh !important;
+        max-height: 100vh !important;
+        border-radius: 0 !important;
+        z-index: 10001 !important;
+        transform: translateX(100%) !important;
+        transition: transform 0.3s ease !important;
+        display: none !important; /* Hidden by default */
+    }
+
+    .right-files-panel.mobile-open {
+        transform: translateX(0) !important;
+        display: flex !important; /* Show when open */
+    }
+
+    /* Model Info Badge - Adjust position */
+    .model-info-badge {
+        top: 70px !important;
+        left: 10px !important;
+        font-size: 12px !important;
+    }
+
+    /* Active Tool Status - Adjust for mobile */
+    .active-tool-status {
+        top: 70px !important;
+        left: 10px !important;
+        right: 10px !important;
+        transform: none !important;
+        padding: 10px 16px !important;
+        font-size: 13px !important;
+    }
+
+    .active-tool-status .tool-instruction {
+        display: none;
+    }
+
+    /* Measurement Results Panel - Mobile friendly */
+    .measurement-results-panel {
+        width: calc(100% - 20px) !important;
+        max-width: 320px !important;
+        left: 10px !important;
+        top: 70px !important;
+        max-height: calc(100vh - 90px) !important;
+    }
+
+    /* Unit Toggle - Mobile position */
+    .unit-toggle {
+        bottom: 80px !important;
+        right: 10px !important;
+    }
+
+    /* Save button in mobile menu - full width */
+    .toolbar-btn-save-continue {
+        padding: 12px 20px !important;
+    }
+}
+
+/* Tablet: Show some controls, optimize spacing */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .viewer-professional-toolbar {
+        gap: 6px;
+        padding: 6px;
+    }
+
+    .toolbar-btn {
+        width: 38px;
+        height: 38px;
+    }
+
+    .toolbar-group {
+        gap: 3px;
+    }
+
+    /* Hide less important buttons on tablet */
+    #autoRotateBtn,
+    #toggleGridBtnMain,
+    #measureToolBtnMain {
+        display: none !important;
+    }
+
+    /* Right Files Panel - Tablet optimization */
+    .right-files-panel {
+        width: 280px !important;
+    }
+}
+
+/* Small phones - Extra adjustments */
+@media (max-width: 480px) {
+    .viewer-professional-toolbar {
+        padding: 6px 10px;
+    }
+
+    .viewer-professional-toolbar img {
+        max-height: 28px !important;
+    }
+
+    .toolbar-burger-menu {
+        width: 36px;
+        height: 36px;
+    }
+
+    .toolbar-mobile-section-title {
+        font-size: 11px;
+    }
+
+    .toolbar-mobile-grid {
+        grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+        gap: 10px;
+    }
+
+    .toolbar-mobile-btn {
+        padding: 12px 6px;
+    }
+
+    .toolbar-mobile-btn svg {
+        width: 20px;
+        height: 20px;
+    }
+
+    .toolbar-mobile-btn-label {
+        font-size: 10px;
+    }
+
+    /* Make right panel take more space on small phones */
+    .right-files-panel {
+        max-width: 100% !important;
+        width: calc(100% - 20px) !important;
+    }
+}
+
+/* Landscape mode on mobile */
+@media (max-width: 768px) and (orientation: landscape) {
+    .toolbar-mobile-menu {
+        top: 50px;
+        padding: 15px;
+    }
+
+    .toolbar-mobile-section {
+        margin-bottom: 16px;
+    }
+
+    .right-files-panel {
+        max-height: calc(100vh - 60px) !important;
+    }
+}
+
+/* Touch device optimization */
+@media (hover: none) and (pointer: coarse) {
+    .toolbar-btn,
+    .toolbar-mobile-btn {
+        min-height: 44px;
+        min-width: 44px;
+    }
+
+    .toolbar-btn:active {
+        transform: scale(0.95);
+    }
 }
 
 .toolbar-group {
@@ -2360,6 +2937,26 @@ body.modal-open #rightFilesPanel {
     opacity: 0.4;
     cursor: not-allowed;
     transform: none;
+}
+
+/* Undo/Redo button specific styling */
+#undoBtn svg,
+#redoBtn svg {
+    transition: color 0.3s ease, stroke 0.3s ease;
+}
+
+/* Disabled state - gray icons (using class instead of :disabled) */
+#undoBtn.disabled svg,
+#redoBtn.disabled svg {
+    color: #95a5a6;
+    stroke: #95a5a6;
+}
+
+/* Enabled state - black icons */
+#undoBtn:not(.disabled) svg,
+#redoBtn:not(.disabled) svg {
+    color: #2c3e50;
+    stroke: #2c3e50;
 }
 
 .toolbar-btn svg {
@@ -3837,6 +4434,47 @@ document.addEventListener('DOMContentLoaded', function() {
         // Note: window.viewerMedical removed - both use window.viewerGeneral now
         window.viewer = viewerGeneral; // Alias for compatibility
 
+        // Initialize undo/redo state history
+        if (window.viewerGeneral && window.toolbarHandler && window.toolbarHandler.saveState) {
+            // Initialize state history arrays
+            window.viewerGeneral.stateHistory = [];
+            window.viewerGeneral.stateHistoryIndex = -1;
+            
+            // Set initial button states to disabled
+            const undoBtn = document.getElementById('undoBtn');
+            const redoBtn = document.getElementById('redoBtn');
+            if (undoBtn) {
+                undoBtn.classList.add('disabled');
+                undoBtn.style.opacity = '0.4';
+                undoBtn.style.cursor = 'not-allowed';
+                undoBtn.style.pointerEvents = 'none';
+                const undoSvg = undoBtn.querySelector('svg');
+                if (undoSvg) {
+                    undoSvg.style.color = '#95a5a6';
+                    undoSvg.style.stroke = '#95a5a6';
+                }
+            }
+            if (redoBtn) {
+                redoBtn.classList.add('disabled');
+                redoBtn.style.opacity = '0.4';
+                redoBtn.style.cursor = 'not-allowed';
+                redoBtn.style.pointerEvents = 'none';
+                const redoSvg = redoBtn.querySelector('svg');
+                if (redoSvg) {
+                    redoSvg.style.color = '#95a5a6';
+                    redoSvg.style.stroke = '#95a5a6';
+                }
+            }
+            
+            // Save initial state after a brief delay to ensure viewer is fully ready
+            setTimeout(() => {
+                if (window.viewerGeneral && window.viewerGeneral.scene && window.viewerGeneral.camera) {
+                    window.toolbarHandler.saveState(window.viewerGeneral);
+                    console.log('✅ Initial state saved for undo/redo');
+                }
+            }, 500);
+        }
+
         // General Viewer Controls
         const resetViewGeneralBtn = document.getElementById('resetViewGeneralBtn');
         const zoomInGeneralBtn = document.getElementById('zoomInGeneralBtn');
@@ -4173,10 +4811,300 @@ document.addEventListener('DOMContentLoaded', function() {
                 takeScreenshot: function(type) { console.log('Screenshot taken'); },
                 shareModel: function(type) { console.log('Share clicked'); },
                 saveAndCalculate: function(type) { console.log('Save & Calculate clicked'); },
-                undo: function() { console.log('Undo'); },
-                redo: function() { console.log('Redo'); },
+                undo: function() {
+                    console.log('⏪ Undo action');
+                    const viewer = window.viewerGeneral || window.viewer;
+
+                    if (!viewer || !viewer.stateHistory) {
+                        viewer.stateHistory = [];
+                        viewer.stateHistoryIndex = -1;
+                    }
+
+                    if (viewer.stateHistoryIndex > 0) {
+                        viewer.stateHistoryIndex--;
+                        const state = viewer.stateHistory[viewer.stateHistoryIndex];
+                        if (window.toolbarHandler.restoreState) {
+                            window.toolbarHandler.restoreState(viewer, state);
+                        }
+                        showToolbarNotification('Undone', 'success', 1000);
+                        
+                        // Update button states
+                        if (typeof updateUndoRedoButtons === 'function') {
+                            updateUndoRedoButtons();
+                        }
+                    } else {
+                        showToolbarNotification('Nothing to undo', 'info', 1500);
+                    }
+                },
+                redo: function() {
+                    console.log('⏩ Redo action');
+                    const viewer = window.viewerGeneral || window.viewer;
+
+                    if (!viewer || !viewer.stateHistory) {
+                        viewer.stateHistory = [];
+                        viewer.stateHistoryIndex = -1;
+                    }
+
+                    if (viewer.stateHistoryIndex < viewer.stateHistory.length - 1) {
+                        viewer.stateHistoryIndex++;
+                        const state = viewer.stateHistory[viewer.stateHistoryIndex];
+                        if (window.toolbarHandler.restoreState) {
+                            window.toolbarHandler.restoreState(viewer, state);
+                        }
+                        showToolbarNotification('Redone', 'success', 1000);
+                        
+                        // Update button states
+                        if (typeof updateUndoRedoButtons === 'function') {
+                            updateUndoRedoButtons();
+                        }
+                    } else {
+                        showToolbarNotification('Nothing to redo', 'info', 1500);
+                    }
+                },
                 changeModelColor: function() { console.log('Model color change'); },
-                changeBackgroundColor: function() { console.log('BG color change'); }
+                changeBackgroundColor: function() { console.log('BG color change'); },
+                toggleMobileMenu: function() { console.log('Mobile menu toggle'); },
+                setCameraView: function(view) { console.log('Camera view:', view); }
+            };
+        }
+
+        // Add mobile menu toggle functionality
+        if (!window.toolbarHandler.toggleMobileMenu) {
+            window.toolbarHandler.toggleMobileMenu = function() {
+                const mobileMenu = document.getElementById('toolbarMobileMenu');
+                const burgerBtn = document.getElementById('toolbarBurgerMenu');
+                
+                if (mobileMenu && burgerBtn) {
+                    const isActive = mobileMenu.classList.contains('active');
+                    
+                    if (isActive) {
+                        mobileMenu.classList.remove('active');
+                        burgerBtn.classList.remove('active');
+                        document.body.style.overflow = '';
+                    } else {
+                        mobileMenu.classList.add('active');
+                        burgerBtn.classList.add('active');
+                        document.body.style.overflow = 'hidden';
+                    }
+                    
+                    console.log('📱 Mobile menu toggled:', !isActive);
+                }
+            };
+        }
+
+        // Add mobile files panel toggle functionality
+        if (!window.toolbarHandler.toggleMobileFilesPanel) {
+            window.toolbarHandler.toggleMobileFilesPanel = function() {
+                const filesPanel = document.getElementById('rightFilesPanel');
+                const floatBtn = document.getElementById('mobileFloatUploadBtn');
+                
+                if (filesPanel) {
+                    const isOpen = filesPanel.classList.contains('mobile-open');
+                    
+                    if (isOpen) {
+                        // Close panel
+                        filesPanel.classList.remove('mobile-open');
+                        document.body.style.overflow = '';
+                        
+                        // On mobile, hide the panel completely when closed
+                        if (window.innerWidth <= 768) {
+                            setTimeout(() => {
+                                if (!filesPanel.classList.contains('mobile-open')) {
+                                    filesPanel.style.display = 'none';
+                                }
+                            }, 300); // Wait for animation to finish
+                        }
+                        
+                        console.log('📁 Mobile files panel closed');
+                    } else {
+                        // Open panel
+                        if (window.innerWidth <= 768) {
+                            filesPanel.style.display = 'flex';
+                        }
+                        
+                        // Small delay to allow display change before animation
+                        setTimeout(() => {
+                            filesPanel.classList.add('mobile-open');
+                            document.body.style.overflow = 'hidden';
+                        }, 10);
+                        
+                        console.log('📁 Mobile files panel opened');
+                    }
+                }
+            };
+        }
+
+        // Add camera view setter if not exists
+        if (!window.toolbarHandler.setCameraView) {
+            window.toolbarHandler.setCameraView = function(view) {
+                console.log('📷 Setting camera view:', view);
+                const viewer = window.viewerGeneral || window.viewer;
+                
+                if (!viewer || !viewer.controls || !viewer.camera) {
+                    console.warn('⚠️ Viewer not ready for camera change');
+                    return;
+                }
+
+                // Save state before changing camera
+                if (window.toolbarHandler.saveState) {
+                    window.toolbarHandler.saveState(viewer);
+                }
+
+                const controls = viewer.controls;
+                const camera = viewer.camera;
+                
+                // Reset camera position based on view
+                const distance = 150;
+                
+                switch(view) {
+                    case 'top':
+                        camera.position.set(0, distance, 0);
+                        break;
+                    case 'bottom':
+                        camera.position.set(0, -distance, 0);
+                        break;
+                    case 'front':
+                        camera.position.set(0, 0, distance);
+                        break;
+                    case 'back':
+                        camera.position.set(0, 0, -distance);
+                        break;
+                    case 'right':
+                        camera.position.set(distance, 0, 0);
+                        break;
+                    case 'left':
+                        camera.position.set(-distance, 0, 0);
+                        break;
+                    case 'reset':
+                        camera.position.set(100, 100, 100);
+                        break;
+                }
+                
+                camera.lookAt(controls.target);
+                controls.update();
+                
+                if (viewer.renderer) {
+                    viewer.renderer.render(viewer.scene, camera);
+                }
+                
+                console.log('📷 Camera view changed to:', view);
+            };
+        }
+
+        // Add saveState function for undo/redo
+        if (!window.toolbarHandler.saveState) {
+            window.toolbarHandler.saveState = function(viewer) {
+                if (!viewer.stateHistory) {
+                    viewer.stateHistory = [];
+                    viewer.stateHistoryIndex = -1;
+                }
+
+                const THREE = window.THREE;
+
+                // Capture current state
+                const state = {
+                    cameraPosition: viewer.camera.position.clone(),
+                    cameraRotation: viewer.camera.rotation.clone(),
+                    transparency: viewer.currentTransparencyIndex || 0,
+                    shadows: viewer.renderer.shadowMap.enabled,
+                    backgroundColor: viewer.scene.background ? viewer.scene.background.getHex() : 0xffffff,
+                    modelColors: [],
+                    toolsVisible: {
+                        boundingBox: !!viewer.scene.children.find(child => child.userData && child.userData.isBoundingBoxHelper && child.visible),
+                        axis: !!viewer.scene.children.find(child => child.userData && child.userData.isAxisHelper && child.visible),
+                        grid: !!viewer.scene.children.find(child => child.userData && child.userData.isGridHelper && child.visible)
+                    }
+                };
+
+                // Capture model colors
+                viewer.scene.traverse((object) => {
+                    if (object.isMesh && object.material) {
+                        state.modelColors.push({
+                            uuid: object.uuid,
+                            color: object.material.color.getHex()
+                        });
+                    }
+                });
+
+                // Remove future states if we're not at the end
+                if (viewer.stateHistoryIndex < viewer.stateHistory.length - 1) {
+                    viewer.stateHistory = viewer.stateHistory.slice(0, viewer.stateHistoryIndex + 1);
+                }
+
+                viewer.stateHistory.push(state);
+                viewer.stateHistoryIndex++;
+
+                // Limit history to 50 states
+                if (viewer.stateHistory.length > 50) {
+                    viewer.stateHistory.shift();
+                    viewer.stateHistoryIndex--;
+                }
+
+                // Update button states
+                if (typeof updateUndoRedoButtons === 'function') {
+                    updateUndoRedoButtons();
+                }
+
+                console.log(`💾 State saved (${viewer.stateHistoryIndex + 1}/${viewer.stateHistory.length})`);
+            };
+        }
+
+        // Add restoreState function for undo/redo
+        if (!window.toolbarHandler.restoreState) {
+            window.toolbarHandler.restoreState = function(viewer, state) {
+                if (!state) return;
+
+                const THREE = window.THREE;
+
+                // Restore camera
+                viewer.camera.position.copy(state.cameraPosition);
+                viewer.camera.rotation.copy(state.cameraRotation);
+
+                // Restore transparency
+                viewer.currentTransparencyIndex = state.transparency;
+
+                // Restore shadows
+                viewer.renderer.shadowMap.enabled = state.shadows;
+
+                // Restore background color
+                if (state.backgroundColor !== undefined && THREE) {
+                    viewer.scene.background = new THREE.Color(state.backgroundColor);
+                }
+
+                // Restore model colors
+                if (state.modelColors && state.modelColors.length > 0) {
+                    viewer.scene.traverse((object) => {
+                        if (object.isMesh && object.material) {
+                            const savedColor = state.modelColors.find(c => c.uuid === object.uuid);
+                            if (savedColor && THREE) {
+                                object.material.color.setHex(savedColor.color);
+                                object.material.needsUpdate = true;
+                            }
+                        }
+                    });
+                }
+
+                // Restore tools visibility
+                const boundingBox = viewer.scene.children.find(child => child.userData && child.userData.isBoundingBoxHelper);
+                if (boundingBox) boundingBox.visible = state.toolsVisible.boundingBox;
+
+                const axis = viewer.scene.children.find(child => child.userData && child.userData.isAxisHelper);
+                if (axis) axis.visible = state.toolsVisible.axis;
+
+                const grid = viewer.scene.children.find(child => child.userData && child.userData.isGridHelper);
+                if (grid) grid.visible = state.toolsVisible.grid;
+
+                // Update controls
+                if (viewer.controls) {
+                    viewer.controls.update();
+                }
+
+                // Render
+                if (viewer.renderer && viewer.scene && viewer.camera) {
+                    viewer.renderer.render(viewer.scene, viewer.camera);
+                }
+
+                console.log('✅ State restored');
             };
         }
 
@@ -5957,29 +6885,59 @@ loading
 
         // Update undo button
         if (undoBtn) {
+            const undoSvg = undoBtn.querySelector('svg');
             if (viewer.stateHistoryIndex > 0) {
-                undoBtn.disabled = false;
+                undoBtn.classList.remove('disabled');
                 undoBtn.style.opacity = '1';
+                undoBtn.style.cursor = 'pointer';
+                undoBtn.style.pointerEvents = 'auto';
                 undoBtn.title = `Undo (${viewer.stateHistoryIndex} actions available)`;
+                // Change icon color to black when active
+                if (undoSvg) {
+                    undoSvg.style.color = '#2c3e50';
+                    undoSvg.style.stroke = '#2c3e50';
+                }
                 console.log('✅ Undo button ENABLED');
             } else {
-                undoBtn.disabled = true;
+                undoBtn.classList.add('disabled');
                 undoBtn.style.opacity = '0.4';
+                undoBtn.style.cursor = 'not-allowed';
+                undoBtn.style.pointerEvents = 'none';
                 undoBtn.title = 'Nothing to undo';
+                // Change icon color to gray when disabled
+                if (undoSvg) {
+                    undoSvg.style.color = '#95a5a6';
+                    undoSvg.style.stroke = '#95a5a6';
+                }
             }
         }
 
         // Update redo button
         if (redoBtn) {
+            const redoSvg = redoBtn.querySelector('svg');
             const redoAvailable = viewer.stateHistoryIndex < viewer.stateHistory.length - 1;
             if (redoAvailable) {
-                redoBtn.disabled = false;
+                redoBtn.classList.remove('disabled');
                 redoBtn.style.opacity = '1';
+                redoBtn.style.cursor = 'pointer';
+                redoBtn.style.pointerEvents = 'auto';
                 redoBtn.title = `Redo (${viewer.stateHistory.length - viewer.stateHistoryIndex - 1} actions available)`;
+                // Change icon color to black when active
+                if (redoSvg) {
+                    redoSvg.style.color = '#2c3e50';
+                    redoSvg.style.stroke = '#2c3e50';
+                }
             } else {
-                redoBtn.disabled = true;
+                redoBtn.classList.add('disabled');
                 redoBtn.style.opacity = '0.4';
+                redoBtn.style.cursor = 'not-allowed';
+                redoBtn.style.pointerEvents = 'none';
                 redoBtn.title = 'Nothing to redo';
+                // Change icon color to gray when disabled
+                if (redoSvg) {
+                    redoSvg.style.color = '#95a5a6';
+                    redoSvg.style.stroke = '#95a5a6';
+                }
             }
         }
     }

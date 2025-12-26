@@ -15,7 +15,7 @@
             this.measurements = [];
             this.currentMeasurementId = 0;
             this.areaPolygonMesh = null;
-            
+
             // Simple blue color for all measurements
             this.colors = {
                 distance: 0x4A90E2,
@@ -32,16 +32,16 @@
          */
         selectTool(viewer, measureType, viewerType) {
             console.log(`📐 Selecting measurement tool: ${measureType}`);
-            
+
             // Clear all previous measurements and visual elements
             this.clearAllMeasurements(viewer);
-            
+
             // Set the active tool
             this.activeTool = measureType;
-            
+
             // Visual feedback - highlight active button
             this.updateButtonStates(measureType);
-            
+
             // Show instruction based on tool type
             const instructions = {
                 distance: 'Click two points on the model to measure distance',
@@ -50,9 +50,9 @@
                 'point-to-surface': 'Click a point, then click the target surface',
                 angle: 'Click three points: First point → Vertex (middle) → Third point'
             };
-            
+
             this.showInstruction(instructions[measureType] || 'Select points on the model');
-            
+
             // Setup click handler for this measurement type
             this.setupClickHandler(viewer, measureType, viewerType);
         }
@@ -67,7 +67,7 @@
                 btn.style.background = '';
                 btn.style.color = '';
             });
-            
+
             // Add active class and simple blue background to selected tool
             if (activeMeasureType) {
                 document.querySelectorAll(`.submenu-btn[data-measure="${activeMeasureType}"]`).forEach(btn => {
@@ -84,10 +84,10 @@
          */
         clearAllMeasurements(viewer) {
             console.log('🧹 Clearing all measurements and visual elements');
-            
+
             const THREE = window.THREE;
             if (!THREE || !viewer || !viewer.scene) return;
-            
+
             // Remove all measurement points (spheres)
             this.measurementPoints.forEach(point => {
                 if (point.parent) {
@@ -97,7 +97,7 @@
                 if (point.material) point.material.dispose();
             });
             this.measurementPoints = [];
-            
+
             // Remove all measurement lines
             this.measurementLines.forEach(line => {
                 if (line.parent) {
@@ -107,7 +107,7 @@
                 if (line.material) line.material.dispose();
             });
             this.measurementLines = [];
-            
+
             // Remove all labels
             this.measurementLabels.forEach(label => {
                 if (label.element && label.element.parentNode) {
@@ -115,7 +115,7 @@
                 }
             });
             this.measurementLabels = [];
-            
+
             // Remove area polygon if exists
             if (this.areaPolygonMesh) {
                 if (this.areaPolygonMesh.parent) {
@@ -125,7 +125,7 @@
                 if (this.areaPolygonMesh.material) this.areaPolygonMesh.material.dispose();
                 this.areaPolygonMesh = null;
             }
-            
+
             // Remove preview line if exists
             if (this.previewLine) {
                 if (this.previewLine.parent) {
@@ -135,7 +135,7 @@
                 if (this.previewLine.material) this.previewLine.material.dispose();
                 this.previewLine = null;
             }
-            
+
             // Remove ALL objects with isMeasurement flag from scene
             const objectsToRemove = [];
             viewer.scene.traverse((object) => {
@@ -143,7 +143,7 @@
                     objectsToRemove.push(object);
                 }
             });
-            
+
             objectsToRemove.forEach(obj => {
                 if (obj.parent) {
                     obj.parent.remove(obj);
@@ -157,19 +157,19 @@
                     }
                 }
             });
-            
+
             // Clear measurements list
             this.measurements = [];
             this.currentMeasurementId = 0;
-            
+
             // Update UI
             this.updateMeasurementsList();
-            
+
             // Force render
             if (viewer.renderer) {
                 viewer.renderer.render(viewer.scene, viewer.camera);
             }
-            
+
             console.log('✅ All measurements, points, lines, and labels cleared from scene');
         }
 
@@ -179,49 +179,49 @@
         setupClickHandler(viewer, measureType, viewerType) {
             const THREE = window.THREE;
             if (!THREE) return;
-            
+
             // Store reference for raycasting
             const raycaster = new THREE.Raycaster();
             const mouse = new THREE.Vector2();
-            
+
             const canvas = viewer.renderer.domElement;
-            
+
             // Remove previous handler if exists
             if (this.clickHandler) {
                 canvas.removeEventListener('click', this.clickHandler);
             }
-            
+
             // Create new click handler
             this.clickHandler = (event) => {
                 // Get mouse position in normalized device coordinates
                 const rect = canvas.getBoundingClientRect();
                 mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
                 mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-                
+
                 // Update raycaster
                 raycaster.setFromCamera(mouse, viewer.camera);
-                
+
                 // Get intersections with model
                 const intersects = raycaster.intersectObjects(viewer.scene.children, true);
-                
+
                 // Filter to only model meshes (not points, lines, etc)
-                const modelIntersects = intersects.filter(intersect => 
-                    intersect.object.isMesh && 
+                const modelIntersects = intersects.filter(intersect =>
+                    intersect.object.isMesh &&
                     intersect.object.geometry &&
                     !intersect.object.userData.isMeasurement
                 );
-                
+
                 if (modelIntersects.length > 0) {
                     const point = modelIntersects[0].point;
                     const normal = modelIntersects[0].face ? modelIntersects[0].face.normal : null;
-                    
+
                     this.handlePointClick(viewer, measureType, point, normal);
                 }
             };
-            
+
             // Attach handler
             canvas.addEventListener('click', this.clickHandler);
-            
+
             console.log(`✅ Click handler setup for ${measureType}`);
         }
 
@@ -230,75 +230,75 @@
          */
         handlePointClick(viewer, measureType, point, normal) {
             const THREE = window.THREE;
-            
+
             switch(measureType) {
                 case 'distance':
                 case 'diameter':
                     this.addPoint(viewer, point, measureType);
-                    
+
                     if (this.measurementPoints.length === 2) {
                         // Calculate distance
                         const p1 = this.measurementPoints[0].position;
                         const p2 = this.measurementPoints[1].position;
                         const distance = p1.distanceTo(p2);
-                        
+
                         // Draw line
                         this.drawLine(viewer, p1, p2, measureType);
-                        
+
                         // Add label
                         const midPoint = new THREE.Vector3().addVectors(p1, p2).multiplyScalar(0.5);
-                        const label = measureType === 'diameter' ? 
-                            `Ø ${distance.toFixed(2)} mm` : 
+                        const label = measureType === 'diameter' ?
+                            `Ø ${distance.toFixed(2)} mm` :
                             `${distance.toFixed(2)} mm`;
                         this.addLabel(viewer, midPoint, label, measureType);
-                        
+
                         // Save measurement
                         this.saveMeasurement(measureType, distance, 'mm');
-                        
+
                         // Complete this measurement
                         this.completeMeasurement(viewer, measureType);
                     }
                     break;
-                    
+
                 case 'angle':
                     this.addPoint(viewer, point, measureType);
-                    
+
                     if (this.measurementPoints.length === 3) {
                         // Calculate angle between three points
                         const p1 = this.measurementPoints[0].position;
                         const vertex = this.measurementPoints[1].position;
                         const p3 = this.measurementPoints[2].position;
-                        
+
                         // Draw lines connecting the points
                         this.drawLine(viewer, p1, vertex, measureType);
                         this.drawLine(viewer, vertex, p3, measureType);
-                        
+
                         // Calculate angle
                         const v1 = new THREE.Vector3().subVectors(p1, vertex).normalize();
                         const v2 = new THREE.Vector3().subVectors(p3, vertex).normalize();
                         const angleRad = v1.angleTo(v2);
                         const angleDeg = THREE.MathUtils.radToDeg(angleRad);
-                        
+
                         // Add label at vertex
                         this.addLabel(viewer, vertex, `∠ ${angleDeg.toFixed(1)}°`, measureType);
-                        
+
                         // Save measurement
                         this.saveMeasurement('angle', angleDeg, '°');
-                        
+
                         // Complete this measurement
                         this.completeMeasurement(viewer, measureType);
                     }
                     break;
-                    
+
                 case 'area':
                     this.addPoint(viewer, point, measureType);
-                    
+
                     // Need at least 3 points for area
                     if (this.measurementPoints.length >= 3) {
                         // Check if user clicked near first point to close polygon
                         const firstPoint = this.measurementPoints[0].position;
                         const distToFirst = point.distanceTo(firstPoint);
-                        
+
                         if (distToFirst < 5 && this.measurementPoints.length > 3) {
                             // Close polygon
                             this.calculateAndDrawArea(viewer);
@@ -309,7 +309,7 @@
                                 const prevPoint = this.measurementPoints[this.measurementPoints.length - 2].position;
                                 this.drawLine(viewer, prevPoint, point, measureType);
                             }
-                            
+
                             // Show preview line to first point if we have 3+ points
                             if (this.measurementPoints.length >= 3) {
                                 this.showAreaPreview(viewer);
@@ -317,25 +317,25 @@
                         }
                     }
                     break;
-                    
+
                 case 'point-to-surface':
                     this.addPoint(viewer, point, measureType);
-                    
+
                     if (this.measurementPoints.length === 2) {
                         const p1 = this.measurementPoints[0].position;
                         const p2 = this.measurementPoints[1].position;
                         const distance = p1.distanceTo(p2);
-                        
+
                         // Draw perpendicular line
                         this.drawLine(viewer, p1, p2, measureType, true); // dashed
-                        
+
                         // Add label
                         const midPoint = new THREE.Vector3().addVectors(p1, p2).multiplyScalar(0.5);
                         this.addLabel(viewer, midPoint, `⊥ ${distance.toFixed(2)} mm`, measureType);
-                        
+
                         // Save measurement
                         this.saveMeasurement('point-to-surface', distance, 'mm');
-                        
+
                         // Complete this measurement
                         this.completeMeasurement(viewer, measureType);
                     }
@@ -349,20 +349,20 @@
         addPoint(viewer, position, measureType) {
             const THREE = window.THREE;
             const color = this.colors[measureType] || 0x4A90E2;
-            
+
             // Create sphere at point
             const geometry = new THREE.SphereGeometry(0.5, 16, 16);
             const material = new THREE.MeshBasicMaterial({ color: color });
             const sphere = new THREE.Mesh(geometry, material);
             sphere.position.copy(position);
             sphere.userData.isMeasurement = true;
-            
+
             viewer.scene.add(sphere);
             this.measurementPoints.push(sphere);
-            
+
             // Render
             viewer.renderer.render(viewer.scene, viewer.camera);
-            
+
             console.log(`📍 Point added at (${position.x.toFixed(2)}, ${position.y.toFixed(2)}, ${position.z.toFixed(2)})`);
         }
 
@@ -372,21 +372,21 @@
         drawLine(viewer, p1, p2, measureType, dashed = false) {
             const THREE = window.THREE;
             const color = this.colors[measureType] || 0x4A90E2;
-            
+
             const points = [p1.clone(), p2.clone()];
             const geometry = new THREE.BufferGeometry().setFromPoints(points);
-            
-            const material = dashed ? 
+
+            const material = dashed ?
                 new THREE.LineDashedMaterial({ color: color, dashSize: 1, gapSize: 0.5, linewidth: 2 }) :
                 new THREE.LineBasicMaterial({ color: color, linewidth: 2 });
-            
+
             const line = new THREE.Line(geometry, material);
             if (dashed) line.computeLineDistances();
             line.userData.isMeasurement = true;
-            
+
             viewer.scene.add(line);
             this.measurementLines.push(line);
-            
+
             // Render
             viewer.renderer.render(viewer.scene, viewer.camera);
         }
@@ -411,15 +411,15 @@
                 white-space: nowrap;
                 box-shadow: 0 2px 4px rgba(0,0,0,0.2);
             `;
-            
+
             document.body.appendChild(labelDiv);
-            
+
             this.measurementLabels.push({
                 element: labelDiv,
                 position: position.clone(),
                 viewer: viewer
             });
-            
+
             // Update label position
             this.updateLabelPosition(labelDiv, position, viewer);
         }
@@ -430,11 +430,11 @@
         updateLabelPosition(labelDiv, position, viewer) {
             const canvas = viewer.renderer.domElement;
             const rect = canvas.getBoundingClientRect();
-            
+
             const pos = position.clone().project(viewer.camera);
             const x = (pos.x * 0.5 + 0.5) * rect.width + rect.left;
             const y = (-pos.y * 0.5 + 0.5) * rect.height + rect.top;
-            
+
             labelDiv.style.left = `${x}px`;
             labelDiv.style.top = `${y - 20}px`;
         }
@@ -444,17 +444,17 @@
          */
         calculateAndDrawArea(viewer) {
             const THREE = window.THREE;
-            
+
             if (this.measurementPoints.length < 3) return;
-            
+
             // Get points
             const points = this.measurementPoints.map(p => p.position.clone());
-            
+
             // Close the polygon by connecting last to first
             const lastPoint = points[points.length - 1];
             const firstPoint = points[0];
             this.drawLine(viewer, lastPoint, firstPoint, 'area');
-            
+
             // Calculate area using Shoelace formula (for 3D points projected to best-fit plane)
             // For simplicity, we'll project to XY plane
             let area = 0;
@@ -464,41 +464,41 @@
                 area += (p1.x * p2.y - p2.x * p1.y);
             }
             area = Math.abs(area) / 2;
-            
+
             // Create filled polygon mesh with blue color
             const shape = new THREE.Shape();
             points.forEach((p, i) => {
                 if (i === 0) shape.moveTo(p.x, p.y);
                 else shape.lineTo(p.x, p.y);
             });
-            
+
             const geometry = new THREE.ShapeGeometry(shape);
-            const material = new THREE.MeshBasicMaterial({ 
-                color: 0x4A90E2, 
-                transparent: true, 
+            const material = new THREE.MeshBasicMaterial({
+                color: 0x4A90E2,
+                transparent: true,
                 opacity: 0.3,
                 side: THREE.DoubleSide
             });
-            
+
             this.areaPolygonMesh = new THREE.Mesh(geometry, material);
             this.areaPolygonMesh.userData.isMeasurement = true;
-            
+
             // Position at average Z
             const avgZ = points.reduce((sum, p) => sum + p.z, 0) / points.length;
             this.areaPolygonMesh.position.z = avgZ;
-            
+
             viewer.scene.add(this.areaPolygonMesh);
-            
+
             // Add label at center
             const center = new THREE.Vector3();
             points.forEach(p => center.add(p));
             center.multiplyScalar(1 / points.length);
-            
+
             this.addLabel(viewer, center, `Area: ${area.toFixed(2)} mm²`, 'area');
-            
+
             // Save measurement
             this.saveMeasurement('area', area, 'mm²');
-            
+
             // Render
             viewer.renderer.render(viewer.scene, viewer.camera);
         }
@@ -513,25 +513,25 @@
                 if (this.previewLine.geometry) this.previewLine.geometry.dispose();
                 if (this.previewLine.material) this.previewLine.material.dispose();
             }
-            
+
             const lastPoint = this.measurementPoints[this.measurementPoints.length - 1].position;
             const firstPoint = this.measurementPoints[0].position;
-            
+
             const THREE = window.THREE;
             const points = [lastPoint.clone(), firstPoint.clone()];
             const geometry = new THREE.BufferGeometry().setFromPoints(points);
-            const material = new THREE.LineDashedMaterial({ 
-                color: 0x4A90E2, 
-                dashSize: 1, 
-                gapSize: 0.5, 
-                opacity: 0.5, 
-                transparent: true 
+            const material = new THREE.LineDashedMaterial({
+                color: 0x4A90E2,
+                dashSize: 1,
+                gapSize: 0.5,
+                opacity: 0.5,
+                transparent: true
             });
-            
+
             this.previewLine = new THREE.Line(geometry, material);
             this.previewLine.computeLineDistances();
             this.previewLine.userData.isMeasurement = true;
-            
+
             viewer.scene.add(this.previewLine);
             viewer.renderer.render(viewer.scene, viewer.camera);
         }
@@ -547,10 +547,10 @@
                 unit: unit,
                 timestamp: new Date()
             };
-            
+
             this.measurements.push(measurement);
             this.updateMeasurementsList();
-            
+
             console.log('💾 Measurement saved:', measurement);
         }
 
@@ -560,7 +560,7 @@
         updateMeasurementsList() {
             const container = document.getElementById('measurementResultsList');
             if (!container) return;
-            
+
             if (this.measurements.length === 0) {
                 container.innerHTML = `
                     <div class="no-measurements">
@@ -573,7 +573,7 @@
                 `;
                 return;
             }
-            
+
             const icons = {
                 distance: '📏',
                 diameter: '⭕',
@@ -581,7 +581,7 @@
                 'point-to-surface': '📍',
                 angle: '∠'
             };
-            
+
             container.innerHTML = this.measurements.map(m => `
                 <div class="measurement-item" style="padding: 10px; border-bottom: 1px solid #eee; border-left: 3px solid #4A90E2;">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -595,7 +595,7 @@
                     </div>
                 </div>
             `).join('');
-            
+
             // Show measurement panel
             const panel = document.getElementById('measurementResultsPanel');
             if (panel) {
@@ -608,11 +608,11 @@
          */
         completeMeasurement(viewer, measureType) {
             console.log(`✅ ${measureType} measurement complete`);
-            
+
             // Keep the tool active so user can make more measurements
             // Clear points for next measurement
             this.measurementPoints = [];
-            
+
             // Show success message
             this.showInstruction(`${measureType} measurement saved! Click to measure again or select another tool.`);
         }
@@ -629,7 +629,7 @@
                     instructionEl.textContent = message;
                 }
             }
-            
+
             console.log(`💡 ${message}`);
         }
 
@@ -642,10 +642,10 @@
                 canvas.removeEventListener('click', this.clickHandler);
                 this.clickHandler = null;
             }
-            
+
             this.activeTool = null;
             this.updateButtonStates(null);
-            
+
             console.log('❌ Tool cancelled');
         }
 
@@ -663,6 +663,6 @@
 
     // Create global instance
     window.measurementManager = new MeasurementManager();
-    
+
     console.log('✅ Measurement Manager initialized');
 })();
