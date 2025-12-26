@@ -2776,5 +2776,35 @@
         }
     `;
     document.head.appendChild(notifStyles);
+
+    // Check if we need to restore a quote
+    @if(isset($restoreQuote) && $restoreQuote)
+    console.log('🔄 Restoring quote from review page');
+    const restoreQuoteData = @json($restoreQuote);
+    
+    // Wait for viewer to be selected and loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        // Auto-select the viewer type
+        const viewerType = restoreQuoteData.form_type || 'general';
+        console.log('  Auto-selecting viewer:', viewerType);
+        
+        // Trigger viewer selection automatically
+        setTimeout(() => {
+            // Hide the selection modal
+            const overlay = document.querySelector('.viewer-selection-overlay');
+            if (overlay) {
+                overlay.classList.add('hidden');
+            }
+            
+            // Redirect to viewer with file IDs
+            const fileIds = restoreQuoteData.file_ids || [];
+            const filesParam = fileIds.join(',');
+            const viewerUrl = `/quote?viewer=${viewerType}&files=${filesParam}`;
+            
+            console.log('  Redirecting to viewer with files:', viewerUrl);
+            window.location.href = viewerUrl;
+        }, 500);
+    });
+    @endif
 </script>
 @endsection

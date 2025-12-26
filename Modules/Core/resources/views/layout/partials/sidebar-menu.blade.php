@@ -78,6 +78,13 @@
             </a>
         </li>
         <li class="app-sidebar-menu-item">
+            <a href="{{ route('admin.printing-orders.index') }}" class="menu-link d-flex align-items-center {{ activeRoute(['admin.printing-orders.index', 'admin.printing-orders.show']) }}">
+                <span class="menu-title flex-grow-1">
+                    Printing Orders
+                </span>
+            </a>
+        </li>
+        <li class="app-sidebar-menu-item">
             <a href="{{ route('admin.mesh-repair.settings') }}" class="menu-link d-flex align-items-center {{ activeRoute(['admin.mesh-repair.settings']) }}">
                 <span class="menu-title flex-grow-1">
                     Settings

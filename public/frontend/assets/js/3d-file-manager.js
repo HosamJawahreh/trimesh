@@ -400,7 +400,9 @@ window.addEventListener('viewersReady', () => {
             console.warn('   ⚠️ infillSelectGeneral not found!');
         }
 
-        // Request quote button
+        // Request quote button - DISABLED: Now handled in quote-viewer.blade.php
+        // This old handler is commented out to prevent duplicate event listeners
+        /*
         const btnRequestQuoteGeneral = document.getElementById('btnRequestQuoteGeneral');
         if (btnRequestQuoteGeneral) {
             btnRequestQuoteGeneral.addEventListener('click', () => {
@@ -415,6 +417,7 @@ window.addEventListener('viewersReady', () => {
                 alert(`Quote request submitted!\n\nFiles: ${files.length}\nTotal Volume: ${window.viewerGeneral.getTotalVolume().toFixed(2)} cm³\n\nWe'll contact you shortly with a detailed quote.`);
             });
         }
+        */
     }
 
     if (window.viewerMedical) {
@@ -494,6 +497,9 @@ window.addEventListener('viewersReady', () => {
         }
 
         // Request quote button
+        // Request quote button for Medical - DISABLED: Now handled in quote-viewer.blade.php
+        // This old handler is commented out to prevent duplicate event listeners
+        /*
         const btnRequestQuoteMedical = document.getElementById('btnRequestQuoteMedical');
         if (btnRequestQuoteMedical) {
             btnRequestQuoteMedical.addEventListener('click', () => {
@@ -506,6 +512,7 @@ window.addEventListener('viewersReady', () => {
                 alert(`Medical Quote request submitted!\n\nFiles: ${files.length}\nTotal Volume: ${window.viewerMedical.getTotalVolume().toFixed(2)} cm³\n\nOur medical specialists will review your files and contact you shortly.`);
             });
         }
+        */
     }
 });
 

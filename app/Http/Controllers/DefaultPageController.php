@@ -124,7 +124,7 @@ class DefaultPageController extends Controller
         return view('frontend.pages.faq', compact('faqs'));
     }
 
-    public function quote()
+    public function quote(Request $request)
     {
         extract(getSiteMenus());
 
@@ -137,7 +137,29 @@ class DefaultPageController extends Controller
         $default_content = $section->default_content ?? null;
         $content = $section?->content ?? null;
 
-        return view('frontend.pages.quote', compact('main_menu', 'footer_menu_one', 'footer_menu_two', 'default_content', 'content'));
+        // Check if we need to restore a quote (coming from review page)
+        $restoreQuoteId = $request->query('restore');
+        $restoreQuote = null;
+        
+        if ($restoreQuoteId) {
+            $restoreQuote = \App\Models\Quote::find($restoreQuoteId);
+            if ($restoreQuote) {
+                $restoreQuote = [
+                    'quote_id' => $restoreQuote->id,
+                    'quote_number' => $restoreQuote->quote_number,
+                    'file_ids' => $restoreQuote->file_ids,
+                    'form_type' => $restoreQuote->form_type ?? $request->query('viewer', 'general')
+                ];
+                \Log::info('🔄 Restoring quote for viewer', $restoreQuote);
+            }
+        }
+
+        return view('frontend.pages.quote', compact('main_menu', 'footer_menu_one', 'footer_menu_two', 'default_content', 'content', 'restoreQuote'));
+    }
+
+    public function quoteViewer()
+    {
+        return view('frontend.pages.quote-viewer');
     }
 
     public function privacyPolicy()

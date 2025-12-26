@@ -94,6 +94,53 @@ class EmailTemplateSeeder extends Seeder
                             <p><strong>- The {{company_name}} Team</strong></p>',
 
             ],
+            [
+                'name' => 'printing_order_confirmation',
+                'subject' => '3D Printing Order Confirmation',
+                'message' => '<p>Hi {{user_name}},</p>
+                            <p>Thank you for your 3D printing order! We\'re excited to let you know that your order <strong>#{{order_number}}</strong> has been successfully submitted.</p>
+
+                            <p>Here are the details of your order:</p>
+
+                            <ul>
+                                <li><strong>Viewer Type:</strong> {{viewer_type}}</li>
+                                <li><strong>Total Files:</strong> {{total_files}}</li>
+                                <li><strong>Total Volume:</strong> {{total_volume}} cm³</li>
+                                <li><strong>Total Amount:</strong> ${{total_price}}</li>
+                                <li><strong>Payment Method:</strong> {{payment_method}}</li>
+                                <li><strong>Payment Status:</strong> {{payment_status}}</li>
+                                <li><strong>Order Status:</strong> {{status}}</li>
+                                <li><strong>Order Date:</strong> {{order_date}}</li>
+                            </ul>
+
+                            <p><strong>Files to be printed:</strong></p>
+                            {{files_list}}
+
+                            <p>We will begin processing your order shortly. You can track your order status in your dashboard.</p>
+
+                            <p>If you have any questions about your order, feel free to reply to this email or contact our support team.</p>
+
+                            <p>Thank you for choosing {{company_name}} for your 3D printing needs!</p>
+                            <p><strong>- The {{company_name}} Team</strong></p>',
+            ],
+            [
+                'name' => 'printing_order_status',
+                'subject' => '3D Printing Order Status Update',
+                'message' => '<p>Dear {{user_name}},</p>
+                            <p>We wanted to let you know that your 3D printing order <strong>#{{order_number}}</strong> status has been updated to <strong>{{status}}</strong>.</p>
+                            
+                            <p><strong>Order Details:</strong></p>
+                            <ul>
+                                <li><strong>Total Files:</strong> {{total_files}}</li>
+                                <li><strong>Total Volume:</strong> {{total_volume}} cm³</li>
+                                <li><strong>Total Amount:</strong> ${{total_price}}</li>
+                            </ul>
+
+                            <p>You can view your order details and track progress in your dashboard.</p>
+
+                            <p>Thank you for choosing {{company_name}}!</p>
+                            <p><strong>- The {{company_name}} Team</strong></p>',
+            ],
 
         ];
 

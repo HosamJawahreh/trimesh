@@ -21,6 +21,7 @@ use App\Http\Controllers\Api\RepairLogController;
 // Quote API Routes
 Route::prefix('quotes')->name('quotes.')->group(function () {
     Route::get('/', [QuoteController::class, 'index'])->name('index');
+    Route::get('/latest', [QuoteController::class, 'latest'])->name('latest');
     Route::post('/store', [QuoteController::class, 'store'])->name('store');
     Route::get('/{id}', [QuoteController::class, 'show'])->name('show');
     Route::put('/{id}', [QuoteController::class, 'update'])->name('update');

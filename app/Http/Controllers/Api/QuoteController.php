@@ -233,6 +233,40 @@ class QuoteController extends Controller
     }
 
     /**
+     * Get the latest quote for a specific form type
+     */
+    public function latest(Request $request)
+    {
+        try {
+            $formType = $request->query('form_type', 'general');
+            
+            // Get the most recent quote for this form type
+            $quote = Quote::where('form_type', $formType)
+                ->orderBy('created_at', 'desc')
+                ->first();
+
+            if (!$quote) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No saved quote found. Please save your quote first.'
+                ], 404);
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => $quote
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Failed to fetch latest quote:', ['error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch latest quote: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Remove the specified quote
      */
     public function destroy(string $id)

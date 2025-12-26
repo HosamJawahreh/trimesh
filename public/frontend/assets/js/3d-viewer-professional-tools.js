@@ -49,9 +49,12 @@ window.toolbarHandler = {
             // Check if we already have a bounding box helper
             let existingHelper = viewer.scene.children.find(child => child.userData && child.userData.isBoundingBoxHelper);
 
+            const wasVisible = existingHelper ? existingHelper.visible : false;
+            const willBeVisible = !wasVisible;
+
             if (existingHelper) {
                 // Toggle visibility
-                existingHelper.visible = !existingHelper.visible;
+                existingHelper.visible = willBeVisible;
                 console.log('✅ Bounding box visibility toggled:', existingHelper.visible);
             } else {
                 // Create new bounding box
@@ -60,6 +63,12 @@ window.toolbarHandler = {
                 helper.userData.isBoundingBoxHelper = true;
                 viewer.scene.add(helper);
                 console.log('✅ Bounding box created and added');
+            }
+
+            // Record action for undo/redo
+            if (viewer.undoRedoManager && window.UndoRedoActions) {
+                const action = window.UndoRedoActions.createBoundingBoxAction(viewer, willBeVisible);
+                viewer.undoRedoManager.recordAction(action);
             }
 
             if (viewer.render) viewer.render();
@@ -94,14 +103,23 @@ window.toolbarHandler = {
 
             let existingAxis = viewer.scene.children.find(child => child.userData && child.userData.isAxisHelper);
 
+            const wasVisible = existingAxis ? existingAxis.visible : false;
+            const willBeVisible = !wasVisible;
+
             if (existingAxis) {
-                existingAxis.visible = !existingAxis.visible;
+                existingAxis.visible = willBeVisible;
                 console.log('✅ Axis visibility toggled:', existingAxis.visible);
             } else {
                 const axesHelper = new THREE.AxesHelper(100);
                 axesHelper.userData.isAxisHelper = true;
                 viewer.scene.add(axesHelper);
                 console.log('✅ Axis helper created and added');
+            }
+
+            // Record action for undo/redo
+            if (viewer.undoRedoManager && window.UndoRedoActions) {
+                const action = window.UndoRedoActions.createAxisAction(viewer, willBeVisible);
+                viewer.undoRedoManager.recordAction(action);
             }
 
             if (viewer.render) viewer.render();
@@ -136,14 +154,23 @@ window.toolbarHandler = {
 
             let existingGrid = viewer.scene.children.find(child => child.userData && child.userData.isGridHelper);
 
+            const wasVisible = existingGrid ? existingGrid.visible : false;
+            const willBeVisible = !wasVisible;
+
             if (existingGrid) {
-                existingGrid.visible = !existingGrid.visible;
+                existingGrid.visible = willBeVisible;
                 console.log('✅ Grid visibility toggled:', existingGrid.visible);
             } else {
                 const gridHelper = new THREE.GridHelper(200, 20, 0x888888, 0x444444);
                 gridHelper.userData.isGridHelper = true;
                 viewer.scene.add(gridHelper);
                 console.log('✅ Grid helper created and added');
+            }
+
+            // Record action for undo/redo
+            if (viewer.undoRedoManager && window.UndoRedoActions) {
+                const action = window.UndoRedoActions.createGridAction(viewer, willBeVisible);
+                viewer.undoRedoManager.recordAction(action);
             }
 
             if (viewer.render) viewer.render();
@@ -161,9 +188,22 @@ window.toolbarHandler = {
             return;
         }
 
+        // Store old state
+        const oldState = viewer.renderer.shadowMap?.enabled || false;
+        const newState = !oldState;
+
         // Toggle shadows
-        viewer.renderer.shadowMap.enabled = !viewer.renderer.shadowMap.enabled;
-        console.log('✅ Shadows toggled:', viewer.renderer.shadowMap.enabled);
+        if (viewer.renderer.shadowMap) {
+            viewer.renderer.shadowMap.enabled = newState;
+        }
+
+        // Record action for undo/redo
+        if (viewer.undoRedoManager && window.UndoRedoActions) {
+            const action = window.UndoRedoActions.createShadowAction(viewer, oldState, newState);
+            viewer.undoRedoManager.recordAction(action);
+        }
+
+        console.log('✅ Shadows toggled:', newState);
 
         if (viewer.render) viewer.render();
     },
@@ -187,6 +227,14 @@ window.toolbarHandler = {
             viewer.currentTransparencyIndex = 0;
         }
 
+        // Store old opacity for undo
+        let oldOpacity = 1.0;
+        viewer.scene.traverse((object) => {
+            if (object.isMesh && object.material && oldOpacity === 1.0) {
+                oldOpacity = object.material.opacity || 1.0;
+            }
+        });
+
         // Move to next level
         viewer.currentTransparencyIndex = (viewer.currentTransparencyIndex + 1) % levels.length;
         const newOpacity = levels[viewer.currentTransparencyIndex];
@@ -199,6 +247,12 @@ window.toolbarHandler = {
                 object.material.needsUpdate = true;
             }
         });
+
+        // Record action for undo/redo
+        if (viewer.undoRedoManager && window.UndoRedoActions) {
+            const action = window.UndoRedoActions.createOpacityAction(viewer, oldOpacity, newOpacity);
+            viewer.undoRedoManager.recordAction(action);
+        }
 
         console.log(`✅ Transparency set to ${Math.round(newOpacity * 100)}%`);
 
@@ -295,8 +349,55 @@ window.toolbarHandler = {
         }
 
         if (viewer.controls) {
-            viewer.controls.autoRotate = !viewer.controls.autoRotate;
+            const oldState = viewer.controls.autoRotate;
+            const newState = !oldState;
+            viewer.controls.autoRotate = newState;
+
+            // Record action for undo/redo
+            if (viewer.undoRedoManager && window.UndoRedoActions) {
+                const action = window.UndoRedoActions.createAutoRotateAction(viewer, oldState, newState);
+                viewer.undoRedoManager.recordAction(action);
+            }
+
             console.log('✅ Auto-rotate:', viewer.controls.autoRotate ? 'enabled' : 'disabled');
+        }
+    },
+
+    /**
+     * Undo the last action
+     */
+    undo: function() {
+        console.log('⬅️ Undo action');
+        const viewer = window.viewerGeneral || window.viewer;
+        if (!viewer) {
+            alert('Viewer not ready');
+            return;
+        }
+
+        if (viewer.undoRedoManager) {
+            viewer.undoRedoManager.undo();
+        } else {
+            console.warn('⚠️ Undo/Redo manager not initialized');
+            alert('Undo/Redo system not available');
+        }
+    },
+
+    /**
+     * Redo the last undone action
+     */
+    redo: function() {
+        console.log('➡️ Redo action');
+        const viewer = window.viewerGeneral || window.viewer;
+        if (!viewer) {
+            alert('Viewer not ready');
+            return;
+        }
+
+        if (viewer.undoRedoManager) {
+            viewer.undoRedoManager.redo();
+        } else {
+            console.warn('⚠️ Undo/Redo manager not initialized');
+            alert('Undo/Redo system not available');
         }
     },
 
@@ -334,8 +435,121 @@ window.toolbarHandler = {
     // Placeholder methods
     undo: function() { alert('Undo feature coming soon!'); },
     redo: function() { alert('Redo feature coming soon!'); },
-    changeModelColor: function() { alert('Color picker coming soon!'); },
-    changeBackgroundColor: function() { alert('Background color picker coming soon!'); }
+    changeModelColor: function() {
+        console.log('🎨 Change model color');
+        const viewer = window.viewerGeneral || window.viewer;
+
+        if (!viewer) {
+            alert('Viewer not ready');
+            return;
+        }
+
+        // Predefined colors to cycle through
+        const colors = [
+            { name: 'Blue', hex: 0x0047AD },
+            { name: 'White', hex: 0xFFFFFF },
+            { name: 'Gray', hex: 0x808080 },
+            { name: 'Red', hex: 0xFF0000 },
+            { name: 'Green', hex: 0x00FF00 },
+            { name: 'Yellow', hex: 0xFFFF00 },
+            { name: 'Orange', hex: 0xFF8800 },
+            { name: 'Purple', hex: 0x9B59B6 },
+            { name: 'Black', hex: 0x000000 }
+        ];
+
+        // Get current color
+        let currentColor = 0x0047AD; // default
+        if (viewer.uploadedFiles && viewer.uploadedFiles.length > 0) {
+            const firstMesh = viewer.uploadedFiles[0].mesh;
+            if (firstMesh && firstMesh.material && firstMesh.material.color) {
+                currentColor = firstMesh.material.color.getHex();
+            }
+        }
+
+        // Find current index and get next color
+        let currentIndex = colors.findIndex(c => c.hex === currentColor);
+        if (currentIndex === -1) currentIndex = 0;
+        const nextIndex = (currentIndex + 1) % colors.length;
+        const nextColor = colors[nextIndex];
+
+        // Apply new color
+        if (viewer.uploadedFiles) {
+            viewer.uploadedFiles.forEach(fileData => {
+                if (fileData.mesh && fileData.mesh.material) {
+                    fileData.mesh.material.color.setHex(nextColor.hex);
+                    fileData.mesh.material.needsUpdate = true;
+                }
+            });
+        }
+
+        // Record action for undo/redo
+        if (viewer.undoRedoManager && window.UndoRedoActions) {
+            const action = window.UndoRedoActions.createModelColorAction(viewer, currentColor, nextColor.hex);
+            viewer.undoRedoManager.recordAction(action);
+        }
+
+        console.log(`✅ Model color changed to: ${nextColor.name} (#${nextColor.hex.toString(16).padStart(6, '0')})`);
+
+        // Show notification
+        if (window.Utils && window.Utils.showNotification) {
+            window.Utils.showNotification(`Model color: ${nextColor.name}`, 'success');
+        }
+
+        if (viewer.render) viewer.render();
+    },
+
+    changeBackgroundColor: function() {
+        console.log('🎨 Change background color');
+        const viewer = window.viewerGeneral || window.viewer;
+
+        if (!viewer) {
+            alert('Viewer not ready');
+            return;
+        }
+
+        // Predefined background colors
+        const colors = [
+            { name: 'White', hex: 0xFFFFFF },
+            { name: 'Light Gray', hex: 0xF5F5F5 },
+            { name: 'Dark Gray', hex: 0x2C2C2C },
+            { name: 'Black', hex: 0x000000 },
+            { name: 'Light Blue', hex: 0xE3F2FD },
+            { name: 'Light Green', hex: 0xE8F5E9 },
+            { name: 'Light Yellow', hex: 0xFFFDE7 },
+            { name: 'Light Pink', hex: 0xFCE4EC }
+        ];
+
+        // Get current background color
+        let currentColor = null;
+        if (viewer.scene && viewer.scene.background) {
+            currentColor = viewer.scene.background.getHex();
+        }
+
+        // Find current index and get next color
+        let currentIndex = currentColor === null ? -1 : colors.findIndex(c => c.hex === currentColor);
+        const nextIndex = (currentIndex + 1) % colors.length;
+        const nextColor = colors[nextIndex];
+
+        // Apply new background color
+        if (viewer.scene) {
+            viewer.scene.background = new THREE.Color(nextColor.hex);
+        }
+
+        // Record action for undo/redo
+        if (viewer.undoRedoManager && window.UndoRedoActions) {
+            const action = window.UndoRedoActions.createBackgroundColorAction(viewer, currentColor, nextColor.hex);
+            viewer.undoRedoManager.recordAction(action);
+        }
+
+        console.log(`✅ Background color changed to: ${nextColor.name} (#${nextColor.hex.toString(16).padStart(6, '0')})`);
+
+        // Show notification
+        if (window.Utils && window.Utils.showNotification) {
+            window.Utils.showNotification(`Background: ${nextColor.name}`, 'success');
+        }
+
+        if (viewer.render) viewer.render();
+    }
 };
 
 console.log('✅ window.toolbarHandler created and ready!', window.toolbarHandler);
@@ -365,6 +579,21 @@ document.addEventListener('DOMContentLoaded', () => {
             const camera = viewer.scene.activeCamera;
             const radius = camera.radius || 10;
 
+            // Store old camera state for undo
+            let oldCameraState = null;
+            if (camera.alpha !== undefined) {
+                oldCameraState = {
+                    alpha: camera.alpha,
+                    beta: camera.beta,
+                    radius: camera.radius
+                };
+            } else if (camera.position) {
+                oldCameraState = {
+                    position: camera.position.clone(),
+                    target: viewer.controls?.target?.clone()
+                };
+            }
+
             // Camera view positions
             const views = {
                 top: { alpha: Math.PI / 2, beta: 0 },
@@ -378,6 +607,26 @@ document.addEventListener('DOMContentLoaded', () => {
             if (views[view] && camera.alpha !== undefined) {
                 camera.alpha = views[view].alpha;
                 camera.beta = views[view].beta;
+
+                // Store new camera state
+                const newCameraState = {
+                    alpha: camera.alpha,
+                    beta: camera.beta,
+                    radius: camera.radius
+                };
+
+                // Record action for undo/redo
+                if (viewer.undoRedoManager && window.UndoRedoActions) {
+                    const action = window.UndoRedoActions.createCameraViewAction(
+                        viewer,
+                        'previous',
+                        view,
+                        oldCameraState,
+                        newCameraState
+                    );
+                    viewer.undoRedoManager.recordAction(action);
+                }
+
                 console.log(`✅ Camera view set to: ${view}`);
             }
         });

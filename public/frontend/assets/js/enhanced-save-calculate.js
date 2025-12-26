@@ -169,7 +169,7 @@ window.EnhancedSaveCalculate = {
 
             // Load the repaired mesh using STLLoader
             const loader = new THREE.STLLoader();
-            
+
             return new Promise((resolve, reject) => {
                 loader.load(repairedUrl, (geometry) => {
                     try {
@@ -398,7 +398,7 @@ window.EnhancedSaveCalculate = {
      */
     async saveRepairLog(repairResult, fileData) {
         console.log('💾 Saving repair log to database...');
-        
+
         try {
             const storageId = fileData?.storageId || repairResult?.storage_id || fileData?.id || null;
             const originalPath = repairResult.original_file_path
@@ -645,6 +645,16 @@ window.EnhancedSaveCalculate = {
             }
 
             console.log('📋 File IDs for quote:', fileIds);
+
+            // Calculate price per cm³ to distribute to individual files
+            const pricePerCm3 = totalVolume > 0 ? totalPrice / totalVolume : 0;
+            console.log(`💰 Price per cm³: $${pricePerCm3.toFixed(4)}`);
+
+            // Update pricing breakdown with individual file prices
+            pricingBreakdown.forEach(item => {
+                item.price = item.volume_cm3 * pricePerCm3;
+                console.log(`  File: ${item.file_name}, Volume: ${item.volume_cm3.toFixed(2)} cm³, Price: $${item.price.toFixed(2)}`);
+            });
 
             // Get current settings (material, color, quality, etc.)
             const viewerSuffix = viewerId === 'general' ? '' : 'Medical';
@@ -899,38 +909,38 @@ window.EnhancedSaveCalculate = {
             // CRITICAL: ALWAYS calculate accurate volume using Python/NumPy
             // This ensures maximum accuracy regardless of repair method or file format
             console.log('🐍 Calculating ACCURATE volume with Python/NumPy (production-grade)...');
-            
+
             try {
                 await this.updateProgress('Calculating accurate volume...', 70);
-                
+
                 // Reset total volume - we'll use Python result only
                 totalVolume = 0;
-                
+
                 // Send ALL files to Python service for accurate volume calculation
                 for (const fileData of viewer.uploadedFiles) {
                     if (fileData.file) {
                         console.log(`🐍 Sending ${fileData.file.name} to Python for volume calculation...`);
-                        
+
                         const formData = new FormData();
                         formData.append('file', fileData.file);
-                        
+
                         const volumeResponse = await fetch('http://localhost:8001/calculate-volume', {
                             method: 'POST',
                             body: formData
                         });
-                        
+
                         if (volumeResponse.ok) {
                             const volumeResult = await volumeResponse.json();
                             console.log(`✅ Python volume result:`, volumeResult);
-                            
+
                             // Use Python-calculated volume (most accurate - NumPy precision)
                             const pythonVolume = volumeResult.volume_cm3;
                             fileData.volume = { cm3: pythonVolume, mm3: volumeResult.volume_mm3 };
                             fileData.pythonVolume = pythonVolume;
-                            
+
                             // Add to total
                             totalVolume += pythonVolume;
-                            
+
                             // Update viewer.uploadedFiles array
                             const viewerFileIndex = viewer.uploadedFiles.findIndex(f => f.file?.name === fileData.file?.name);
                             if (viewerFileIndex !== -1) {
@@ -938,7 +948,7 @@ window.EnhancedSaveCalculate = {
                                 viewer.uploadedFiles[viewerFileIndex].pythonVolume = pythonVolume;
                                 console.log(`✅ Updated Python volume in viewer.uploadedFiles[${viewerFileIndex}]: ${pythonVolume.toFixed(4)} cm³`);
                             }
-                            
+
                             console.log(`🎯 ACCURATE VOLUME (Python/NumPy): ${pythonVolume.toFixed(4)} cm³`);
                         } else {
                             console.error(`❌ Python volume calculation failed for ${fileData.file.name}`);
@@ -1062,11 +1072,20 @@ window.EnhancedSaveCalculate = {
                             const url = new URL(quoteData.data.viewer_link);
                             const filesParam = url.searchParams.get('files');
                             if (filesParam) {
-                                // Update URL without reload to show file IDs
-                                const newUrl = `${window.location.pathname}?files=${filesParam}`;
+                                // IMPORTANT: Preserve the viewer parameter from current URL
+                                const currentUrl = new URL(window.location.href);
+                                const viewerParam = currentUrl.searchParams.get('viewer');
+                                
+                                // Update URL without reload to show file IDs + preserve viewer
+                                let newUrl = `${window.location.pathname}?files=${filesParam}`;
+                                if (viewerParam) {
+                                    newUrl += `&viewer=${viewerParam}`;
+                                    console.log('✅ Viewer parameter preserved:', viewerParam);
+                                }
+                                
                                 window.history.pushState({}, '', newUrl);
                                 console.log('✅ Updated browser URL to match viewer link:', newUrl);
-                                
+
                                 // Dispatch event to enable share button
                                 window.dispatchEvent(new Event('urlUpdated'));
                                 console.log('✅ Dispatched urlUpdated event - Share button should be enabled');

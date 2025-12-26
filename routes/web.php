@@ -67,8 +67,28 @@ Route::group(["middleware" => ['maintenance']], function () {
     Route::get('/pricing', [DefaultPageController::class, 'pricing'])->name('pricing');
     Route::get('/faqs', [DefaultPageController::class, 'faqs'])->name('faqs');
     Route::get('/quote', [DefaultPageController::class, 'quote'])->name('quote');
+    Route::get('/quote-viewer', [DefaultPageController::class, 'quoteViewer'])->name('quote.viewer');
     Route::get('/page/{slug}', [HomeController::class, 'page'])->name('custom.page');
 
+    // Printing Order Routes
+    Route::prefix('printing-order')->name('printing-order.')->group(function () {
+        Route::match(['get', 'post'], '/review', [\App\Http\Controllers\Frontend\PrintingOrderController::class, 'review'])->name('review');
+        Route::post('/store', [\App\Http\Controllers\Frontend\PrintingOrderController::class, 'store'])->name('store');
+        Route::get('/success/{id}', [\App\Http\Controllers\Frontend\PrintingOrderController::class, 'success'])->name('success');
+    });
+
+    // User Dashboard Routes (requires authentication)
+    Route::middleware('auth')->group(function () {
+        Route::get('/my-dashboard', [\App\Http\Controllers\Frontend\UserDashboardController::class, 'index'])->name('user.dashboard');
+        Route::get('/my-orders/{id}', [\App\Http\Controllers\Frontend\UserDashboardController::class, 'showOrder'])->name('user.orders.show');
+        
+        // User Printing Orders
+        Route::prefix('my-printing-orders')->name('user.printing-orders.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Frontend\UserPrintingOrderController::class, 'index'])->name('index');
+            Route::get('/{id}', [\App\Http\Controllers\Frontend\UserPrintingOrderController::class, 'show'])->name('show');
+            Route::get('/{id}/invoice', [\App\Http\Controllers\Frontend\UserPrintingOrderController::class, 'invoice'])->name('invoice');
+        });
+    });
 
 
     // Group blog-related routes
@@ -136,6 +156,17 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'checkAdmin'])->grou
         Route::get('/', [\App\Http\Controllers\Admin\RepairLogAdminController::class, 'index'])->name('index');
         Route::get('/{id}', [\App\Http\Controllers\Admin\RepairLogAdminController::class, 'show'])->name('show');
         Route::delete('/{id}', [\App\Http\Controllers\Admin\RepairLogAdminController::class, 'destroy'])->name('destroy');
+    });
+
+    // Printing Orders Routes
+    Route::prefix('printing-orders')->name('printing-orders.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\PrintingOrderController::class, 'index'])->name('index');
+        Route::get('/{id}', [\App\Http\Controllers\Admin\PrintingOrderController::class, 'show'])->name('show');
+        Route::get('/{id}/invoice', [\App\Http\Controllers\Admin\PrintingOrderController::class, 'invoice'])->name('invoice');
+        Route::post('/{id}/status', [\App\Http\Controllers\Admin\PrintingOrderController::class, 'updateStatus'])->name('update-status');
+        Route::post('/{id}/payment-status', [\App\Http\Controllers\Admin\PrintingOrderController::class, 'updatePaymentStatus'])->name('update-payment-status');
+        Route::post('/{id}/notes', [\App\Http\Controllers\Admin\PrintingOrderController::class, 'updateNotes'])->name('update-notes');
+        Route::delete('/{id}', [\App\Http\Controllers\Admin\PrintingOrderController::class, 'destroy'])->name('destroy');
     });
 });
 

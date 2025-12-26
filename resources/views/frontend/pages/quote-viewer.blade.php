@@ -125,6 +125,14 @@ function runEmergencyDiagnostic() {
                                         <div id="priceSummaryGeneral" class="mt-3 p-3" style="display: none !important; background: white; border-radius: 12px; border: 2px solid #e9ecef; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
 
 <script>
+// Global viewer type - Store at page load to prevent loss during URL changes
+const GLOBAL_VIEWER_TYPE = (function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const viewerParam = urlParams.get('viewer') || 'general';
+    console.log('🎯 GLOBAL_VIEWER_TYPE initialized:', viewerParam);
+    return viewerParam;
+})();
+
 // Price display moved to right panel
 document.addEventListener('DOMContentLoaded', function() {
     const priceSummaryGeneral = document.getElementById('priceSummaryGeneral');
@@ -212,6 +220,135 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Handle Request Quote button - Submit to review page
+    if (sidebarQuoteBtn) {
+        sidebarQuoteBtn.addEventListener('click', async function(e) {
+            e.preventDefault();
+            
+            // Use the global viewer type set at page load
+            const viewerType = GLOBAL_VIEWER_TYPE;
+            console.log('🎯 REQUEST QUOTE - Current URL:', window.location.href);
+            console.log('🎯 REQUEST QUOTE - Using GLOBAL viewer type:', viewerType);
+            const viewerId = viewerType === 'medical' ? 'medical' : 'general';
+            
+            // Get the active viewer - dental uses viewerGeneral with different settings
+            const viewer = viewerType === 'medical' ? window.viewerMedical || window.viewer : window.viewerGeneral || window.viewer;
+            
+            console.log('🔍 Selected viewer:', viewer ? 'Found' : 'NOT FOUND');
+            console.log('🔍 Uploaded files:', viewer ? viewer.uploadedFiles?.length : 0);
+            
+            if (!viewer || !viewer.uploadedFiles || viewer.uploadedFiles.length === 0) {
+                alert('Please upload and calculate files first!');
+                return;
+            }
+
+            // Get pricing data
+            const totalPriceEl = document.getElementById('quoteTotalPriceGeneral') || document.getElementById('quoteTotalPriceMedical');
+            const totalVolumeEl = document.getElementById('quoteTotalVolumeGeneral') || document.getElementById('quoteTotalVolumeMedical');
+            const totalFilesEl = document.getElementById('quoteTotalFilesGeneral') || document.getElementById('quoteTotalFilesMedical');
+
+            const totalPrice = totalPriceEl ? parseFloat(totalPriceEl.textContent.replace(/[^0-9.]/g, '')) || 0 : 0;
+            const totalVolume = totalVolumeEl ? parseFloat(totalVolumeEl.textContent.replace(/[^0-9.]/g, '')) || 0 : 0;
+            const totalFiles = totalFilesEl ? parseInt(totalFilesEl.textContent) || 0 : viewer.uploadedFiles.length;
+
+            if (totalPrice === 0) {
+                alert('Please calculate the price first by clicking "Save & Calculate"!');
+                return;
+            }
+
+            try {
+                // Fetch the last saved quote from the database
+                console.log('🔍 Fetching last saved quote for viewer:', viewerId);
+                const response = await fetch(`/api/quotes/latest?form_type=${viewerId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Could not fetch saved quote. Please try Save & Calculate again.');
+                }
+
+                const savedQuote = await response.json();
+                console.log('✅ Retrieved saved quote:', savedQuote);
+
+                // Get global settings from the saved quote
+                const quoteData = savedQuote.data || {};
+                const globalTechnology = quoteData.technology || 'fdm';
+                const globalMaterial = quoteData.material || 'pla';
+                const globalColor = quoteData.color || '#0047AD';
+                const globalQuality = quoteData.quality || 'standard';
+                const globalInfill = quoteData.infill || '20';
+                const globalLayerHeight = quoteData.layer_height || '0.2';
+
+                // Map the pricing breakdown to files data with actual prices
+                const pricingBreakdown = quoteData.pricing_breakdown || [];
+                
+                console.log('📊 Pricing breakdown:', pricingBreakdown);
+                
+                const filesData = pricingBreakdown.map(item => {
+                    const filePrice = parseFloat(item.price) || 0;
+                    const fileVolume = parseFloat(item.volume_cm3) || 0;
+                    
+                    console.log(`  File: ${item.file_name}, Volume: ${fileVolume}, Price: ${filePrice}`);
+                    
+                    return {
+                        name: item.file_name || 'Unknown',
+                        technology: globalTechnology,
+                        material: globalMaterial,
+                        color: globalColor,
+                        quality: globalQuality,
+                        infill: globalInfill,
+                        layer_height: globalLayerHeight,
+                        volume: fileVolume,
+                        price: filePrice
+                    };
+                });
+
+                // Prepare quote data with actual total price from saved quote
+                // IMPORTANT: Use GLOBAL_VIEWER_TYPE from page load, not from database
+                const quoteData2 = {
+                    quote_id: quoteData.id,
+                    viewer_type: GLOBAL_VIEWER_TYPE, // Use the global constant set at page load
+                    viewer_link: window.location.href,
+                    total_price: parseFloat(quoteData.total_price) || totalPrice,
+                    total_volume: parseFloat(quoteData.total_volume_cm3) || totalVolume,
+                    total_files: pricingBreakdown.length || totalFiles,
+                    technology: globalTechnology,
+                    material: globalMaterial,
+                    color: globalColor,
+                    quality: globalQuality,
+                    files: filesData
+                };
+
+                console.log('📦 Quote Data being sent to review:', quoteData2);
+                console.log('🔍 VIEWER TYPE IN QUOTE DATA:', quoteData2.viewer_type);
+                console.log('🔍 GLOBAL_VIEWER_TYPE:', GLOBAL_VIEWER_TYPE);
+
+                // Send to server and redirect to review page
+                const reviewResponse = await fetch('{{ route("printing-order.review") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({ quote_data: quoteData2 })
+                });
+
+                if (reviewResponse.ok) {
+                    // Redirect to review page
+                    window.location.href = '{{ route("printing-order.review") }}';
+                } else {
+                    throw new Error('Failed to save quote data to session');
+                }
+            } catch (error) {
+                console.error('❌ Error:', error);
+                alert(error.message || 'An error occurred. Please try again.');
+            }
+        });
+    }
+
     // Hide price summary and sidebar price on file upload or removal
     function hidePriceSummary() {
         if (priceSummaryGeneral) priceSummaryGeneral.style.display = 'none';
@@ -236,39 +373,39 @@ document.addEventListener('DOMContentLoaded', function() {
     function applyDentalSettings() {
         const urlParams = new URLSearchParams(window.location.search);
         const viewerType = urlParams.get('viewer');
-        
+
         console.log('🦷 Checking viewer type:', viewerType);
-        
+
         if (viewerType === 'dental' || viewerType === 'dental-viewer') {
             console.log('🦷 Applying dental-specific settings...');
-            
+
             // Set Technology to SLA / DLP (already default in Medical form)
             const technologySelect = document.getElementById('technologySelectMedical');
             if (technologySelect) {
                 technologySelect.value = 'sla'; // SLA / DLP
                 console.log('✅ Technology set to: SLA / DLP');
             }
-            
+
             // Set Material to Biocompatible resins (already default)
             const materialSelect = document.getElementById('materialSelectMedical');
             if (materialSelect) {
                 materialSelect.value = 'biocompatible-resin';
                 console.log('✅ Material set to: Biocompatible resins');
             }
-            
+
             // Colors are already limited and certified (no changes needed)
             console.log('✅ Colors: Limited, certified (already set)');
-            
+
             // Layer Height is already Fixed, validated (shown in UI as locked)
             console.log('✅ Layer Height: Fixed, validated (already set)');
-            
+
             console.log('🦷 Dental settings applied successfully!');
         }
     }
-    
+
     // Apply dental settings on load
     applyDentalSettings();
-    
+
     // Reapply when viewer type changes (listen for URL changes)
     window.addEventListener('popstate', applyDentalSettings);
 
@@ -2628,12 +2765,12 @@ function openSimpleFileModal(formType, fileId) {
     // Detect viewer type (check URL parameter and sessionStorage)
     const urlParams = new URLSearchParams(window.location.search);
     let viewerType = urlParams.get('viewer') || sessionStorage.getItem('viewerType') || 'general';
-    
+
     // Normalize dental-viewer to dental
     if (viewerType === 'dental-viewer') {
         viewerType = 'dental';
     }
-    
+
     const isDental = (viewerType === 'dental');
     console.log('🦷 Viewer type detected:', viewerType, '- Is Dental:', isDental);
 
@@ -2737,7 +2874,7 @@ function openSimpleFileModal(formType, fileId) {
     const defaultDentalColor = '#F5F5DC'; // Dental White
     const defaultGeneralColor = '#FFE5B4'; // Beige
     const defaultMedicalColor = '#0047AD'; // Blue
-    
+
     let currentColor;
     if (fileData.color) {
         currentColor = '#' + fileData.color.toString(16).padStart(6, '0');
@@ -2750,7 +2887,7 @@ function openSimpleFileModal(formType, fileId) {
             currentColor = defaultMedicalColor;
         }
     }
-    
+
     document.querySelectorAll('.simple-color-btn').forEach(btn => {
         btn.classList.remove('active');
         if (btn.dataset.color.toLowerCase() === currentColor.toLowerCase()) {
@@ -7948,10 +8085,13 @@ if (window.toolbarHandler) {
 console.log('========================================');
 </script>
 
+{{-- Undo/Redo Manager System --}}
+<script src="{{ asset('frontend/assets/js/undo-redo-manager.js') }}?v={{ time() }}"></script>
+
 {{-- Mesh Repair with Visual Feedback --}}
 <script src="{{ asset('frontend/assets/js/mesh-repair-visual.js') }}?v={{ time() }}"></script>
 
-<script src="{{ asset('frontend/assets/js/enhanced-save-calculate.js') }}?v={{ time() }}"></script>
+<script src="{{ asset('frontend/assets/js/enhanced-save-calculate.js') }}?v=20251226-{{ time() }}"></script>
 <script src="{{ asset('frontend/assets/js/3d-file-manager.js') }}?v={{ time() }}"></script>
 
 <!-- QR Code Library for Share Modal -->
@@ -8428,6 +8568,117 @@ document.addEventListener('keydown', function(e) {
         window.closeSimpleModal();
     }
 });
+
+// =====================================
+// FILE RESTORATION FROM URL PARAMETERS
+// =====================================
+document.addEventListener('DOMContentLoaded', async function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const filesParam = urlParams.get('files');
+    const viewerType = urlParams.get('viewer') || 'general';
+    
+    if (!filesParam) {
+        console.log('📂 No files parameter found in URL');
+        return;
+    }
+    
+    console.log('🔄 Restoring files from URL:', filesParam);
+    console.log('📺 Viewer type:', viewerType);
+    
+    // Parse file IDs from comma-separated string
+    const fileIds = filesParam.split(',').map(id => id.trim()).filter(id => id);
+    
+    if (fileIds.length === 0) {
+        console.log('⚠️ No valid file IDs found');
+        return;
+    }
+    
+    console.log('📋 File IDs to restore:', fileIds);
+    
+    // Get the viewer instance
+    const viewer = viewerType === 'dental' ? window.viewerDental : window.viewerGeneral;
+    
+    if (!viewer) {
+        console.error('❌ Viewer not initialized yet');
+        // Retry after a short delay
+        setTimeout(() => {
+            const retryViewer = viewerType === 'dental' ? window.viewerDental : window.viewerGeneral;
+            if (retryViewer) {
+                restoreFiles(fileIds, retryViewer);
+            } else {
+                console.error('❌ Viewer still not available after retry');
+            }
+        }, 1000);
+        return;
+    }
+    
+    restoreFiles(fileIds, viewer);
+});
+
+async function restoreFiles(fileIds, viewer) {
+    console.log('🔄 Starting file restoration...');
+    
+    for (const fileId of fileIds) {
+        try {
+            console.log(`📥 Fetching file: ${fileId}`);
+            
+            const response = await fetch(`/api/3d-files/${fileId}`);
+            
+            if (!response.ok) {
+                console.error(`❌ Failed to fetch file ${fileId}:`, response.status);
+                continue;
+            }
+            
+            const data = await response.json();
+            
+            if (!data.success) {
+                console.error(`❌ API error for file ${fileId}:`, data.message);
+                continue;
+            }
+            
+            console.log(`✅ File data received for ${data.fileName}`);
+            
+            // Decode base64 file data
+            const fileData = data.fileData;
+            const byteCharacters = atob(fileData);
+            const byteNumbers = new Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i++) {
+                byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+            const byteArray = new Uint8Array(byteNumbers);
+            
+            // Create a File object
+            const file = new File([byteArray], data.fileName, {
+                type: 'application/octet-stream',
+                lastModified: data.uploadTime
+            });
+            
+            console.log(`📦 Reconstructed file object:`, {
+                name: file.name,
+                size: file.size,
+                type: file.type
+            });
+            
+            // Load file into viewer
+            await viewer.loadFile(file, data.fileId);
+            console.log(`✅ File loaded into viewer: ${data.fileName}`);
+            
+        } catch (error) {
+            console.error(`❌ Error restoring file ${fileId}:`, error);
+        }
+    }
+    
+    console.log('✅ File restoration complete');
+    
+    // Clean up URL (remove files parameter to prevent reloading, but preserve viewer parameter)
+    const url = new URL(window.location);
+    const viewerParam = url.searchParams.get('viewer');
+    url.searchParams.delete('files');
+    if (viewerParam) {
+        url.searchParams.set('viewer', viewerParam);
+    }
+    window.history.replaceState({}, '', url);
+}
 </script>
 
 

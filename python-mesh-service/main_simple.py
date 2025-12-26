@@ -14,7 +14,6 @@ from fastapi import FastAPI, File, UploadFile, HTTPException, Form
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
-from stl import mesh as stl_mesh
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
