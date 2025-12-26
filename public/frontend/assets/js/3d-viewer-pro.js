@@ -287,33 +287,39 @@ class Professional3DViewer {
     setupLighting() {
         const THREE = window.THREE;
 
+        // Store initial light intensities for controls
+        this.lightIntensity = 0.9;
+        this.shadowIntensity = 1.0;
+
         // Ambient light for overall illumination
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
         this.scene.add(ambientLight);
 
-        // Main directional light with shadow (from top-right)
-        const mainLight = new THREE.DirectionalLight(0xffffff, 0.8);
-        mainLight.position.set(100, 150, 100);
-        mainLight.castShadow = true;
-        mainLight.shadow.mapSize.width = 2048;
-        mainLight.shadow.mapSize.height = 2048;
-        mainLight.shadow.camera.near = 0.5;
-        mainLight.shadow.camera.far = 500;
-        mainLight.shadow.camera.left = -200;
-        mainLight.shadow.camera.right = 200;
-        mainLight.shadow.camera.top = 200;
-        mainLight.shadow.camera.bottom = -200;
-        this.scene.add(mainLight);
+        // Main directional light - positioned by rotation control
+        this.mainLight = new THREE.DirectionalLight(0xffffff, this.lightIntensity);
+        this.mainLight.position.set(70, 50, 70); // Default 45-degree position
+        this.mainLight.castShadow = true;
+        this.mainLight.shadow.mapSize.width = 2048;
+        this.mainLight.shadow.mapSize.height = 2048;
+        this.mainLight.shadow.camera.near = 0.5;
+        this.mainLight.shadow.camera.far = 500;
+        this.mainLight.shadow.camera.left = -200;
+        this.mainLight.shadow.camera.right = 200;
+        this.mainLight.shadow.camera.top = 200;
+        this.mainLight.shadow.camera.bottom = -200;
+        this.scene.add(this.mainLight);
+        this.scene.add(this.mainLight.target); // Add target to scene
 
-        // Fill light (from left)
-        const fillLight = new THREE.DirectionalLight(0xffffff, 0.3);
-        fillLight.position.set(-50, 50, -50);
-        this.scene.add(fillLight);
+        // Fill light (slightly offset)
+        this.fillLight = new THREE.DirectionalLight(0xffffff, 0.4);
+        this.fillLight.position.set(-50, 40, -50);
+        this.scene.add(this.fillLight);
 
-        // Back light (subtle)
-        const backLight = new THREE.DirectionalLight(0xffffff, 0.2);
-        backLight.position.set(0, 50, -100);
-        this.scene.add(backLight);
+        // Hemisphere light for better ambient lighting
+        const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.3);
+        this.scene.add(hemiLight);
+        
+        console.log('💡 Lighting setup complete with user-controlled position');
     }
 
     addGrid() {
@@ -470,9 +476,9 @@ class Professional3DViewer {
             this.scene.add(this.modelGroup);
         }
 
-        // Prepare geometry
+        // Prepare geometry - compute normals but DON'T center to keep original orientation
         geometry.computeVertexNormals();
-        geometry.center();
+        // geometry.center(); // REMOVED: Keep original orientation from the file
 
         // Create material with pure white color like Shapeways
         const material = new THREE.MeshStandardMaterial({
@@ -598,7 +604,13 @@ class Professional3DViewer {
         const fov = this.camera.fov * (Math.PI / 180);
         const cameraZ = Math.abs(maxDim / 2 / Math.tan(fov / 2)) * 2.5;
 
-        this.camera.position.set(center.x + cameraZ * 0.5, center.y + cameraZ * 0.5, center.z + cameraZ);
+        // Position camera to view model from front-right angle (isometric-like view)
+        // This respects the original model orientation
+        this.camera.position.set(
+            center.x + cameraZ * 0.7,  // Right side
+            center.y + cameraZ * 0.5,  // Slightly above
+            center.z + cameraZ * 0.7   // Front
+        );
         this.camera.lookAt(center);
         this.controls.target.copy(center);
         this.controls.update();
@@ -607,6 +619,12 @@ class Professional3DViewer {
     animate() {
         this.animationId = requestAnimationFrame(() => this.animate());
         this.controls.update();
+        
+        // Update measurement labels on camera movement
+        if (window.measurementManager) {
+            window.measurementManager.updateLabelsOnRender(this);
+        }
+        
         this.renderer.render(this.scene, this.camera);
     }
 
@@ -1058,6 +1076,101 @@ class Professional3DViewer {
             console.error('❌ Fill holes failed:', error);
             return false;
         }
+    }
+
+    /**
+     * Control light intensity
+     * @param {number} intensity - Light intensity (0.0 to 2.0)
+     */
+    setLightIntensity(intensity) {
+        this.lightIntensity = Math.max(0, Math.min(2.0, intensity));
+        
+        if (this.mainLight) {
+            this.mainLight.intensity = this.lightIntensity;
+            console.log(`💡 Main light intensity updated to ${this.mainLight.intensity}`);
+        }
+        if (this.fillLight) {
+            this.fillLight.intensity = this.lightIntensity * 0.4;
+            console.log(`💡 Fill light intensity updated to ${this.fillLight.intensity}`);
+        }
+        
+        // Force a render update
+        if (this.renderer && this.scene && this.camera) {
+            this.renderer.render(this.scene, this.camera);
+        }
+        
+        console.log(`💡 Light intensity set to ${this.lightIntensity}`);
+    }
+
+    /**
+     * Control shadow intensity
+     * @param {number} intensity - Shadow intensity (0.0 to 1.0)
+     */
+    setShadowIntensity(intensity) {
+        this.shadowIntensity = Math.max(0, Math.min(1.0, intensity));
+        
+        if (this.mainLight && this.mainLight.shadow) {
+            // Control shadow opacity
+            if (this.mainLight.shadow.map) {
+                this.mainLight.shadow.map.needsUpdate = true;
+            }
+            
+            // Adjust shadow bias for quality
+            this.mainLight.shadow.bias = -0.001 * this.shadowIntensity;
+            
+            console.log(`🌑 Shadow bias updated to ${this.mainLight.shadow.bias}`);
+        }
+        
+        // Update model shadow properties
+        if (this.model) {
+            this.model.traverse((child) => {
+                if (child.isMesh && child.material) {
+                    const shouldCastShadow = this.shadowIntensity > 0;
+                    child.receiveShadow = shouldCastShadow;
+                    child.castShadow = shouldCastShadow;
+                    
+                    // Adjust material properties for shadow visibility
+                    if (child.material) {
+                        if (Array.isArray(child.material)) {
+                            child.material.forEach(mat => {
+                                mat.shadowSide = window.THREE.FrontSide;
+                                mat.needsUpdate = true;
+                            });
+                        } else {
+                            child.material.shadowSide = window.THREE.FrontSide;
+                            child.material.needsUpdate = true;
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Update renderer shadow settings
+        if (this.renderer) {
+            this.renderer.shadowMap.enabled = this.shadowIntensity > 0;
+            this.renderer.shadowMap.needsUpdate = true;
+        }
+        
+        // Force a render update
+        if (this.renderer && this.scene && this.camera) {
+            this.renderer.render(this.scene, this.camera);
+        }
+        
+        console.log(`🌑 Shadow intensity set to ${this.shadowIntensity}`);
+    }
+
+    /**
+     * Get current light intensity
+     */
+    getLightIntensity() {
+        return this.lightIntensity || 0.9;
+    }
+
+    /**
+     * Get current shadow intensity
+     */
+    getShadowIntensity() {
+        return this.shadowIntensity || 1.0;
     }
 
     dispose() {

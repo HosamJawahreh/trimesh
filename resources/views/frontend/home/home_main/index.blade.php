@@ -13,7 +13,7 @@
 
     @php
         $slugs = [
-            'hero', 'about', 'services', 'text-slider',
+            'hero', 'about', 'process', 'services', 'text-slider',
             'portfolio', 'team', 'brand', 'testimonial', 'blog'
         ];
     @endphp

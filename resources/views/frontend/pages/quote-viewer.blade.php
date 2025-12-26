@@ -144,8 +144,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // ESC key to cancel active measurement tool
     document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape' && window.toolbarHandler && window.toolbarHandler.activeTool) {
-            window.toolbarHandler.cancelActiveTool();
+        if (e.key === 'Escape') {
+            // Cancel measurement tool if active
+            if (window.measurementManager && window.measurementManager.activeTool) {
+                const viewer = window.viewerGeneral || window.viewer;
+                if (viewer) {
+                    window.measurementManager.cancelTool(viewer);
+                    showToolbarNotification('Measurement tool cancelled', 'info');
+                }
+            }
+            // Fallback to old handler
+            else if (window.toolbarHandler && window.toolbarHandler.activeTool) {
+                window.toolbarHandler.cancelActiveTool();
+            }
         }
     });
 
@@ -224,19 +235,19 @@ document.addEventListener('DOMContentLoaded', function() {
     if (sidebarQuoteBtn) {
         sidebarQuoteBtn.addEventListener('click', async function(e) {
             e.preventDefault();
-            
+
             // Use the global viewer type set at page load
             const viewerType = GLOBAL_VIEWER_TYPE;
             console.log('🎯 REQUEST QUOTE - Current URL:', window.location.href);
             console.log('🎯 REQUEST QUOTE - Using GLOBAL viewer type:', viewerType);
             const viewerId = viewerType === 'medical' ? 'medical' : 'general';
-            
+
             // Get the active viewer - dental uses viewerGeneral with different settings
             const viewer = viewerType === 'medical' ? window.viewerMedical || window.viewer : window.viewerGeneral || window.viewer;
-            
+
             console.log('🔍 Selected viewer:', viewer ? 'Found' : 'NOT FOUND');
             console.log('🔍 Uploaded files:', viewer ? viewer.uploadedFiles?.length : 0);
-            
+
             if (!viewer || !viewer.uploadedFiles || viewer.uploadedFiles.length === 0) {
                 alert('Please upload and calculate files first!');
                 return;
@@ -284,15 +295,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 // Map the pricing breakdown to files data with actual prices
                 const pricingBreakdown = quoteData.pricing_breakdown || [];
-                
+
                 console.log('📊 Pricing breakdown:', pricingBreakdown);
-                
+
                 const filesData = pricingBreakdown.map(item => {
                     const filePrice = parseFloat(item.price) || 0;
                     const fileVolume = parseFloat(item.volume_cm3) || 0;
-                    
+
                     console.log(`  File: ${item.file_name}, Volume: ${fileVolume}, Price: ${filePrice}`);
-                    
+
                     return {
                         name: item.file_name || 'Unknown',
                         technology: globalTechnology,
@@ -635,7 +646,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                             <div class="toolbar-group" style="display: flex !important; gap: 4px !important; visibility: visible !important; opacity: 1 !important;">
 
                                                 {{-- Measurement Tool with Dropdown --}}
-                                                <div style="position: relative;">
+                                                <div style="position: relative !important;">
                                                     <button type="button" class="toolbar-btn" id="measurementToolBtn" title="Measurement Tools" data-tool="measurement" onclick="window.toolbarHandler.toggleMeasurement('General')">
                                                         <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                                                             <path d="M4 16L16 4M6 16L8 14M10 16L12 14M14 16L16 14M4 14L6 12M4 10L8 6M4 6L6 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
@@ -837,22 +848,138 @@ document.addEventListener('DOMContentLoaded', function() {
                                             {{-- Divider --}}
                                             <div style="width: 1px; height: 32px; background: rgba(0,0,0,0.1); margin: 0 4px;"></div>
 
-                                            {{-- Action Buttons Group --}}
-                                            <div class="toolbar-group" style="display: flex !important; gap: 4px !important; visibility: visible !important; opacity: 1 !important;">
-                                                <button type="button" class="toolbar-btn" id="shareToolBtn" title="Share Model" data-action="share" onclick="window.toolbarHandler.shareModel('General')">
-                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                                                        <circle cx="15" cy="4" r="3" stroke="currentColor" stroke-width="1.8"/>
-                                                        <circle cx="5" cy="10" r="3" stroke="currentColor" stroke-width="1.8"/>
-                                                        <circle cx="15" cy="16" r="3" stroke="currentColor" stroke-width="1.8"/>
-                                                        <path d="M7.5 11.5L12.5 14.5M12.5 5.5L7.5 8.5" stroke="currentColor" stroke-width="1.8"/>
+                                            {{-- Lighting Controls Group - Toggle Buttons --}}
+                                            <div class="toolbar-group" style="position: relative;">
+                                                <button type="button" class="toolbar-btn" id="lightIntensityBtn" title="Light Intensity" data-tool="lightIntensity" onclick="window.lightingController.toggleLightPanel()">
+                                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                                        <circle cx="12" cy="12" r="5" stroke="currentColor" stroke-width="2"/>
+                                                        <path d="M12 1v3M12 20v3M1 12h3M20 12h3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                                                     </svg>
                                                 </button>
-                                                <button type="button" class="toolbar-btn toolbar-btn-primary" id="saveCalculateToolBtn" title="Save & Calculate Pricing" data-action="saveCalculate" onclick="window.toolbarHandler.saveAndCalculate('General')">
-                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                                                        <path d="M16 18H4C3 18 2 17 2 16V4C2 3 3 2 4 2H13L18 7V16C18 17 17 18 16 18Z" stroke="currentColor" stroke-width="1.8"/>
-                                                        <path d="M5 11H15V18H5V11Z" stroke="currentColor" stroke-width="1.8"/>
-                                                        <path d="M14 2V6H6V2" stroke="currentColor" stroke-width="1.8"/>
+                                                <button type="button" class="toolbar-btn" id="shadowIntensityBtn" title="Shadow Intensity" data-tool="shadowIntensity" onclick="window.lightingController.toggleShadowPanel()">
+                                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                                        <ellipse cx="12" cy="19" rx="8" ry="3" fill="currentColor" opacity="0.5"/>
+                                                        <circle cx="12" cy="8" r="6" stroke="currentColor" stroke-width="2" fill="none"/>
                                                     </svg>
+                                                </button>
+                                                <button type="button" class="toolbar-btn" id="lightRotationBtn" title="Light Rotation" data-tool="lightRotation" onclick="window.lightingController.toggleRotationPanel()">
+                                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none"/>
+                                                        <circle cx="12" cy="12" r="3" fill="currentColor"/>
+                                                        <path d="M12 2L12 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                                        <path d="M12 2 A10 10 0 0 1 17 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.4"/>
+                                                    </svg>
+                                                </button>
+
+                                                {{-- Light Intensity Panel --}}
+                                                <div id="lightIntensityPanel" class="lighting-control-panel" style="display: none; position: absolute; top: 48px; left: 0; background: white; padding: 16px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; min-width: 240px;">
+                                                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style="color: #f39c12;">
+                                                                <circle cx="12" cy="12" r="5" stroke="currentColor" stroke-width="2"/>
+                                                                <path d="M12 1v3M12 20v3M1 12h3M20 12h3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                                            </svg>
+                                                            <span style="font-weight: 600; color: #333; font-size: 14px;">Light Intensity</span>
+                                                        </div>
+                                                        <button type="button" onclick="window.lightingController.toggleLightPanel()" style="background: none; border: none; cursor: pointer; color: #999; font-size: 22px; line-height: 1; padding: 0; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;" title="Close">&times;</button>
+                                                    </div>
+                                                    <div style="display: flex; align-items: center; gap: 12px;">
+                                                        <input type="range" 
+                                                               id="lightIntensitySlider" 
+                                                               class="lighting-slider"
+                                                               min="0" 
+                                                               max="2" 
+                                                               step="0.1" 
+                                                               value="0.9"
+                                                               title="Adjust Light Intensity (0-200%)"
+                                                               style="flex: 1; height: 6px; border-radius: 3px; background: linear-gradient(to right, #f39c12 0%, #f39c12 45%, #e0e0e0 45%, #e0e0e0 100%); outline: none; -webkit-appearance: none; appearance: none; cursor: pointer;">
+                                                        <span id="lightIntensityValue" style="font-weight: 700; color: #f39c12; min-width: 45px; text-align: right; font-size: 14px;">45%</span>
+                                                    </div>
+                                                </div>
+
+                                                {{-- Shadow Intensity Panel --}}
+                                                <div id="shadowIntensityPanel" class="lighting-control-panel" style="display: none; position: absolute; top: 48px; left: 0; background: white; padding: 16px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; min-width: 240px;">
+                                                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style="color: #7f8c8d;">
+                                                                <ellipse cx="12" cy="19" rx="8" ry="3" fill="currentColor" opacity="0.5"/>
+                                                                <circle cx="12" cy="8" r="6" stroke="currentColor" stroke-width="2" fill="none"/>
+                                                            </svg>
+                                                            <span style="font-weight: 600; color: #333; font-size: 14px;">Shadow Intensity</span>
+                                                        </div>
+                                                        <button type="button" onclick="window.lightingController.toggleShadowPanel()" style="background: none; border: none; cursor: pointer; color: #999; font-size: 22px; line-height: 1; padding: 0; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;" title="Close">&times;</button>
+                                                    </div>
+                                                    <div style="display: flex; align-items: center; gap: 12px;">
+                                                        <input type="range" 
+                                                               id="shadowIntensitySlider" 
+                                                               class="lighting-slider"
+                                                               min="0" 
+                                                               max="1" 
+                                                               step="0.05" 
+                                                               value="1.0"
+                                                               title="Adjust Shadow Intensity (0-100%)"
+                                                               style="flex: 1; height: 6px; border-radius: 3px; background: linear-gradient(to right, #7f8c8d 0%, #7f8c8d 100%, #e0e0e0 100%, #e0e0e0 100%); outline: none; -webkit-appearance: none; appearance: none; cursor: pointer;">
+                                                        <span id="shadowIntensityValue" style="font-weight: 700; color: #7f8c8d; min-width: 45px; text-align: right; font-size: 14px;">100%</span>
+                                                    </div>
+                                                </div>
+
+                                                {{-- Light Rotation Panel --}}
+                                                <div id="lightRotationPanel" class="lighting-control-panel" style="display: none; position: absolute; top: 48px; left: 0; background: white; padding: 16px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; min-width: 240px;">
+                                                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style="color: #9b59b6;">
+                                                                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none"/>
+                                                                <circle cx="12" cy="12" r="3" fill="currentColor"/>
+                                                                <path d="M12 2L12 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                                                <path d="M12 2 A10 10 0 0 1 17 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.4"/>
+                                                            </svg>
+                                                            <span style="font-weight: 600; color: #333; font-size: 14px;">Light Rotation</span>
+                                                        </div>
+                                                        <button type="button" onclick="window.lightingController.toggleRotationPanel()" style="background: none; border: none; cursor: pointer; color: #999; font-size: 22px; line-height: 1; padding: 0; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;" title="Close">&times;</button>
+                                                    </div>
+                                                    <div style="display: flex; align-items: center; gap: 12px;">
+                                                        <input type="range" 
+                                                               id="lightRotationSlider" 
+                                                               class="lighting-slider"
+                                                               min="0" 
+                                                               max="360" 
+                                                               step="5" 
+                                                               value="45"
+                                                               title="Rotate Light Source (0-360°)"
+                                                               style="flex: 1; height: 6px; border-radius: 3px; background: linear-gradient(to right, #9b59b6 0%, #9b59b6 12.5%, #e0e0e0 12.5%, #e0e0e0 100%); outline: none; -webkit-appearance: none; appearance: none; cursor: pointer;">
+                                                        <span id="lightRotationValue" style="font-weight: 700; color: #9b59b6; min-width: 45px; text-align: right; font-size: 14px;">45°</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {{-- Divider --}}
+                                            <div style="width: 1px; height: 32px; background: rgba(0,0,0,0.1); margin: 0 4px;"></div>
+
+                                            {{-- Share Button --}}
+                                            <div class="toolbar-group">
+                                                <button type="button" class="toolbar-btn" id="shareToolBtn" title="Share" data-action="share" onclick="window.toolbarHandler.shareModel()">
+                                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                                        <circle cx="15" cy="5" r="2.5" stroke="currentColor" stroke-width="1.8"/>
+                                                        <circle cx="5" cy="10" r="2.5" stroke="currentColor" stroke-width="1.8"/>
+                                                        <circle cx="15" cy="15" r="2.5" stroke="currentColor" stroke-width="1.8"/>
+                                                        <path d="M7.5 11L12.5 14M7.5 9L12.5 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                                                    </svg>
+                                                </button>
+                                            </div>
+
+                                            {{-- Spacer to push Save button to the right --}}
+                                            <div style="flex: 1;"></div>
+
+                                            {{-- Save & Continue Button (Far Right with padding) --}}
+                                            <div class="toolbar-group" style="display: flex !important; visibility: visible !important; opacity: 1 !important; margin-left: auto !important; padding-right: 12px !important;">
+                                                <button type="button" class="toolbar-btn-save-continue" id="saveCalculateToolBtn" title="Save & Continue" data-action="saveCalculate" onclick="window.toolbarHandler.saveAndCalculate('General')">
+                                                    <svg width="18" height="18" viewBox="0 0 20 20" fill="none" style="flex-shrink: 0;">
+                                                        <path d="M16 18H4C3 18 2 17 2 16V4C2 3 3 2 4 2H13L18 7V16C18 17 17 18 16 18Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                                                        <path d="M14 18V11H6V18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                                                        <path d="M6 2V6H13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                                                        <circle cx="10" cy="14.5" r="1" fill="currentColor"/>
+                                                    </svg>
+                                                    <span style="font-weight: 600; font-size: 14px; margin-left: 8px;">Save & Continue</span>
                                                 </button>
                                             </div>
                                         </div>
@@ -2108,11 +2235,14 @@ body.modal-open #rightFilesPanel {
     z-index: 2000 !important;
     transition: all 0.3s ease;
     pointer-events: auto !important;
+    overflow: visible !important;
 }
 
 .toolbar-group {
     display: flex;
     gap: 4px;
+    overflow: visible !important;
+    position: relative;
 }
 
 .toolbar-divider {
@@ -2159,6 +2289,66 @@ body.modal-open #rightFilesPanel {
 .toolbar-btn-primary:hover {
     background: linear-gradient(135deg, #357abd 0%, #2868a8 100%) !important;
     box-shadow: 0 6px 16px rgba(74, 144, 226, 0.4) !important;
+}
+
+/* Save & Continue Button - Premium Design */
+.toolbar-btn-save-continue {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 24px;
+    background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    box-shadow: 0 4px 12px rgba(74, 144, 226, 0.35), 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.toolbar-btn-save-continue::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s ease;
+}
+
+.toolbar-btn-save-continue:hover::before {
+    left: 100%;
+}
+
+.toolbar-btn-save-continue:hover {
+    background: linear-gradient(135deg, #357abd 0%, #2868a8 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(74, 144, 226, 0.45), 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.toolbar-btn-save-continue:active {
+    transform: translateY(0px);
+    box-shadow: 0 2px 8px rgba(74, 144, 226, 0.35);
+}
+
+.toolbar-btn-save-continue svg {
+    transition: transform 0.2s ease;
+}
+
+.toolbar-btn-save-continue:hover svg:first-child {
+    transform: scale(1.1);
+}
+
+.toolbar-btn-save-continue:disabled {
+    background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%);
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+    opacity: 0.6;
 }
 
 @keyframes spin {
@@ -2273,6 +2463,100 @@ body.modal-open #rightFilesPanel {
 
 .measurement-results-panel.visible {
     display: flex;
+}
+
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Lighting Control Panels */
+.lighting-control-panel {
+    animation: fadeInScale 0.2s ease;
+}
+
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.lighting-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+/* Webkit browsers (Chrome, Safari, Edge) */
+.lighting-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: white;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    border: 2px solid #4a90e2;
+    transition: all 0.2s ease;
+}
+
+.lighting-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.15);
+    box-shadow: 0 3px 10px rgba(0,0,0,0.4);
+}
+
+.lighting-slider::-webkit-slider-thumb:active {
+    transform: scale(0.95);
+}
+
+/* Firefox */
+.lighting-slider::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: white;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    border: 2px solid #4a90e2;
+    transition: all 0.2s ease;
+}
+
+.lighting-slider::-moz-range-thumb:hover {
+    transform: scale(1.15);
+    box-shadow: 0 3px 10px rgba(0,0,0,0.4);
+}
+
+.lighting-slider:hover {
+    height: 8px;
+}
+
+/* Lighting panel positioning */
+#lightIntensityPanel {
+    left: auto !important;
+    right: auto !important;
+}
+
+#shadowIntensityPanel {
+    left: auto !important;
+    right: auto !important;
+}
+
+#lightRotationPanel {
+    left: auto !important;
+    right: auto !important;
 }
 
 @keyframes slideInLeft {
@@ -2432,18 +2716,23 @@ body.modal-open #rightFilesPanel {
 
 /* Simplified Measurement Submenu */
 .measurement-submenu {
-    position: absolute;
-    top: 100%;
-    margin-top: 8px;
-    left: 0;
+    position: absolute !important;
+    top: 100% !important;
+    margin-top: 8px !important;
+    left: 0 !important;
     background: white;
     border-radius: 10px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
     padding: 8px;
     min-width: 260px;
-    z-index: 10000;
+    z-index: 10000 !important;
     animation: slideDown 0.2s ease;
     border: 1px solid #e9ecef;
+    display: none;
+}
+
+.measurement-submenu[style*="display: block"] {
+    display: block !important;
 }
 
 @keyframes slideDown {
@@ -2541,6 +2830,11 @@ body.modal-open #rightFilesPanel {
 .submenu-btn svg {
     flex-shrink: 0;
     transition: transform 0.2s ease;
+}
+
+.submenu-btn span {
+    flex: 1;
+    white-space: nowrap;
 }
 
 .submenu-btn:hover svg {
@@ -5569,6 +5863,9 @@ loading
         // Initialize share buttons
         initShareButtons();
 
+        // Initialize undo/redo system
+        initUndoRedoSystem();
+
         // Add click listeners to both viewers (Three.js uses renderer.domElement)
         if (window.viewerGeneral && window.viewerGeneral.renderer) {
             const canvas = window.viewerGeneral.renderer.domElement;
@@ -5590,12 +5887,116 @@ loading
     });
 
     // ============================================
+    // UNDO/REDO SYSTEM INITIALIZATION
+    // ============================================
+
+    function initUndoRedoSystem() {
+        console.log('⏪⏩ Initializing undo/redo system...');
+        
+        const viewer = window.viewerGeneral || window.viewer;
+        
+        if (!viewer) {
+            console.warn('⚠️ No viewer available for undo/redo initialization');
+            return;
+        }
+
+        console.log('✅ Viewer found for undo/redo:', !!viewer);
+        console.log('✅ toolbarHandler exists:', !!window.toolbarHandler);
+        console.log('✅ saveState method exists:', typeof window.toolbarHandler.saveState);
+
+        // Initialize state history
+        if (!viewer.stateHistory) {
+            viewer.stateHistory = [];
+            viewer.stateHistoryIndex = -1;
+            console.log('📝 Initialized empty state history');
+        }
+
+        // Save initial state
+        if (window.toolbarHandler && typeof window.toolbarHandler.saveState === 'function') {
+            window.toolbarHandler.saveState(viewer);
+            console.log('✅ Initial state saved. History length:', viewer.stateHistory.length);
+            console.log('✅ Current index:', viewer.stateHistoryIndex);
+        } else {
+            console.error('❌ Cannot save initial state - saveState method not found!');
+        }
+
+        // Track camera movements for undo/redo
+        if (viewer.controls) {
+            let cameraChangeTimeout;
+            viewer.controls.addEventListener('end', () => {
+                // Debounce camera changes - only save state after user stops moving camera
+                clearTimeout(cameraChangeTimeout);
+                cameraChangeTimeout = setTimeout(() => {
+                    if (window.toolbarHandler && typeof window.toolbarHandler.saveState === 'function') {
+                        window.toolbarHandler.saveState(viewer);
+                        updateUndoRedoButtons();
+                        console.log('📷 Camera state saved');
+                    }
+                }, 500); // Wait 500ms after camera movement stops
+            });
+        }
+
+        // Update button states initially
+        updateUndoRedoButtons();
+
+        console.log('✅ Undo/redo system initialized');
+    }
+
+    function updateUndoRedoButtons() {
+        const viewer = window.viewerGeneral || window.viewer;
+        
+        if (!viewer || !viewer.stateHistory) {
+            console.log('⚠️ updateUndoRedoButtons: No viewer or state history');
+            return;
+        }
+
+        console.log(`📊 State: ${viewer.stateHistoryIndex + 1}/${viewer.stateHistory.length}`);
+
+        const undoBtn = document.getElementById('undoBtn');
+        const redoBtn = document.getElementById('redoBtn');
+
+        // Update undo button
+        if (undoBtn) {
+            if (viewer.stateHistoryIndex > 0) {
+                undoBtn.disabled = false;
+                undoBtn.style.opacity = '1';
+                undoBtn.title = `Undo (${viewer.stateHistoryIndex} actions available)`;
+                console.log('✅ Undo button ENABLED');
+            } else {
+                undoBtn.disabled = true;
+                undoBtn.style.opacity = '0.4';
+                undoBtn.title = 'Nothing to undo';
+            }
+        }
+
+        // Update redo button
+        if (redoBtn) {
+            const redoAvailable = viewer.stateHistoryIndex < viewer.stateHistory.length - 1;
+            if (redoAvailable) {
+                redoBtn.disabled = false;
+                redoBtn.style.opacity = '1';
+                redoBtn.title = `Redo (${viewer.stateHistory.length - viewer.stateHistoryIndex - 1} actions available)`;
+            } else {
+                redoBtn.disabled = true;
+                redoBtn.style.opacity = '0.4';
+                redoBtn.title = 'Nothing to redo';
+            }
+        }
+    }
+
+    // ============================================
+    // END UNDO/REDO SYSTEM INITIALIZATION
+    // ============================================
+
+    // ============================================
     // END MEASUREMENT TOOL
     // ============================================
 });
 </script>
 
 <script src="{{ asset('frontend/assets/js/3d-viewer-pro.js') }}?t={{ time() }}"></script>
+<script src="{{ asset('frontend/assets/js/lighting-controller.js') }}?t={{ time() }}"></script>
+<script src="{{ asset('frontend/assets/js/measurement-manager.js') }}?t={{ time() }}"></script>
 <script src="{{ asset('frontend/assets/js/volume-calculator.js') }}?v={{ time() }}"></script>
 <script src="{{ asset('frontend/assets/js/pricing-calculator.js') }}?v={{ time() }}"></script>
 {{-- REMOVED: simple-save-calculate.js - Conflicts with enhanced-save-calculate.js --}}
@@ -5981,114 +6382,74 @@ window.toolbarHandler = {
             return;
         }
 
-        // Cancel any active tool first (except for clear)
-        if (measureType !== 'clear' && this.activeTool) {
-            this.cancelActiveTool();
-        }
-
-        // Only clear ALL measurements if the clear button is clicked
-        // For other tools, we want measurements to accumulate
-        if (measureType === 'clear') {
-            this.clearAllMeasurements(viewer);
-        }
-
-        // Get tool info for status bar
-        const toolInfo = {
-            distance: {
-                name: 'Distance Measurement',
-                instruction: 'Click two points on the model to measure distance',
-                icon: 'M2 2L16 16M2 2m0 0a2 2 0 110 0M16 16m0 0a2 2 0 110 0'
-            },
-            diameter: {
-                name: 'Diameter Measurement',
-                instruction: 'Click two points on opposite sides of a circle',
-                icon: 'M9 2a7 7 0 110 14a7 7 0 010-14M2 9L16 9'
-            },
-            area: {
-                name: 'Area Measurement',
-                instruction: 'Click 3+ points to define area. Click first point to finish.',
-                icon: 'M2 2h14v14H2z'
-            },
-            'point-to-surface': {
-                name: 'Point-to-Surface',
-                instruction: 'Click a point, then click the target surface',
-                icon: 'M9 2v10M9 2a2 2 0 110 0M2 12h14v4H2z'
-            },
-            angle: {
-                name: 'Angle Measurement',
-                instruction: 'Click three points (middle one is vertex)',
-                icon: 'M2 16L9 9L16 16'
-            }
-        };
-
-        switch(measureType) {
-            case 'distance':
-                if (toolInfo[measureType]) {
-                    this.showActiveToolStatus(
-                        toolInfo[measureType].name,
-                        toolInfo[measureType].instruction,
-                        toolInfo[measureType].icon
-                    );
-                }
-                this.startDistanceMeasurement(viewer, viewerType);
-                break;
-            case 'diameter':
-                if (toolInfo[measureType]) {
-                    this.showActiveToolStatus(
-                        toolInfo[measureType].name,
-                        toolInfo[measureType].instruction,
-                        toolInfo[measureType].icon
-                    );
-                }
-                this.startDiameterMeasurement(viewer, viewerType);
-                break;
-            case 'area':
-                if (toolInfo[measureType]) {
-                    this.showActiveToolStatus(
-                        toolInfo[measureType].name,
-                        toolInfo[measureType].instruction,
-                        toolInfo[measureType].icon
-                    );
-                }
-                this.startAreaMeasurement(viewer, viewerType);
-                break;
-            case 'point-to-line':
-                this.startPointToLineMeasurement(viewer, viewerType);
-                break;
-            case 'point-to-surface':
-                // Clear previous measurements before starting
-                this.clearAllMeasurements(viewer);
-                if (toolInfo[measureType]) {
-                    this.showActiveToolStatus(
-                        toolInfo[measureType].name,
-                        toolInfo[measureType].instruction,
-                        toolInfo[measureType].icon
-                    );
-                }
-                this.startPointToSurfaceMeasurement(viewer, viewerType);
-                break;
-            case 'angle':
-                // Clear previous measurements before starting
-                this.clearAllMeasurements(viewer);
-                if (toolInfo[measureType]) {
-                    this.showActiveToolStatus(
-                        toolInfo[measureType].name,
-                        toolInfo[measureType].instruction,
-                        toolInfo[measureType].icon
-                    );
-                }
-                this.startAngleMeasurement(viewer, viewerType);
-                break;
-            case 'clear':
-                this.clearAllMeasurements(viewer);
+        // Use the new measurement manager
+        if (window.measurementManager) {
+            if (measureType === 'clear') {
+                // Clear all measurements
+                window.measurementManager.clearAllMeasurements(viewer);
+                
                 // Remove active from all buttons
                 if (buttonEl) {
                     const submenu = buttonEl.closest('.measurement-submenu');
                     if (submenu) {
-                        submenu.querySelectorAll('.submenu-btn').forEach(b => b.classList.remove('active'));
+                        submenu.querySelectorAll('.submenu-btn').forEach(b => {
+                            b.classList.remove('active');
+                            b.style.background = '';
+                            b.style.color = '';
+                        });
                     }
                 }
-                break;
+                
+                // Hide active tool status
+                this.hideActiveToolStatus();
+                
+                showToolbarNotification('All measurements cleared', 'success');
+            } else {
+                // Start new measurement with the selected tool
+                window.measurementManager.selectTool(viewer, measureType, viewerType);
+                
+                // Show active tool status
+                const toolInfo = {
+                    distance: {
+                        name: 'Distance Measurement',
+                        instruction: 'Click two points on the model to measure distance',
+                        icon: 'M2 2L16 16M2 2m0 0a2 2 0 110 0M16 16m0 0a2 2 0 110 0'
+                    },
+                    diameter: {
+                        name: 'Diameter Measurement',
+                        instruction: 'Click two points on opposite sides to measure diameter',
+                        icon: 'M9 2a7 7 0 110 14a7 7 0 010-14M2 9L16 9'
+                    },
+                    area: {
+                        name: 'Area Measurement',
+                        instruction: 'Click 3+ points to define area. Click first point again to close.',
+                        icon: 'M2 2h14v14H2z'
+                    },
+                    'point-to-surface': {
+                        name: 'Point-to-Surface',
+                        instruction: 'Click a point, then click the target surface',
+                        icon: 'M9 2v10M9 2a2 2 0 110 0M2 12h14v4H2z'
+                    },
+                    angle: {
+                        name: 'Angle Measurement',
+                        instruction: 'Click three points: First point → Vertex (middle) → Third point',
+                        icon: 'M2 16L9 9L16 16'
+                    }
+                };
+                
+                if (toolInfo[measureType]) {
+                    this.showActiveToolStatus(
+                        toolInfo[measureType].name,
+                        toolInfo[measureType].instruction,
+                        toolInfo[measureType].icon
+                    );
+                }
+                
+                showToolbarNotification(`${measureType.charAt(0).toUpperCase() + measureType.slice(1)} tool activated`, 'info');
+            }
+        } else {
+            console.error('❌ Measurement Manager not found!');
+            showToolbarNotification('Measurement system not ready', 'error');
         }
     },
 
@@ -7018,6 +7379,11 @@ window.toolbarHandler = {
             const state = viewer.stateHistory[viewer.stateHistoryIndex];
             this.restoreState(viewer, state);
             showToolbarNotification('Undone', 'success', 1000);
+            
+            // Update button states
+            if (typeof updateUndoRedoButtons === 'function') {
+                updateUndoRedoButtons();
+            }
         } else {
             showToolbarNotification('Nothing to undo', 'info', 1500);
         }
@@ -7037,6 +7403,11 @@ window.toolbarHandler = {
             const state = viewer.stateHistory[viewer.stateHistoryIndex];
             this.restoreState(viewer, state);
             showToolbarNotification('Redone', 'success', 1000);
+            
+            // Update button states
+            if (typeof updateUndoRedoButtons === 'function') {
+                updateUndoRedoButtons();
+            }
         } else {
             showToolbarNotification('Nothing to redo', 'info', 1500);
         }
@@ -7054,12 +7425,24 @@ window.toolbarHandler = {
             cameraRotation: viewer.camera.rotation.clone(),
             transparency: viewer.currentTransparencyIndex || 0,
             shadows: viewer.renderer.shadowMap.enabled,
+            backgroundColor: viewer.scene.background ? viewer.scene.background.getHex() : 0xffffff,
+            modelColors: [],
             toolsVisible: {
                 boundingBox: !!viewer.scene.children.find(child => child.userData && child.userData.isBoundingBoxHelper && child.visible),
                 axis: !!viewer.scene.children.find(child => child.userData && child.userData.isAxisHelper && child.visible),
                 grid: !!viewer.scene.children.find(child => child.userData && child.userData.isGridHelper && child.visible)
             }
         };
+
+        // Capture model colors
+        viewer.scene.traverse((object) => {
+            if (object.isMesh && object.material) {
+                state.modelColors.push({
+                    uuid: object.uuid,
+                    color: object.material.color.getHex()
+                });
+            }
+        });
 
         // Remove future states if we're not at the end
         if (viewer.stateHistoryIndex < viewer.stateHistory.length - 1) {
@@ -7074,11 +7457,21 @@ window.toolbarHandler = {
             viewer.stateHistory.shift();
             viewer.stateHistoryIndex--;
         }
+
+        // Update button states
+        if (typeof updateUndoRedoButtons === 'function') {
+            updateUndoRedoButtons();
+        }
+
+        console.log(`💾 State saved (${viewer.stateHistoryIndex + 1}/${viewer.stateHistory.length})`);
     },
 
     restoreState: function(viewer, state) {
         if (!state) return;
 
+        const THREE = window.THREE;
+
+        // Restore camera
         viewer.camera.position.copy(state.cameraPosition);
         viewer.camera.rotation.copy(state.cameraRotation);
 
@@ -7087,6 +7480,24 @@ window.toolbarHandler = {
 
         // Restore shadows
         viewer.renderer.shadowMap.enabled = state.shadows;
+
+        // Restore background color
+        if (state.backgroundColor !== undefined && THREE) {
+            viewer.scene.background = new THREE.Color(state.backgroundColor);
+        }
+
+        // Restore model colors
+        if (state.modelColors && state.modelColors.length > 0) {
+            viewer.scene.traverse((object) => {
+                if (object.isMesh && object.material) {
+                    const savedColor = state.modelColors.find(c => c.uuid === object.uuid);
+                    if (savedColor && THREE) {
+                        object.material.color.setHex(savedColor.color);
+                        object.material.needsUpdate = true;
+                    }
+                }
+            });
+        }
 
         // Restore tools visibility
         const boundingBox = viewer.scene.children.find(child => child.userData && child.userData.isBoundingBoxHelper);
@@ -7163,6 +7574,9 @@ window.toolbarHandler = {
 
         // Function to apply color
         const applyColor = (color) => {
+            // Save state before making changes
+            window.toolbarHandler.saveState(viewer);
+            
             viewer.scene.traverse((object) => {
                 if (object.isMesh && object.material) {
                     object.material.color.set(color);
@@ -7276,6 +7690,9 @@ window.toolbarHandler = {
 
         // Function to apply background color
         const applyBgColor = (color) => {
+            // Save state before making changes
+            window.toolbarHandler.saveState(viewer);
+            
             viewer.scene.background = new THREE.Color(color);
             if (viewer.render) viewer.render();
             showToolbarNotification('Background color changed', 'success', 1500);
@@ -8576,28 +8993,28 @@ document.addEventListener('DOMContentLoaded', async function() {
     const urlParams = new URLSearchParams(window.location.search);
     const filesParam = urlParams.get('files');
     const viewerType = urlParams.get('viewer') || 'general';
-    
+
     if (!filesParam) {
         console.log('📂 No files parameter found in URL');
         return;
     }
-    
+
     console.log('🔄 Restoring files from URL:', filesParam);
     console.log('📺 Viewer type:', viewerType);
-    
+
     // Parse file IDs from comma-separated string
     const fileIds = filesParam.split(',').map(id => id.trim()).filter(id => id);
-    
+
     if (fileIds.length === 0) {
         console.log('⚠️ No valid file IDs found');
         return;
     }
-    
+
     console.log('📋 File IDs to restore:', fileIds);
-    
+
     // Get the viewer instance
     const viewer = viewerType === 'dental' ? window.viewerDental : window.viewerGeneral;
-    
+
     if (!viewer) {
         console.error('❌ Viewer not initialized yet');
         // Retry after a short delay
@@ -8611,33 +9028,33 @@ document.addEventListener('DOMContentLoaded', async function() {
         }, 1000);
         return;
     }
-    
+
     restoreFiles(fileIds, viewer);
 });
 
 async function restoreFiles(fileIds, viewer) {
     console.log('🔄 Starting file restoration...');
-    
+
     for (const fileId of fileIds) {
         try {
             console.log(`📥 Fetching file: ${fileId}`);
-            
+
             const response = await fetch(`/api/3d-files/${fileId}`);
-            
+
             if (!response.ok) {
                 console.error(`❌ Failed to fetch file ${fileId}:`, response.status);
                 continue;
             }
-            
+
             const data = await response.json();
-            
+
             if (!data.success) {
                 console.error(`❌ API error for file ${fileId}:`, data.message);
                 continue;
             }
-            
+
             console.log(`✅ File data received for ${data.fileName}`);
-            
+
             // Decode base64 file data
             const fileData = data.fileData;
             const byteCharacters = atob(fileData);
@@ -8646,30 +9063,30 @@ async function restoreFiles(fileIds, viewer) {
                 byteNumbers[i] = byteCharacters.charCodeAt(i);
             }
             const byteArray = new Uint8Array(byteNumbers);
-            
+
             // Create a File object
             const file = new File([byteArray], data.fileName, {
                 type: 'application/octet-stream',
                 lastModified: data.uploadTime
             });
-            
+
             console.log(`📦 Reconstructed file object:`, {
                 name: file.name,
                 size: file.size,
                 type: file.type
             });
-            
+
             // Load file into viewer
             await viewer.loadFile(file, data.fileId);
             console.log(`✅ File loaded into viewer: ${data.fileName}`);
-            
+
         } catch (error) {
             console.error(`❌ Error restoring file ${fileId}:`, error);
         }
     }
-    
+
     console.log('✅ File restoration complete');
-    
+
     // Clean up URL (remove files parameter to prevent reloading, but preserve viewer parameter)
     const url = new URL(window.location);
     const viewerParam = url.searchParams.get('viewer');

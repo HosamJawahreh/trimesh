@@ -7,6 +7,7 @@ import tempfile
 import logging
 from typing import Optional, Dict, Any
 from pathlib import Path
+from contextlib import asynccontextmanager
 
 import trimesh
 import pymeshfix
@@ -24,22 +25,27 @@ logger = logging.getLogger(__name__)
 # NumPy configuration for better performance
 np.set_printoptions(precision=6, suppress=True)
 
-# Initialize FastAPI app
-app = FastAPI(
-    title="TriMesh Professional Mesh Repair Service",
-    description="Industrial-grade mesh repair and volume calculation API",
-    version="1.0.0"
-)
-
-@app.on_event("startup")
-async def startup_event():
-    """Log service information on startup"""
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Modern lifespan event handler for startup and shutdown"""
+    # Startup
     logger.info(f"🚀 TriMesh Mesh Repair Service Starting")
     logger.info(f"📦 NumPy version: {np.__version__}")
     logger.info(f"📦 Trimesh version: {trimesh.__version__}")
     logger.info(f"📦 SciPy version available for advanced matrix operations")
     logger.info(f"✓ Service ready with enhanced NumPy matrix operations")
     logger.info(f"✓ Volume calculation endpoint available")
+    yield
+    # Shutdown (if needed)
+    logger.info(f"👋 TriMesh Mesh Repair Service Shutting Down")
+
+# Initialize FastAPI app with lifespan
+app = FastAPI(
+    title="TriMesh Professional Mesh Repair Service",
+    description="Industrial-grade mesh repair and volume calculation API",
+    version="1.0.0",
+    lifespan=lifespan
+)
 
 # CORS configuration - adjust origins for production
 app.add_middleware(

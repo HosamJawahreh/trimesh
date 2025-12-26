@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Light & Shadow Controls Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .control-group {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(74, 144, 226, 0.05);
+            border-radius: 8px;
+        }
+        .control-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        .value-display {
+            font-weight: 700;
+            color: #f39c12;
+            min-width: 50px;
+        }
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            outline: none;
+            cursor: pointer;
+        }
+        .status {
+            padding: 15px;
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            margin-top: 20px;
+            border-radius: 4px;
+        }
+        .error {
+            background: #ffebee;
+            border-left-color: #f44336;
+        }
+        .log {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 4px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+            margin-top: 20px;
+        }
+        .log-entry {
+            padding: 5px;
+            border-bottom: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🎨 Light & Shadow Controls Test</h1>
+        
+        <div class="status" id="status">
+            ⏳ Checking viewer availability...
+        </div>
+
+        <div class="control-group">
+            <div class="control-label">
+                ☀️ Light Intensity: 
+                <span class="value-display" id="lightValue">90%</span>
+            </div>
+            <input type="range" id="lightSlider" min="0" max="2" step="0.1" value="0.9">
+        </div>
+
+        <div class="control-group">
+            <div class="control-label">
+                🌑 Shadow Intensity: 
+                <span class="value-display" id="shadowValue">100%</span>
+            </div>
+            <input type="range" id="shadowSlider" min="0" max="1" step="0.05" value="1.0">
+        </div>
+
+        <div class="log" id="log">
+            <div class="log-entry">🔍 Console log will appear here...</div>
+        </div>
+    </div>
+
+    <script>
+        const logEl = document.getElementById('log');
+        const statusEl = document.getElementById('status');
+        
+        function addLog(message, type = 'info') {
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logEl.appendChild(entry);
+            logEl.scrollTop = logEl.scrollHeight;
+            console.log(message);
+        }
+
+        function updateStatus(message, isError = false) {
+            statusEl.textContent = message;
+            statusEl.className = isError ? 'status error' : 'status';
+        }
+
+        // Test 1: Check if we're on the quote viewer page
+        addLog('🔍 Test 1: Checking page context...');
+        if (window.location.pathname.includes('quote')) {
+            addLog('✅ On quote viewer page');
+        } else {
+            addLog('⚠️ NOT on quote viewer page - this is a standalone test');
+        }
+
+        // Test 2: Check for viewer
+        setTimeout(() => {
+            addLog('🔍 Test 2: Checking for window.viewerGeneral...');
+            if (window.viewerGeneral) {
+                addLog('✅ window.viewerGeneral exists');
+                updateStatus('✅ Viewer found! Controls should work.');
+                
+                // Test 3: Check methods
+                addLog('🔍 Test 3: Checking viewer methods...');
+                if (typeof window.viewerGeneral.setLightIntensity === 'function') {
+                    addLog('✅ setLightIntensity method exists');
+                } else {
+                    addLog('❌ setLightIntensity method NOT found');
+                }
+                
+                if (typeof window.viewerGeneral.setShadowIntensity === 'function') {
+                    addLog('✅ setShadowIntensity method exists');
+                } else {
+                    addLog('❌ setShadowIntensity method NOT found');
+                }
+            } else {
+                addLog('❌ window.viewerGeneral NOT found');
+                updateStatus('❌ Viewer not found. This test needs to run on the quote viewer page.', true);
+            }
+        }, 1000);
+
+        // Setup test controls
+        const lightSlider = document.getElementById('lightSlider');
+        const shadowSlider = document.getElementById('shadowSlider');
+        const lightValue = document.getElementById('lightValue');
+        const shadowValue = document.getElementById('shadowValue');
+
+        lightSlider.addEventListener('input', function() {
+            const intensity = parseFloat(this.value);
+            const percentage = Math.round((intensity / 2) * 100);
+            lightValue.textContent = `${percentage}%`;
+            addLog(`💡 Light slider moved to ${intensity} (${percentage}%)`);
+            
+            if (window.viewerGeneral && typeof window.viewerGeneral.setLightIntensity === 'function') {
+                window.viewerGeneral.setLightIntensity(intensity);
+                addLog('✅ Called setLightIntensity()');
+            } else {
+                addLog('❌ Cannot call setLightIntensity - viewer not ready');
+            }
+        });
+
+        shadowSlider.addEventListener('input', function() {
+            const intensity = parseFloat(this.value);
+            const percentage = Math.round(intensity * 100);
+            shadowValue.textContent = `${percentage}%`;
+            addLog(`🌑 Shadow slider moved to ${intensity} (${percentage}%)`);
+            
+            if (window.viewerGeneral && typeof window.viewerGeneral.setShadowIntensity === 'function') {
+                window.viewerGeneral.setShadowIntensity(intensity);
+                addLog('✅ Called setShadowIntensity()');
+            } else {
+                addLog('❌ Cannot call setShadowIntensity - viewer not ready');
+            }
+        });
+
+        addLog('✅ Test controls initialized');
+        addLog('👆 Try moving the sliders above to test');
+    </script>
+</body>
+</html>

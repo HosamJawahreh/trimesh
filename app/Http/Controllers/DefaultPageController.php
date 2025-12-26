@@ -140,7 +140,7 @@ class DefaultPageController extends Controller
         // Check if we need to restore a quote (coming from review page)
         $restoreQuoteId = $request->query('restore');
         $restoreQuote = null;
-        
+
         if ($restoreQuoteId) {
             $restoreQuote = \App\Models\Quote::find($restoreQuoteId);
             if ($restoreQuote) {
@@ -150,7 +150,6 @@ class DefaultPageController extends Controller
                     'file_ids' => $restoreQuote->file_ids,
                     'form_type' => $restoreQuote->form_type ?? $request->query('viewer', 'general')
                 ];
-                \Log::info('🔄 Restoring quote for viewer', $restoreQuote);
             }
         }
 
